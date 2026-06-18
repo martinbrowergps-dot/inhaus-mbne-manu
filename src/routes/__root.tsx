@@ -77,14 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Martin Brower CDNE — Centro de Controle de Manutenção" },
+      { name: "description", content: "Centro de Controle de Manutenção Industrial Martin Brower CDNE Recife" },
+      { property: "og:title", content: "Martin Brower CDNE — Centro de Controle" },
+      { property: "og:description", content: "Painel executivo de manutenção industrial" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

@@ -9,27 +9,247 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppTemperaturasRouteImport } from './routes/_app.temperaturas'
+import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
+import { Route as AppPassagemTurnoRouteImport } from './routes/_app.passagem-turno'
+import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
+import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
+import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
+import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
+import { Route as AppAlertasRouteImport } from './routes/_app.alertas'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTemperaturasRoute = AppTemperaturasRouteImport.update({
+  id: '/temperaturas',
+  path: '/temperaturas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgramacaoRoute = AppProgramacaoRouteImport.update({
+  id: '/programacao',
+  path: '/programacao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPassagemTurnoRoute = AppPassagemTurnoRouteImport.update({
+  id: '/passagem-turno',
+  path: '/passagem-turno',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIndicadoresRoute = AppIndicadoresRouteImport.update({
+  id: '/indicadores',
+  path: '/indicadores',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHhSemanalRoute = AppHhSemanalRouteImport.update({
+  id: '/hh-semanal',
+  path: '/hh-semanal',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEquipeRoute = AppEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChecklistsRoute = AppChecklistsRouteImport.update({
+  id: '/checklists',
+  path: '/checklists',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAlertasRoute = AppAlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => AppRoute,
+} as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof AppIndexRoute
+  '/alertas': typeof AppAlertasRoute
+  '/checklists': typeof AppChecklistsRoute
+  '/equipe': typeof AppEquipeRoute
+  '/hh-semanal': typeof AppHhSemanalRoute
+  '/indicadores': typeof AppIndicadoresRoute
+  '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/programacao': typeof AppProgramacaoRoute
+  '/temperaturas': typeof AppTemperaturasRoute
+}
+export interface FileRoutesByTo {
+  '/alertas': typeof AppAlertasRoute
+  '/checklists': typeof AppChecklistsRoute
+  '/equipe': typeof AppEquipeRoute
+  '/hh-semanal': typeof AppHhSemanalRoute
+  '/indicadores': typeof AppIndicadoresRoute
+  '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/programacao': typeof AppProgramacaoRoute
+  '/temperaturas': typeof AppTemperaturasRoute
+  '/': typeof AppIndexRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_app': typeof AppRouteWithChildren
+  '/_app/alertas': typeof AppAlertasRoute
+  '/_app/checklists': typeof AppChecklistsRoute
+  '/_app/equipe': typeof AppEquipeRoute
+  '/_app/hh-semanal': typeof AppHhSemanalRoute
+  '/_app/indicadores': typeof AppIndicadoresRoute
+  '/_app/passagem-turno': typeof AppPassagemTurnoRoute
+  '/_app/programacao': typeof AppProgramacaoRoute
+  '/_app/temperaturas': typeof AppTemperaturasRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths:
+    | '/'
+    | '/alertas'
+    | '/checklists'
+    | '/equipe'
+    | '/hh-semanal'
+    | '/indicadores'
+    | '/passagem-turno'
+    | '/programacao'
+    | '/temperaturas'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to:
+    | '/alertas'
+    | '/checklists'
+    | '/equipe'
+    | '/hh-semanal'
+    | '/indicadores'
+    | '/passagem-turno'
+    | '/programacao'
+    | '/temperaturas'
+    | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/alertas'
+    | '/_app/checklists'
+    | '/_app/equipe'
+    | '/_app/hh-semanal'
+    | '/_app/indicadores'
+    | '/_app/passagem-turno'
+    | '/_app/programacao'
+    | '/_app/temperaturas'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  AppRoute: typeof AppRouteWithChildren
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/temperaturas': {
+      id: '/_app/temperaturas'
+      path: '/temperaturas'
+      fullPath: '/temperaturas'
+      preLoaderRoute: typeof AppTemperaturasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/programacao': {
+      id: '/_app/programacao'
+      path: '/programacao'
+      fullPath: '/programacao'
+      preLoaderRoute: typeof AppProgramacaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/passagem-turno': {
+      id: '/_app/passagem-turno'
+      path: '/passagem-turno'
+      fullPath: '/passagem-turno'
+      preLoaderRoute: typeof AppPassagemTurnoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/indicadores': {
+      id: '/_app/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof AppIndicadoresRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/hh-semanal': {
+      id: '/_app/hh-semanal'
+      path: '/hh-semanal'
+      fullPath: '/hh-semanal'
+      preLoaderRoute: typeof AppHhSemanalRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/equipe': {
+      id: '/_app/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof AppEquipeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/checklists': {
+      id: '/_app/checklists'
+      path: '/checklists'
+      fullPath: '/checklists'
+      preLoaderRoute: typeof AppChecklistsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/alertas': {
+      id: '/_app/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AppAlertasRouteImport
+      parentRoute: typeof AppRoute
+    }
+  }
+}
+
+interface AppRouteChildren {
+  AppAlertasRoute: typeof AppAlertasRoute
+  AppChecklistsRoute: typeof AppChecklistsRoute
+  AppEquipeRoute: typeof AppEquipeRoute
+  AppHhSemanalRoute: typeof AppHhSemanalRoute
+  AppIndicadoresRoute: typeof AppIndicadoresRoute
+  AppPassagemTurnoRoute: typeof AppPassagemTurnoRoute
+  AppProgramacaoRoute: typeof AppProgramacaoRoute
+  AppTemperaturasRoute: typeof AppTemperaturasRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAlertasRoute: AppAlertasRoute,
+  AppChecklistsRoute: AppChecklistsRoute,
+  AppEquipeRoute: AppEquipeRoute,
+  AppHhSemanalRoute: AppHhSemanalRoute,
+  AppIndicadoresRoute: AppIndicadoresRoute,
+  AppPassagemTurnoRoute: AppPassagemTurnoRoute,
+  AppProgramacaoRoute: AppProgramacaoRoute,
+  AppTemperaturasRoute: AppTemperaturasRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  AppRoute: AppRouteWithChildren,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
