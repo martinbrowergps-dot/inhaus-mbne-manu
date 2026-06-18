@@ -79,9 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Martin Brower CDNE — Centro de Controle de Manutenção" },
       { name: "description", content: "Centro de Controle de Manutenção Industrial Martin Brower CDNE Recife" },
-      { property: "og:title", content: "Martin Brower CDNE — Centro de Controle" },
-      { property: "og:description", content: "Painel executivo de manutenção industrial" },
+      { property: "og:title", content: "Martin Brower CDNE — Centro de Controle de Manutenção" },
+      { property: "og:description", content: "Centro de Controle de Manutenção Industrial Martin Brower CDNE Recife" },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Martin Brower CDNE — Centro de Controle de Manutenção" },
+      { name: "twitter:description", content: "Centro de Controle de Manutenção Industrial Martin Brower CDNE Recife" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a868e763-fd31-4883-b177-dbcc4ff669d8/id-preview-a4481214--ff0c2448-cbe2-42d2-983d-857b5a63a617.lovable.app-1781790596967.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a868e763-fd31-4883-b177-dbcc4ff669d8/id-preview-a4481214--ff0c2448-cbe2-42d2-983d-857b5a63a617.lovable.app-1781790596967.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
