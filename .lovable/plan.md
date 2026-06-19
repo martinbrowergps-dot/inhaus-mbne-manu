@@ -1,87 +1,131 @@
+## Objetivo
 
-# Martin Brower CDNE — Centro de Controle de Manutenção Industrial
+Evoluir três áreas do Centro de Controle:
+1. **Temperaturas** — adicionar gráficos de tendência por local com seletor de período.
+2. **Programação** — visualizar lado a lado o que está Programado vs o que foi Executado, suportando o novo conjunto de status.
+3. **Indicadores** — adicionar KPI de Aderência à Programação como destaque, e oferecer um conjunto enxuto de gráficos executivos extras.
 
-Dashboard executivo dark-blue premium estilo "sala de controle", lendo dados ao vivo da planilha Google pública via CSV export, com refresh automático a cada 5 minutos.
+---
 
-## Pré-requisito (ação do usuário)
+## 1. Temperaturas — gráficos de tendência
 
-A planilha precisa estar configurada como **"Qualquer pessoa com o link → Leitor"**. Sem isso o app não conseguirá ler. Confirme antes de eu construir.
+### Novo componente `<TempTrendChart/>`
+- Recharts `LineChart` por local, com faixa-alvo (`ReferenceArea` verde) e limites min/max (`ReferenceLine` tracejada).
+- Eixo X: timestamp formatado (HH:mm para 24h, dd/MM para 7d, dd/MM para 30d).
+- Linha principal = temperatura mais recente disponível por leitura (`latestTemp`).
+- Cor da linha = cor do status atual do local (verde / amarelo / vermelho).
+- Tooltip mostra: horário completo, temperatura, técnico, status pontual.
 
-## Arquitetura técnica
+### Seletor de período (24h / 7d / 30d)
+- Estado controlado por search param `?range=24h|7d|30d` (default `24h`) usando `validateSearch` na rota `_app.temperaturas.tsx`.
+- `<Tabs>` no topo da página alterna o período; afeta todos os gráficos da página.
+- Filtragem feita no cliente sobre `data.medicoes` usando `getRowTimestamp`.
 
-- **Stack**: React + TypeScript + Tailwind v4 + Shadcn UI + Recharts + Lucide (já no template TanStack Start).
-- **Fonte de dados**: fetch direto do endpoint `https://docs.google.com/spreadsheets/d/<ID>/gviz/tq?tqx=out:csv&sheet=<NOME_ABA>` para cada aba. Parse com `papaparse`.
-- **Server function** (`src/lib/sheets.functions.ts`): faz o fetch das 8 abas em paralelo no servidor (evita CORS, cache do edge). Retorna DTO normalizado.
-- **TanStack Query**: `useSuspenseQuery` com `refetchInterval: 5 * 60_000` e `staleTime: 5min`. Botão "Atualizar" chama `queryClient.invalidateQueries`.
-- **Loader na rota raiz `_app`** prime o cache; cada página consome o mesmo query.
+### Layout da página Temperaturas (revisão)
+1. **Header** com título + Tabs do período.
+2. **Cards de status** (atual TempCard) agrupados como hoje: Críticos → Alerta → Normais.
+3. **Nova seção "Tendência por Local"** — grid de gráficos (1 col mobile, 2 col desktop). Um `<TempTrendChart/>` por local.
+4. **Nova seção "Visão Comparativa"** — um único `LineChart` multi-linha (uma linha por local), útil para identificar locais que estão divergindo juntos. Toggle de legenda para mostrar/ocultar locais.
+5. **Mini-KPIs** acima dos gráficos: nº de leituras no período, % do tempo dentro da faixa, nº de eventos críticos no período, maior desvio absoluto.
 
-## Identidade visual
+### Tratamento de dados
+- Função utilitária em `src/lib/temperature.ts`:
+  - `filterByRange(medicoes, range)` — filtra por janela (now − 24h / 7d / 30d).
+  - `buildSeries(medicoes, local)` — ordena por timestamp e converte para `{ t, temp, status, tecnico }`.
+  - `computeRangeKpis(series, faixa)` — % dentro da faixa, contagem de críticos, desvio máximo.
+- Sem registros no período → estado vazio "Sem leituras nesta janela".
 
-Tokens em `src/styles.css` (`@theme inline`):
-- `--background: #02152D`, `--card: #05254A`
-- `--primary: #0EA5FF`, `--secondary: #1D4ED8`
-- `--success: #22C55E`, `--warning: #EAB308`, `--destructive: #EF4444`
-- `--foreground: #FFFFFF`, `--muted-foreground: #94A3B8`
-- Gradientes: `--gradient-card`, `--gradient-glow`; shadows `--shadow-elevated`, `--shadow-glow-cyan`
-- Glassmorphism leve: `backdrop-blur` + borda `1px solid rgba(14,165,255,0.15)` iluminada
-- Animações: `pulse-critical` (vermelho pulsante), `fade-in-up`, transições suaves 200ms
-- Fonte: Inter (já no template) + JetBrains Mono para números KPI
+---
 
-## Estrutura de rotas (TanStack file-based)
+## 2. Programação — Programado vs Executado lado a lado
 
-```
-src/routes/
-  __root.tsx                  # shell + QueryClient + html head
-  _app.tsx                    # layout: sidebar fixa + header sticky + <Outlet/>
-  _app.index.tsx              # Visão Geral (dashboard executivo)
-  _app.programacao.tsx        # Tabela completa de OS
-  _app.equipe.tsx             # Técnicos cadastrados
-  _app.hh-semanal.tsx         # Capacidade vs alocação
-  _app.temperaturas.tsx       # Cards por local
-  _app.checklists.tsx         # 3 painéis + passagem
-  _app.passagem-turno.tsx     # Tabela com filtros
-  _app.alertas.tsx            # Central de alertas
-  _app.indicadores.tsx        # Gráficos consolidados
-```
+### Novos status suportados
+Suporte explícito a: **Programada, Em execução, Pausada, Finalizada, Cancelada, Atrasada, Reprogramada**.
 
-## Componentes principais
+- `Atrasada` é derivada: `Status === "Programada"` e `DataProgramada < hoje`. (Computada no cliente, não precisa existir na planilha.)
+- `Reprogramada` é derivada: campo `DataReprogramada` preenchido.
+- `src/lib/status.ts` novo: `deriveExecStatus(row): ExecStatus` retornando o status efetivo + cor/badge config centralizada (reutilizada em todas as telas).
 
-- `<AppSidebar/>` — sidebar shadcn collapsible com 9 itens, ícones Lucide, item ativo iluminado
-- `<TopHeader/>` — logo "MARTIN BROWER CDNE", subtítulo, badge "● Online" verde, última atualização, botão Atualizar
-- `<KpiCard/>` — variantes (primary/success/warning/danger), valor grande mono, ícone, delta opcional
-- `<ChartCard/>` — wrapper com título e Recharts (pizza, donut, barras, barras horizontais)
-- `<TempCard/>` — local, temperatura grande, técnico, hora, status; animação pulsante quando crítico
-- `<DataTable/>` — pesquisa, filtros (Select por coluna), ordenação, paginação (TanStack Table)
-- `<AlertItem/>` — prioridade colorida, ícone, descrição, timestamp
-- `<HHGauge/>` — barra de ocupação verde/amarelo/vermelho
+### Layout split (Programado | Executado)
+- Página `_app.programacao.tsx` ganha duas colunas (`grid-cols-1 lg:grid-cols-2`):
+  - **Coluna esquerda — "Programado"**: OS com status `Programada`, `Em execução`, `Pausada`, `Atrasada`, `Reprogramada`.
+  - **Coluna direita — "Executado"**: OS com status `Finalizada` e `Cancelada` (com filtro de período: hoje / 7d / 30d).
+- Cada coluna usa o `DataTable` atual com colunas reduzidas (Nº OS, Data, Sistema, Descrição, Crit., Status).
+- Header com:
+  - Contadores no topo de cada coluna (ex.: "Programado: 24 OS · 96 HH" / "Executado: 18 OS · 72 HH").
+  - Busca única que filtra ambas as colunas simultaneamente.
+- Badges de status padronizados (cores em `status.ts`):
+  - Programada → primary, Em execução → warning, Pausada → muted, Finalizada → success, Cancelada → destructive, Atrasada → destructive (pulse), Reprogramada → secondary.
 
-## Lógica de cálculos
+### Toggle de visualização
+Tabs no topo da página: **"Comparativo"** (default, split acima) e **"Tabela completa"** (a tabela única atual, preservada para uso operacional).
 
-- **Faixas de temperatura**:
-  - Antecâmara: 1°C–7°C
-  - Congelados: -23°C a -20°C
-  - Resfriados: 1°C–4°C
-  - Status: Normal (dentro), Alerta (±1°C borda), Crítico (fora)
-- **HH**: por cargo, somar `HH` da PROGRAMAÇÃO agrupado por Cargo; comparar com `PARAMETROS_HH.HH_Semana`. Ocupação% define cor.
-- **Alertas auto-gerados**: agrega temperaturas fora da faixa + HH > 100% + OS criticidade AA com Status≠Finalizada + OS com DataProgramada < hoje e StatusExecucao≠Finalizada + falta de checklist do dia + falta de passagem de turno do turno corrente.
+---
 
-## Tratamento de dados ausentes / robustez
+## 3. KPI prioritário: Aderência à Programação
 
-- Parser tolerante a colunas faltantes (zod com `.optional()` por campo)
-- Estado vazio "Sem registros" em todas as listas
-- Skeleton loaders durante fetch
-- Erro de fetch → toast + botão retry, mantém último snapshot
+### Novo componente `<AderenciaCard/>`
+- Gauge semicircular (Recharts `RadialBarChart`) com %.
+- Fórmula: `finalizadas_no_prazo / total_programadas_no_periodo * 100`.
+  - `finalizadas_no_prazo`: `Status === "Finalizada"` e (sem `DataReprogramada` OU `DataReprogramada <= DataProgramada`).
+  - `total_programadas`: todas as OS com `DataProgramada` na janela.
+- Faixas de cor: ≥95% success · 85–94% warning · <85% destructive.
+- Mini-tendência ao lado: sparkline (Recharts) com aderência das últimas 4 semanas.
 
-## Detalhes técnicos chave
+### Onde aparece
+- **Dashboard (`_app.index.tsx`)**: novo card grande de aderência no topo, ao lado dos KPIs existentes.
+- **Indicadores (`_app.indicadores.tsx`)**: seção dedicada com:
+  - Gauge atual.
+  - `BarChart` de aderência por sistema.
+  - `LineChart` de aderência semanal (últimas 8 semanas).
+  - `BarChart` empilhado de OS por status (Programada vs Executada vs Atrasada) por dia.
 
-- `papaparse` adicionado via `bun add papaparse @types/papaparse`
-- `@tanstack/react-table` para tabelas (já alinha com shadcn)
-- Datas BR (dd/mm/yyyy) — utilitário `parseBRDate` + `date-fns` (já no template)
-- Todos os valores numéricos exibidos formatados pt-BR
-- Refresh manual e auto não conflitam (uso de `queryClient.invalidateQueries`)
+---
 
-## Entrega
+## 4. Sugestões adicionais (priorizadas, mas não obrigatórias)
 
-Construo tudo de uma vez: 9 páginas funcionando, lendo a planilha real, com refresh 5min, identidade visual completa, sidebar colapsável, alertas e gráficos.
+Listadas em ordem de impacto. Posso entregar todas nesta rodada se aprovado, ou apenas as marcadas:
 
-**Aprove para eu começar.** Confirme também se a planilha já está pública com link.
+1. **Backlog por criticidade** — barras AA / A / B mostrando OS atrasadas + HH acumulado. Alta criticidade entra como alerta automático.
+2. **Heatmap diário de checklist e passagem de turno** — calendário 30 dias com células coloridas (verde = cumprido, vermelho = faltou). Detecta lacunas operacionais.
+3. **HH realizado vs programado por cargo** — barras comparativas semanais (já temos só programado).
+4. **Taxa de reprogramação** — % de OS com `DataReprogramada ≠ vazio` na semana, tendência 8 semanas.
+5. **Tempo médio em "Em execução"** — média de horas entre início e finalização das OS finalizadas no período (precisa de timestamp de execução; se a planilha não tiver, vira backlog futuro).
+
+---
+
+## Detalhes técnicos
+
+### Arquivos novos
+- `src/lib/status.ts` — `ExecStatus` enum, `deriveExecStatus`, `statusConfig` (label, cor, classes Tailwind).
+- `src/lib/temperature.ts` — adicionar `filterByRange`, `buildSeries`, `computeRangeKpis`.
+- `src/components/temp-trend-chart.tsx` — gráfico por local.
+- `src/components/temp-multi-chart.tsx` — gráfico comparativo multi-linha.
+- `src/components/aderencia-card.tsx` — gauge + sparkline.
+- `src/components/status-badge.tsx` — badge único reutilizado em todas as tabelas.
+
+### Arquivos editados
+- `src/routes/_app.temperaturas.tsx` — `validateSearch` (`range`), Tabs, novas seções.
+- `src/routes/_app.programacao.tsx` — Tabs Comparativo/Tabela, layout split, busca compartilhada.
+- `src/routes/_app.index.tsx` — adicionar `AderenciaCard` no topo.
+- `src/routes/_app.indicadores.tsx` — nova seção de aderência (gauge, por sistema, semanal, empilhado por status).
+- `src/routes/_app.alertas.tsx` — incluir status "Atrasada" como alerta automático.
+- `src/lib/sheets-types.ts` — adicionar tipo `ExecStatus` exportado de `status.ts`.
+
+### Convenções mantidas
+- Recharts (já no projeto) — sem novas dependências.
+- TanStack Query com `sheetsQueryOptions` já compartilhado.
+- Glassmorphism, tokens semânticos de cor em `src/styles.css`, sem cores hardcoded.
+- Search params para estado de UI (período de temperatura, aba da programação) para manter URLs compartilháveis.
+
+### Validações
+- Build após cada bloco (Temperaturas → Programação → Indicadores).
+- Verificar render no preview mobile (430px) e desktop.
+- Confirmar que estados vazios e sem leituras não quebram os gráficos.
+
+---
+
+## Pergunta em aberto (posso assumir defaults se preferir)
+
+- **Status finais**: adoto **Programada, Em execução, Pausada, Finalizada, Cancelada, Atrasada (derivada), Reprogramada (derivada)**. Avise se quiser remover/renomear algum.
+- **Sugestões adicionais (seção 4)**: vou implementar **Backlog por criticidade** e **Heatmap de checklist/passagem** junto, por serem alto impacto e já baseados em dados existentes. Os itens 3–5 ficam para a próxima rodada salvo indicação contrária.
