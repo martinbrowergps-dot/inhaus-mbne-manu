@@ -1,0 +1,114 @@
+import { useMemo } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ReTooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { buildSeries, filterByRange, type TempRange } from "@/lib/temperature";
+import type { MedicaoRow } from "@/lib/sheets-types";
+import { formatBRNumber } from "@/lib/format";
+
+const PALETTE = [
+  "oklch(0.72 0.18 240)",
+  "oklch(0.74 0.19 145)",
+  "oklch(0.82 0.17 88)",
+  "oklch(0.65 0.24 27)",
+  "oklch(0.65 0.20 300)",
+  "oklch(0.55 0.22 254)",
+  "oklch(0.70 0.16 200)",
+  "oklch(0.78 0.15 50)",
+];
+
+function fmtX(t: number, range: TempRange): string {
+  const d = new Date(t);
+  if (range === "24h") return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+export function TempMultiChart({
+  locais,
+  medicoes,
+  range,
+}: {
+  locais: string[];
+  medicoes: MedicaoRow[];
+  range: TempRange;
+}) {
+  const { data, keys } = useMemo(() => {
+    const filtered = filterByRange(medicoes, range);
+    const map = new Map<number, Record<string, number>>();
+    const usedKeys: string[] = [];
+    for (const local of locais) {
+      const s = buildSeries(filtered, local);
+      if (s.length === 0) continue;
+      usedKeys.push(local);
+      for (const p of s) {
+        const row = map.get(p.t) ?? { t: p.t };
+        row[local] = p.temp;
+        map.set(p.t, row as Record<string, number>);
+      }
+    }
+    const arr = Array.from(map.values()).sort((a, b) => (a.t as number) - (b.t as number));
+    return { data: arr, keys: usedKeys };
+  }, [locais, medicoes, range]);
+
+  if (data.length === 0) {
+    return (
+      <div className="flex h-72 items-center justify-center text-xs text-muted-foreground">
+        Sem leituras nesta janela
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-80">
+      <ResponsiveContainer>
+        <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+          <XAxis
+            dataKey="t"
+            type="number"
+            domain={["dataMin", "dataMax"]}
+            tickFormatter={(t) => fmtX(t as number, range)}
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            stroke="#94A3B8"
+            minTickGap={40}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            stroke="#94A3B8"
+            width={36}
+          />
+          <ReTooltip
+            contentStyle={{
+              background: "#05254A",
+              border: "1px solid #0EA5FF55",
+              borderRadius: 8,
+              fontSize: 11,
+            }}
+            labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
+            formatter={(v: number, name) => [`${formatBRNumber(v, 1)}°C`, name as string]}
+          />
+          <Legend wrapperStyle={{ fontSize: 10 }} iconType="line" />
+          {keys.map((k, i) => (
+            <Line
+              key={k}
+              type="monotone"
+              dataKey={k}
+              stroke={PALETTE[i % PALETTE.length]}
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls
+              isAnimationActive={false}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

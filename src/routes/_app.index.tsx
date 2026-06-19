@@ -26,6 +26,7 @@ import {
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
+import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,6 +81,7 @@ function VisaoGeral() {
   const byDia = aggregateByDay(programacao);
   // Status
   const byStatus = aggregate(programacao, (p) => p.StatusExecucao || p.Status || "—");
+  const aderencia = computeAderencia(programacao);
 
   return (
     <div className="space-y-6">
@@ -90,12 +92,23 @@ function VisaoGeral() {
         </p>
       </div>
 
+      <div className="grid gap-3 lg:grid-cols-3">
+        <AderenciaCard
+          pct={aderencia.pct}
+          finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+          totalProgramadas={aderencia.totalProgramadas}
+          className="lg:col-span-1"
+        />
+        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
+          <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
+          <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
+          <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
+          <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
         <KpiCard label="OS Programadas" value={formatInt(programadas)} icon={Calendar} variant="neutral" />
-        <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
-        <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
-        <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
         <KpiCard label="HH Programado" value={formatBRNumber(totalHH, 1)} hint="horas-homem" icon={Clock} variant="primary" />
         <KpiCard label="Técnicos Ativos" value={formatInt(tecnicos.length)} icon={Users} variant="neutral" />
         <KpiCard

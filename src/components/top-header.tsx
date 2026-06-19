@@ -10,9 +10,10 @@ import { toast } from "sonner";
 export function TopHeader() {
   const qc = useQueryClient();
   const { data, isFetching } = useQuery(sheetsQueryOptions);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
@@ -49,7 +50,7 @@ export function TopHeader() {
       <div className="hidden flex-col text-right text-[10px] text-muted-foreground md:flex">
         <span className="tracking-wider">HORA ATUAL</span>
         <span className="num text-foreground">
-          {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          {now ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
         </span>
       </div>
 
