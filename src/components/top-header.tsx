@@ -10,9 +10,10 @@ import { toast } from "sonner";
 export function TopHeader() {
   const qc = useQueryClient();
   const { data, isFetching } = useQuery(sheetsQueryOptions);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
