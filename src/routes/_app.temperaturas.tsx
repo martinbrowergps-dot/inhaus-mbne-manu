@@ -26,7 +26,7 @@ function TemperaturasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
 
   const setRange = (r: TempRange) =>
-    navigate({ search: (prev) => ({ ...prev, range: r }) });
+    navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
 
   if (isLoading)
     return (
