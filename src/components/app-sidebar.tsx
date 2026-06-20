@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Activity,
   Factory,
+  Inbox,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,6 +28,7 @@ import {
 const items = [
   { title: "Visão Geral", url: "/", icon: LayoutDashboard },
   { title: "Programação", url: "/programacao", icon: CalendarDays },
+  { title: "Backlog", url: "/backlog", icon: Inbox },
   { title: "Equipe", url: "/equipe", icon: Users },
   { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
   { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
