@@ -139,6 +139,22 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     HH_Semana: parseBRNumber(r["HH_Semana"]),
   }));
 
+  const backlog: BacklogRow[] = backlogRaw.map((r) => ({
+    Numero: pick(r, "NUMERO", "Numero"),
+    Identificacao: pick(r, "IDENTIFICAÇÃO_DA_SOLICITAÇÃO", "Identificacao"),
+    Solicitante: pick(r, "Solicitante"),
+    DataCriacao: pick(r, "DATA_CRIACAO", "DataCriacao"),
+    Assunto: pick(r, "Assunto"),
+    Tecnico: pick(r, "TECNICO", "Tecnico"),
+    Prioridade: pick(r, "Prioridade"),
+    DataVencimento: pick(r, "DATA_DE_VENCIMENTO", "DataVencimento"),
+    SolicitacaoServico: pick(r, "É_UMA_SOLICITAÇÃO_DE_SERVIÇO"),
+    Estado: pick(r, "Estado"),
+    Grupo: pick(r, "Grupo"),
+    StatusOficial: pick(r, "Status Oficial", "StatusOficial"),
+    HHEstimado: parseBRNumber(r["HH Estimado"] ?? r["HHEstimado"]),
+  }));
+
   return {
     programacao,
     medicoes,
@@ -148,6 +164,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     passagemTurno,
     tecnicos,
     parametrosHH,
+    backlog,
     fetchedAt: Date.now(),
   };
 }
