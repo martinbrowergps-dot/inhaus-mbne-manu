@@ -219,15 +219,15 @@ function BacklogPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total em aberto" value={total} icon={<Inbox className="h-4 w-4" />} />
+        <KpiCard label="Total em aberto" value={total} icon={Inbox} />
         <KpiCard
           label="Vencidos"
           value={vencidos}
-          icon={<AlertTriangle className="h-4 w-4" />}
-          tone={vencidos > 0 ? "destructive" : "default"}
+          icon={AlertTriangle}
+          variant={vencidos > 0 ? "danger" : "neutral"}
         />
-        <KpiCard label="Prioridade alta" value={criticos} icon={<Clock className="h-4 w-4" />} tone={criticos > 0 ? "warning" : "default"} />
-        <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={<Users className="h-4 w-4" />} />
+        <KpiCard label="Prioridade alta" value={criticos} icon={Clock} variant={criticos > 0 ? "warning" : "neutral"} />
+        <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={Users} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
