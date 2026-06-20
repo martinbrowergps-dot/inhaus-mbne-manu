@@ -317,12 +317,12 @@ function ChartBars({
   const color = (name: string, i: number) => {
     if (colorBy === "priority") {
       const r = priorityRank(name);
-      return r === 0 ? "hsl(var(--destructive))" : r === 1 ? "hsl(var(--warning))" : "hsl(var(--primary))";
+      return r === 0 ? "oklch(0.65 0.24 27)" : r === 1 ? "oklch(0.82 0.17 88)" : "oklch(0.72 0.18 240)";
     }
     if (colorBy === "age") {
-      return ["hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--warning))", "hsl(var(--destructive))"][i] || "hsl(var(--primary))";
+      return ["oklch(0.72 0.18 240)", "oklch(0.82 0.17 88)", "oklch(0.82 0.17 88)", "oklch(0.65 0.24 27)"][i] || "oklch(0.72 0.18 240)";
     }
-    return "hsl(var(--primary))";
+    return "oklch(0.72 0.18 240)";
   };
   return (
     <ResponsiveContainer width="100%" height={220}>
