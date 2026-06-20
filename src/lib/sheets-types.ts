@@ -62,6 +62,22 @@ export interface ParametroHHRow {
   HH_Semana: number;
 }
 
+export interface BacklogRow {
+  Numero: string;
+  Identificacao: string;
+  Solicitante: string;
+  DataCriacao: string;
+  Assunto: string;
+  Tecnico: string;
+  Prioridade: string;
+  DataVencimento: string;
+  SolicitacaoServico: string;
+  Estado: string;
+  Grupo: string;
+  StatusOficial: string;
+  HHEstimado: number;
+}
+
 export interface SheetsData {
   programacao: ProgramacaoRow[];
   medicoes: MedicaoRow[];
@@ -71,5 +87,6 @@ export interface SheetsData {
   passagemTurno: PassagemTurnoRow[];
   tecnicos: TecnicoRow[];
   parametrosHH: ParametroHHRow[];
+  backlog: BacklogRow[];
   fetchedAt: number;
 }
