@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import { queryOptions } from "@tanstack/react-query";
 import type {
+  BacklogRow,
   ChecklistRow,
   MedicaoRow,
   ParametroHHRow,
@@ -22,6 +23,7 @@ const SHEETS = {
   passagemTurno: "PASSAGEM DE TURNO",
   tecnicos: "TECNICOS",
   parametrosHH: "PARAMETROS_HH",
+  backlog: "BACKLOG",
 } as const;
 
 function csvUrl(sheet: string): string {
