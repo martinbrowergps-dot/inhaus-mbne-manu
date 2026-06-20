@@ -61,6 +61,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     passagemRaw,
     tecnicosRaw,
     parametrosRaw,
+    backlogRaw,
   ] = await Promise.all([
     fetchCsv(SHEETS.programacao),
     fetchCsv(SHEETS.medicoes),
@@ -70,6 +71,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     fetchCsv(SHEETS.passagemTurno),
     fetchCsv(SHEETS.tecnicos),
     fetchCsv(SHEETS.parametrosHH),
+    fetchCsv(SHEETS.backlog).catch(() => [] as Record<string, string>[]),
   ]);
 
   const programacao: ProgramacaoRow[] = programacaoRaw.map((r) => ({
