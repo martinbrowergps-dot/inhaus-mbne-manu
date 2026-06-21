@@ -162,10 +162,22 @@ function IndicadoresPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
-        <p className="text-xs text-muted-foreground">Análise consolidada do plano de manutenção</p>
+    <div ref={pdfRef} className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
+          <p className="text-xs text-muted-foreground">Análise consolidada do plano de manutenção</p>
+        </div>
+        <ExportButton
+          filename="indicadores"
+          rows={computed.aderSistema}
+          columns={[
+            { header: "Sistema", value: (r) => r.name },
+            { header: "Aderência (%)", value: (r) => Number(r.value.toFixed(2)) },
+          ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Indicadores Operacionais"
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

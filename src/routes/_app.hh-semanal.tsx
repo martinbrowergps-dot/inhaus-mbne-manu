@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExportButton } from "@/components/export-button";
 import { formatBRNumber } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,11 +53,24 @@ function HHPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">HH Semanal</h1>
-        <p className="text-xs text-muted-foreground">
-          Capacidade vs alocação de horas-homem por cargo
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">HH Semanal</h1>
+          <p className="text-xs text-muted-foreground">
+            Capacidade vs alocação de horas-homem por cargo
+          </p>
+        </div>
+        <ExportButton
+          filename="hh-semanal"
+          rows={rows}
+          columns={[
+            { header: "Cargo", value: (r) => r.cargo },
+            { header: "Disponível (h)", value: (r) => Number(r.disponivel.toFixed(2)) },
+            { header: "Alocado (h)", value: (r) => Number(r.alocado.toFixed(2)) },
+            { header: "Saldo (h)", value: (r) => Number(r.saldo.toFixed(2)) },
+            { header: "Ocupação (%)", value: (r) => Number(r.ocupacao.toFixed(2)) },
+          ]}
+        />
       </div>
 
       <Panel title="OCUPAÇÃO TOTAL DA EQUIPE">

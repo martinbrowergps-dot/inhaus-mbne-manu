@@ -11,6 +11,7 @@ import {
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -166,11 +167,23 @@ function AlertasPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Central de Alertas</h1>
-        <p className="text-xs text-muted-foreground">
-          Alertas gerados automaticamente a partir das condições operacionais
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Central de Alertas</h1>
+          <p className="text-xs text-muted-foreground">
+            Alertas gerados automaticamente a partir das condições operacionais
+          </p>
+        </div>
+        <ExportButton
+          filename="alertas"
+          rows={alerts}
+          columns={[
+            { header: "Prioridade", value: (a) => a.prio.toUpperCase() },
+            { header: "Título", value: (a) => a.title },
+            { header: "Descrição", value: (a) => a.desc },
+            { header: "Referência", value: (a) => a.when ?? "" },
+          ]}
+        />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
