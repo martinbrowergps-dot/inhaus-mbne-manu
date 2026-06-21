@@ -87,12 +87,31 @@ function VisaoGeral() {
   const aderencia = computeAderencia(programacao);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
-        <p className="text-xs text-muted-foreground">
-          Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
-        </p>
+    <div ref={pdfRef} className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
+          <p className="text-xs text-muted-foreground">
+            Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
+          </p>
+        </div>
+        <ExportButton
+          filename="visao-geral"
+          rows={programacao}
+          columns={[
+            { header: "Nº OS", value: (r) => r.NumeroOS },
+            { header: "Data", value: (r) => r.DataProgramada },
+            { header: "Sistema", value: (r) => r.Sistema },
+            { header: "Descrição", value: (r) => r.Descricao },
+            { header: "Criticidade", value: (r) => r.Criticidade },
+            { header: "Cargo", value: (r) => r.Cargo },
+            { header: "HH", value: (r) => r.HH },
+            { header: "Executante", value: (r) => r.Executante },
+            { header: "Status", value: (r) => r.StatusExecucao || r.Status },
+          ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Visão Geral · Centro de Controle"
+        />
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">
