@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -27,6 +28,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
+import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +42,7 @@ const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa"
 
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) {
     return (
