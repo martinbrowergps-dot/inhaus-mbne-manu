@@ -4,6 +4,7 @@ import { ClipboardCheck, DoorOpen, Activity, ArrowLeftRight } from "lucide-react
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExportButton } from "@/components/export-button";
 import type { ChecklistRow } from "@/lib/sheets-types";
 
 export const Route = createFileRoute("/_app/checklists")({
@@ -22,13 +23,32 @@ function ChecklistsPage() {
       </div>
     );
 
+  const allRows = [
+    ...(data?.checklistDocas ?? []).map((r) => ({ Tipo: "Docas", ...r })),
+    ...(data?.checklistGeral ?? []).map((r) => ({ Tipo: "Geral", ...r })),
+    ...(data?.checklistPortas ?? []).map((r) => ({ Tipo: "Portas", ...r })),
+  ];
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Checklists Operacionais</h1>
-        <p className="text-xs text-muted-foreground">
-          Inspeções de docas, áreas gerais, portas e passagens de turno
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Checklists Operacionais</h1>
+          <p className="text-xs text-muted-foreground">
+            Inspeções de docas, áreas gerais, portas e passagens de turno
+          </p>
+        </div>
+        <ExportButton
+          filename="checklists"
+          rows={allRows}
+          columns={[
+            { header: "Tipo", value: (r) => r.Tipo },
+            { header: "ID", value: (r) => r.ID },
+            { header: "Data", value: (r) => r.Data },
+            { header: "Local", value: (r) => r.Local ?? "" },
+            { header: "Responsável", value: (r) => r.Responsavel ?? "" },
+          ]}
+        />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <ChecklistPanel

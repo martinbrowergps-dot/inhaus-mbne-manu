@@ -9,7 +9,8 @@ import { TempTrendChart } from "@/components/temp-trend-chart";
 import { TempMultiChart } from "@/components/temp-multi-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
+import { ExportButton } from "@/components/export-button";
+import { filterByRange, summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
 
 const searchSchema = z.object({
   range: fallback(z.enum(["24h", "7d", "30d"]), "24h").default("24h"),
@@ -53,13 +54,29 @@ function TemperaturasPage() {
             Antecâmara 1°/7°C • Congelados -23°/-20°C • Resfriados 1°/4°C
           </p>
         </div>
-        <Tabs value={range} onValueChange={(v) => setRange(v as TempRange)}>
-          <TabsList>
-            <TabsTrigger value="24h">24h</TabsTrigger>
-            <TabsTrigger value="7d">7 dias</TabsTrigger>
-            <TabsTrigger value="30d">30 dias</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-2">
+          <Tabs value={range} onValueChange={(v) => setRange(v as TempRange)}>
+            <TabsList>
+              <TabsTrigger value="24h">24h</TabsTrigger>
+              <TabsTrigger value="7d">7 dias</TabsTrigger>
+              <TabsTrigger value="30d">30 dias</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <ExportButton
+            filename={`temperaturas_${range}`}
+            rows={filterByRange(medicoes, range)}
+            columns={[
+              { header: "Local", value: (r) => r.LOCAL },
+              { header: "Data", value: (r) => r.DATA },
+              { header: "Hora", value: (r) => r.HORA },
+              { header: "Temperatura 01", value: (r) => r.TEMPERATURA_01 ?? "" },
+              { header: "Temperatura 02", value: (r) => r.TEMPERATURA_02 ?? "" },
+              { header: "Temperatura 03", value: (r) => r.TEMPERATURA_03 ?? "" },
+              { header: "Temperatura 04", value: (r) => r.TEMPERATURA_04 ?? "" },
+              { header: "Técnico", value: (r) => r.TECNICO },
+            ]}
+          />
+        </div>
       </div>
 
       {criticos.length > 0 && (

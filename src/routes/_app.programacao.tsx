@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/status-badge";
 import { DataTable } from "@/components/data-table";
+import { ExportButton } from "@/components/export-button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
@@ -133,11 +134,31 @@ function ProgramacaoPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Programação Semanal</h1>
-        <p className="text-xs text-muted-foreground">
-          Compare lado a lado o que está programado vs o que foi executado
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Programação Semanal</h1>
+          <p className="text-xs text-muted-foreground">
+            Compare lado a lado o que está programado vs o que foi executado
+          </p>
+        </div>
+        <ExportButton
+          filename="programacao"
+          rows={filtered}
+          columns={[
+            { header: "Nº OS", value: (r) => r.NumeroOS },
+            { header: "Data Programada", value: (r) => r.DataProgramada },
+            { header: "Data Reprogramada", value: (r) => r.DataReprogramada },
+            { header: "TAG", value: (r) => r.TAG },
+            { header: "Sistema", value: (r) => r.Sistema },
+            { header: "Descrição", value: (r) => r.Descricao },
+            { header: "Criticidade", value: (r) => r.Criticidade },
+            { header: "Cargo", value: (r) => r.Cargo },
+            { header: "HH", value: (r) => r.HH },
+            { header: "Executante", value: (r) => r.Executante },
+            { header: "Status", value: (r) => r._status },
+            { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
+          ]}
+        />
       </div>
 
       {isLoading ? (

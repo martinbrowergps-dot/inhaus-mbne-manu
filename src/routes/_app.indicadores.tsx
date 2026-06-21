@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
 import { summarizeLocais } from "@/lib/temperature";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
+import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ const TOOLTIP_STYLE = {
 
 function IndicadoresPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const computed = useMemo(() => {
     if (!data) return null;
@@ -160,10 +162,22 @@ function IndicadoresPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
-        <p className="text-xs text-muted-foreground">Análise consolidada do plano de manutenção</p>
+    <div ref={pdfRef} className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
+          <p className="text-xs text-muted-foreground">Análise consolidada do plano de manutenção</p>
+        </div>
+        <ExportButton
+          filename="indicadores"
+          rows={computed.aderSistema}
+          columns={[
+            { header: "Sistema", value: (r) => r.name },
+            { header: "Aderência (%)", value: (r) => Number(r.value.toFixed(2)) },
+          ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Indicadores Operacionais"
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

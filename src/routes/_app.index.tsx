@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -27,6 +28,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
+import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +42,7 @@ const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa"
 
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) {
     return (
@@ -84,12 +87,31 @@ function VisaoGeral() {
   const aderencia = computeAderencia(programacao);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
-        <p className="text-xs text-muted-foreground">
-          Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
-        </p>
+    <div ref={pdfRef} className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
+          <p className="text-xs text-muted-foreground">
+            Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
+          </p>
+        </div>
+        <ExportButton
+          filename="visao-geral"
+          rows={programacao}
+          columns={[
+            { header: "Nº OS", value: (r) => r.NumeroOS },
+            { header: "Data", value: (r) => r.DataProgramada },
+            { header: "Sistema", value: (r) => r.Sistema },
+            { header: "Descrição", value: (r) => r.Descricao },
+            { header: "Criticidade", value: (r) => r.Criticidade },
+            { header: "Cargo", value: (r) => r.Cargo },
+            { header: "HH", value: (r) => r.HH },
+            { header: "Executante", value: (r) => r.Executante },
+            { header: "Status", value: (r) => r.StatusExecucao || r.Status },
+          ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Visão Geral · Centro de Controle"
+        />
       </div>
 
       <div className="grid gap-3 lg:grid-cols-3">

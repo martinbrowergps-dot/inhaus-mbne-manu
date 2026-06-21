@@ -6,6 +6,7 @@ import type { PassagemTurnoRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_app/passagem-turno")({
@@ -47,11 +48,29 @@ function PassagemPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
-        <p className="text-xs text-muted-foreground">
-          Registros de troca de turno • supervisores, equipes e pendências
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
+          <p className="text-xs text-muted-foreground">
+            Registros de troca de turno • supervisores, equipes e pendências
+          </p>
+        </div>
+        <ExportButton
+          filename="passagem-turno"
+          rows={data?.passagemTurno ?? []}
+          columns={[
+            { header: "Data", value: (r) => r.Data },
+            { header: "Turno", value: (r) => r.Turno },
+            { header: "Supervisor", value: (r) => r.Supervisor },
+            { header: "Equipe Saída", value: (r) => r.EquipeSaida },
+            { header: "Equipe Entrada", value: (r) => r.EquipeEntrada },
+            { header: "Técnico Passa", value: (r) => r.TecnicoPassa },
+            { header: "Técnico Recebe", value: (r) => r.TecnicoRecebe },
+            { header: "Status", value: (r) => r.StatusGeral },
+            { header: "Pendências", value: (r) => r.Pendencias },
+            { header: "Observações", value: (r) => r.Observacoes },
+          ]}
+        />
       </div>
       <Panel>
         {isLoading ? (
