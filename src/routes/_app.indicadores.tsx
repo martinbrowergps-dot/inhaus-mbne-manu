@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
 import { summarizeLocais } from "@/lib/temperature";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
+import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ const TOOLTIP_STYLE = {
 
 function IndicadoresPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const computed = useMemo(() => {
     if (!data) return null;

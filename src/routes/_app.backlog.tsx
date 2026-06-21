@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
+import { ExportButton } from "@/components/export-button";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -211,11 +212,32 @@ function BacklogPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
-        <p className="text-xs text-muted-foreground">
-          Solicitações em aberto na aba BACKLOG da planilha
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
+          <p className="text-xs text-muted-foreground">
+            Solicitações em aberto na aba BACKLOG da planilha
+          </p>
+        </div>
+        <ExportButton
+          filename="backlog"
+          rows={filtered}
+          columns={[
+            { header: "Número", value: (r) => r.Numero },
+            { header: "Identificação", value: (r) => r.Identificacao },
+            { header: "Solicitante", value: (r) => r.Solicitante },
+            { header: "Data Criação", value: (r) => r.DataCriacao },
+            { header: "Idade (dias)", value: (r) => r._idade ?? "" },
+            { header: "Assunto", value: (r) => r.Assunto },
+            { header: "Técnico", value: (r) => r.Tecnico },
+            { header: "Prioridade", value: (r) => r.Prioridade },
+            { header: "Vencimento", value: (r) => r.DataVencimento },
+            { header: "Vencido", value: (r) => (r._vencido ? "Sim" : "Não") },
+            { header: "Estado", value: (r) => r.Estado },
+            { header: "Grupo", value: (r) => r.Grupo },
+            { header: "HH Estimado", value: (r) => r.HHEstimado },
+          ]}
+        />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
