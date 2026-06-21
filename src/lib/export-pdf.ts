@@ -1,4 +1,4 @@
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 
 export async function exportElementToPdf(
@@ -6,63 +6,59 @@ export async function exportElementToPdf(
   filename: string,
   title?: string,
 ) {
-  // Capture the element with current dark theme as-is
-  const canvas = await html2canvas(element, {
+  // Render the element to a PNG data URL — html-to-image supports modern CSS (oklch, etc.)
+  const dataUrl = await toPng(element, {
     backgroundColor: "#02152D",
-    scale: 2,
-    useCORS: true,
-    windowWidth: element.scrollWidth,
-    logging: false,
+    pixelRatio: 2,
+    cacheBust: true,
+    style: { transform: "none" },
   });
 
-  const imgData = canvas.toDataURL("image/jpeg", 0.92);
+  // Measure image
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("Falha ao carregar imagem para PDF"));
+    img.src = dataUrl;
+  });
 
   // A4 landscape: 297 x 210 mm
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const margin = 8;
-  const headerH = title ? 12 : 0;
+  const headerH = title ? 14 : 0;
 
-  // Fit image preserving aspect ratio to page width
   const availW = pageW - margin * 2;
   const availH = pageH - margin * 2 - headerH;
-  const imgRatio = canvas.height / canvas.width;
-  let drawW = availW;
-  let drawH = drawW * imgRatio;
+  const drawW = availW;
+  const imgRatio = img.height / img.width;
+  const drawH = drawW * imgRatio;
 
-  // If image is taller than one page, paginate vertically
   if (drawH <= availH) {
     if (title) drawHeader(pdf, title, margin, pageW);
-    pdf.addImage(imgData, "JPEG", margin, margin + headerH, drawW, drawH);
+    pdf.addImage(dataUrl, "PNG", margin, margin + headerH, drawW, drawH);
   } else {
-    // Slice the canvas into page-height chunks
-    const pxPerMm = canvas.width / drawW;
-    const pageContentPx = Math.floor(availH * pxPerMm);
-    const totalPages = Math.ceil(canvas.height / pageContentPx);
+    // Slice vertically across multiple pages
+    const pxPerMm = img.width / drawW;
+    const pageSlicePx = Math.floor(availH * pxPerMm);
+    const totalPages = Math.ceil(img.height / pageSlicePx);
+
     for (let i = 0; i < totalPages; i++) {
       if (i > 0) pdf.addPage();
       if (title) drawHeader(pdf, `${title} (${i + 1}/${totalPages})`, margin, pageW);
 
-      const sliceCanvas = document.createElement("canvas");
-      sliceCanvas.width = canvas.width;
-      const sliceH = Math.min(pageContentPx, canvas.height - i * pageContentPx);
-      sliceCanvas.height = sliceH;
-      const ctx = sliceCanvas.getContext("2d")!;
-      ctx.drawImage(
-        canvas,
-        0,
-        i * pageContentPx,
-        canvas.width,
-        sliceH,
-        0,
-        0,
-        canvas.width,
-        sliceH,
-      );
-      const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.92);
-      const sliceDrawH = (sliceH / canvas.width) * drawW;
-      pdf.addImage(sliceData, "JPEG", margin, margin + headerH, drawW, sliceDrawH);
+      const slice = document.createElement("canvas");
+      slice.width = img.width;
+      const sh = Math.min(pageSlicePx, img.height - i * pageSlicePx);
+      slice.height = sh;
+      const ctx = slice.getContext("2d")!;
+      ctx.fillStyle = "#02152D";
+      ctx.fillRect(0, 0, slice.width, slice.height);
+      ctx.drawImage(img, 0, i * pageSlicePx, img.width, sh, 0, 0, img.width, sh);
+      const sliceData = slice.toDataURL("image/png");
+      const sliceDrawH = (sh / img.width) * drawW;
+      pdf.addImage(sliceData, "PNG", margin, margin + headerH, drawW, sliceDrawH);
     }
   }
 
@@ -71,14 +67,14 @@ export async function exportElementToPdf(
 }
 
 function drawHeader(pdf: jsPDF, title: string, margin: number, pageW: number) {
-  pdf.setFontSize(11);
+  pdf.setFontSize(10);
   pdf.setTextColor(14, 165, 255);
   pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, margin + 4);
-  pdf.setFontSize(9);
+  pdf.setFontSize(8);
   pdf.setTextColor(148, 163, 184);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.text(stamp, pageW - margin, margin + 4, { align: "right" });
   pdf.setFontSize(13);
   pdf.setTextColor(255, 255, 255);
-  pdf.text(title, margin, margin + 10);
+  pdf.text(title, margin, margin + 11);
 }
