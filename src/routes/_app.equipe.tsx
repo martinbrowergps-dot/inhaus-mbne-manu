@@ -51,6 +51,8 @@ function EquipePage() {
             { header: "Nome", value: (r) => r.Nome },
             { header: "Cargo", value: (r) => r.Cargo },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Equipe · Centro de Controle"
         />
       </div>
       <Panel
