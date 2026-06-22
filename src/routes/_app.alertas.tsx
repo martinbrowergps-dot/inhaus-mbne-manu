@@ -187,6 +187,8 @@ function AlertasPage() {
             { header: "Descrição", value: (a) => a.desc },
             { header: "Referência", value: (a) => a.when ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Central de Alertas · Centro de Controle"
         />
       </div>
 
