@@ -39,6 +39,8 @@ function normalize(s: string) {
 
 function AlertasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
 
   if (isLoading)
     return (
