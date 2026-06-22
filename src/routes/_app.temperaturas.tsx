@@ -78,6 +78,8 @@ function TemperaturasPage() {
               { header: "Temperatura 04", value: (r) => r.TEMPERATURA_04 ?? "" },
               { header: "Técnico", value: (r) => r.TECNICO },
             ]}
+            pdfTargetRef={pdfRef}
+            pdfTitle="Temperaturas · Centro de Controle"
           />
         </div>
       </div>
