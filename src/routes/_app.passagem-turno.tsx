@@ -46,10 +46,12 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
 
 function PassagemPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="space-y-4">
+    <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
           <p className="text-xs text-muted-foreground">
