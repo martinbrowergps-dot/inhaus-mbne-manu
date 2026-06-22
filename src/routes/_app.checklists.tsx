@@ -52,6 +52,8 @@ function ChecklistsPage() {
             { header: "Local", value: (r) => r.Local ?? "" },
             { header: "Responsável", value: (r) => r.Responsavel ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Checklists · Centro de Controle"
         />
       </div>
       <div className="grid gap-4 md:grid-cols-2">
