@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
@@ -79,6 +79,7 @@ function ProgramacaoPage() {
   const [sistemaF, setSistemaF] = useState<string | null>(null);
   const [critF, setCritF] = useState<string | null>(null);
   const [execF, setExecF] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched: EnrichedRow[] = useMemo(
     () =>
@@ -133,8 +134,9 @@ function ProgramacaoPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Programação Semanal</h1>
           <p className="text-xs text-muted-foreground">
@@ -158,7 +160,10 @@ function ProgramacaoPage() {
             { header: "Status", value: (r) => r._status },
             { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Programação · Centro de Controle"
         />
+
       </div>
 
       {isLoading ? (

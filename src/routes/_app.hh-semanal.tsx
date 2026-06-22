@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { sheetsQueryOptions } from "@/lib/sheets";
@@ -18,6 +19,8 @@ function normalize(s: string) {
 
 function HHPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
 
   if (isLoading)
     return (
@@ -52,8 +55,9 @@ function HHPage() {
   const totalOc = totalDisp > 0 ? (totalAloc / totalDisp) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">HH Semanal</h1>
           <p className="text-xs text-muted-foreground">
@@ -70,6 +74,8 @@ function HHPage() {
             { header: "Saldo (h)", value: (r) => Number(r.saldo.toFixed(2)) },
             { header: "Ocupação (%)", value: (r) => Number(r.ocupacao.toFixed(2)) },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="HH Semanal · Centro de Controle"
         />
       </div>
 

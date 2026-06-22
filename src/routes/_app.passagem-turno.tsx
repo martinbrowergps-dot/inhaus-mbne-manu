@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -45,10 +46,12 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
 
 function PassagemPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="space-y-4">
+    <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
           <p className="text-xs text-muted-foreground">
@@ -70,6 +73,8 @@ function PassagemPage() {
             { header: "Pendências", value: (r) => r.Pendencias },
             { header: "Observações", value: (r) => r.Observacoes },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Passagem de Turno · Centro de Controle"
         />
       </div>
       <Panel>

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -30,10 +31,12 @@ const cols: ColumnDef<TecnicoRow>[] = [
 
 function EquipePage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="space-y-4">
+    <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Equipe</h1>
           <p className="text-xs text-muted-foreground">
@@ -48,6 +51,8 @@ function EquipePage() {
             { header: "Nome", value: (r) => r.Nome },
             { header: "Cargo", value: (r) => r.Cargo },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Equipe · Centro de Controle"
         />
       </div>
       <Panel

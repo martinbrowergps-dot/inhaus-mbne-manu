@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Inbox, AlertTriangle, Clock, Users } from "lucide-react";
@@ -119,6 +119,7 @@ function BacklogPage() {
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched = useMemo(() => {
     const rows = data?.backlog ?? [];
@@ -211,8 +212,9 @@ function BacklogPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
           <p className="text-xs text-muted-foreground">
@@ -237,6 +239,8 @@ function BacklogPage() {
             { header: "Grupo", value: (r) => r.Grupo },
             { header: "HH Estimado", value: (r) => r.HHEstimado },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Backlog · Centro de Controle"
         />
       </div>
 

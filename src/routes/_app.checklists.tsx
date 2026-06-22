@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, DoorOpen, Activity, ArrowLeftRight } from "lucide-react";
@@ -13,6 +14,8 @@ export const Route = createFileRoute("/_app/checklists")({
 
 function ChecklistsPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
 
   if (isLoading)
     return (
@@ -30,8 +33,9 @@ function ChecklistsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Checklists Operacionais</h1>
           <p className="text-xs text-muted-foreground">
@@ -48,6 +52,8 @@ function ChecklistsPage() {
             { header: "Local", value: (r) => r.Local ?? "" },
             { header: "Responsável", value: (r) => r.Responsavel ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Checklists · Centro de Controle"
         />
       </div>
       <div className="grid gap-4 md:grid-cols-2">

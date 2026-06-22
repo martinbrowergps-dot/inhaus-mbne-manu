@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -38,6 +39,8 @@ function normalize(s: string) {
 
 function AlertasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
 
   if (isLoading)
     return (
@@ -166,8 +169,9 @@ function AlertasPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Central de Alertas</h1>
           <p className="text-xs text-muted-foreground">
@@ -183,6 +187,8 @@ function AlertasPage() {
             { header: "Descrição", value: (a) => a.desc },
             { header: "Referência", value: (a) => a.when ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Central de Alertas · Centro de Controle"
         />
       </div>
 
