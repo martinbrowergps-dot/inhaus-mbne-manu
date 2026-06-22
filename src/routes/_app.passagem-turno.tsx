@@ -73,6 +73,8 @@ function PassagemPage() {
             { header: "Pendências", value: (r) => r.Pendencias },
             { header: "Observações", value: (r) => r.Observacoes },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Passagem de Turno · Centro de Controle"
         />
       </div>
       <Panel>
