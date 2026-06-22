@@ -26,6 +26,7 @@ function TemperaturasPage() {
   const { range } = Route.useSearch();
   const navigate = useNavigate({ from: "/temperaturas" });
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
