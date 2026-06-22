@@ -33,8 +33,9 @@ function ChecklistsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold tracking-tight">Checklists Operacionais</h1>
           <p className="text-xs text-muted-foreground">
