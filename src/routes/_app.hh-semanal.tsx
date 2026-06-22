@@ -74,6 +74,8 @@ function HHPage() {
             { header: "Saldo (h)", value: (r) => Number(r.saldo.toFixed(2)) },
             { header: "Ocupação (%)", value: (r) => Number(r.ocupacao.toFixed(2)) },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="HH Semanal · Centro de Controle"
         />
       </div>
 
