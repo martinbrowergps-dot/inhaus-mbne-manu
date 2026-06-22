@@ -1,72 +1,24 @@
-## Exportação de Dados
+Adicionar exportação PDF em todas as páginas que hoje só têm CSV. O componente `ExportButton` já suporta PDF quando recebe `pdfTargetRef` — basta criar um `useRef` em cada página e passá-lo.
 
-### Objetivo
-Adicionar botão "Exportar" em todas as telas do Centro de Controle, gerando arquivos client-side sem necessidade de backend.
+## Páginas a atualizar
 
----
+- `src/routes/_app.programacao.tsx`
+- `src/routes/_app.backlog.tsx`
+- `src/routes/_app.temperaturas.tsx`
+- `src/routes/_app.alertas.tsx`
+- `src/routes/_app.checklists.tsx`
+- `src/routes/_app.passagem-turno.tsx`
+- `src/routes/_app.equipe.tsx`
+- `src/routes/_app.hh-semanal.tsx`
 
-### 1. Exportar CSV (todas as telas)
+Visão Geral e Indicadores já têm PDF.
 
-**Telas:**
-- Programação — exporta OS filtradas (comparativo ou tabela completa)
-- Backlog — exporta solicitações filtradas
-- Temperaturas — exporta medições do período selecionado
-- Passagem de Turno — exporta registros
-- Checklists — exporta docas / geral / portas
-- Equipe — exporta técnicos
-- Alertas — exporta alertas ativos
+## Mudanças por arquivo
 
-**Formato:**
-- Separação por ponto-e-vírgula (compatível com Excel BR)
-- Encoding UTF-8 com BOM
-- Nome do arquivo: `programacao_2025-06-21.csv`
+Em cada um:
+1. `import { useRef } from "react"` (se ainda não importado).
+2. Criar `const pdfRef = useRef<HTMLDivElement>(null)`.
+3. Envolver o conteúdo principal (header + painéis) em `<div ref={pdfRef} className="space-y-...">`.
+4. No `<ExportButton>`, passar `pdfTargetRef={pdfRef}` e `pdfTitle="<Nome da página> · Centro de Controle"`.
 
-**Implementação:**
-- Componente reutilizável `<ExportCsvButton>`
-- Geração via `Blob` + `URL.createObjectURL` no browser
-- Sem dependências externas
-
----
-
-### 2. Exportar PDF (Visão Geral e Indicadores)
-
-**Escopo:**
-- Visão Geral — PDF com todos os KPIs e gráficos em layout A4 paisagem
-- Indicadores — PDF com gráficos de aderência e heatmap
-
-**Implementação:**
-- Biblioteca `html2canvas` + `jspdf` para capturar os painéis e gerar PDF
-- Ou biblioteca `pdf-lib` para montar PDF programaticamente se o html2canvas não renderizar bem no tema escuro
-
----
-
-### 3. Layout do botão
-
-- Posicionado no header de cada página, ao lado do título
-- Ícone `Download` do Lucide
-- Dropdown com opções: "Exportar CSV" (sempre) + "Exportar PDF" (onde aplicável)
-
----
-
-## Técnico
-
-### Novos arquivos
-- `src/components/export-button.tsx` — componente de exportação CSV
-- `src/lib/export-csv.ts` — função utilitária de geração de CSV
-- `src/lib/export-pdf.ts` — função utilitária de geração de PDF (Visão Geral / Indicadores)
-
-### Arquivos editados
-- `src/routes/_app.index.tsx` — botão Exportar CSV + PDF
-- `src/routes/_app.programacao.tsx` — botão Exportar CSV
-- `src/routes/_app.backlog.tsx` — botão Exportar CSV
-- `src/routes/_app.temperaturas.tsx` — botão Exportar CSV
-- `src/routes/_app.indicadores.tsx` — botão Exportar CSV + PDF
-- `src/routes/_app.alertas.tsx` — botão Exportar CSV
-- `src/routes/_app.checklists.tsx` — botão Exportar CSV
-- `src/routes/_app.passagem-turno.tsx` — botão Exportar CSV
-- `src/routes/_app.equipe.tsx` — botão Exportar CSV
-- `src/routes/_app.hh-semanal.tsx` — botão Exportar CSV
-
-### Dependências
-- `html2canvas` e `jspdf` (para PDF) — adicionar via bun
-- Sem backend necessário, tudo client-side
+Sem novas dependências. Sem mudar layout visual.
