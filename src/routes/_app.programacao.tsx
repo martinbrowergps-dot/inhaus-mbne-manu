@@ -79,6 +79,7 @@ function ProgramacaoPage() {
   const [sistemaF, setSistemaF] = useState<string | null>(null);
   const [critF, setCritF] = useState<string | null>(null);
   const [execF, setExecF] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched: EnrichedRow[] = useMemo(
     () =>
