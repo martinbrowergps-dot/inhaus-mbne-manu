@@ -119,6 +119,7 @@ function BacklogPage() {
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched = useMemo(() => {
     const rows = data?.backlog ?? [];
