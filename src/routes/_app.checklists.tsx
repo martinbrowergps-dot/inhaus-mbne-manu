@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_app/checklists")({
 
 function ChecklistsPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
 
   if (isLoading)
     return (
