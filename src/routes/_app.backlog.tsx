@@ -239,6 +239,8 @@ function BacklogPage() {
             { header: "Grupo", value: (r) => r.Grupo },
             { header: "HH Estimado", value: (r) => r.HHEstimado },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Backlog · Centro de Controle"
         />
       </div>
 
