@@ -160,7 +160,10 @@ function ProgramacaoPage() {
             { header: "Status", value: (r) => r._status },
             { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
           ]}
+          pdfTargetRef={pdfRef}
+          pdfTitle="Programação · Centro de Controle"
         />
+
       </div>
 
       {isLoading ? (
