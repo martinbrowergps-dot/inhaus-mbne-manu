@@ -1,80 +1,94 @@
-import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import type { CsvColumn } from "./export-csv";
 
-export async function exportElementToPdf(
-  element: HTMLElement,
-  filename: string,
-  title?: string,
-) {
-  // Render the element to a PNG data URL — html-to-image supports modern CSS (oklch, etc.)
-  const dataUrl = await toPng(element, {
-    backgroundColor: "#02152D",
-    pixelRatio: 2,
-    cacheBust: true,
-    style: { transform: "none" },
-  });
-
-  // Measure image
-  const img = new Image();
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error("Falha ao carregar imagem para PDF"));
-    img.src = dataUrl;
-  });
-
-  // A4 landscape: 297 x 210 mm
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 8;
-  const headerH = title ? 14 : 0;
-
-  const availW = pageW - margin * 2;
-  const availH = pageH - margin * 2 - headerH;
-  const drawW = availW;
-  const imgRatio = img.height / img.width;
-  const drawH = drawW * imgRatio;
-
-  if (drawH <= availH) {
-    if (title) drawHeader(pdf, title, margin, pageW);
-    pdf.addImage(dataUrl, "PNG", margin, margin + headerH, drawW, drawH);
-  } else {
-    // Slice vertically across multiple pages
-    const pxPerMm = img.width / drawW;
-    const pageSlicePx = Math.floor(availH * pxPerMm);
-    const totalPages = Math.ceil(img.height / pageSlicePx);
-
-    for (let i = 0; i < totalPages; i++) {
-      if (i > 0) pdf.addPage();
-      if (title) drawHeader(pdf, `${title} (${i + 1}/${totalPages})`, margin, pageW);
-
-      const slice = document.createElement("canvas");
-      slice.width = img.width;
-      const sh = Math.min(pageSlicePx, img.height - i * pageSlicePx);
-      slice.height = sh;
-      const ctx = slice.getContext("2d")!;
-      ctx.fillStyle = "#02152D";
-      ctx.fillRect(0, 0, slice.width, slice.height);
-      ctx.drawImage(img, 0, i * pageSlicePx, img.width, sh, 0, 0, img.width, sh);
-      const sliceData = slice.toDataURL("image/png");
-      const sliceDrawH = (sh / img.width) * drawW;
-      pdf.addImage(sliceData, "PNG", margin, margin + headerH, drawW, sliceDrawH);
-    }
-  }
-
-  const stamp = new Date().toISOString().slice(0, 10);
-  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stamp}.pdf`);
+interface ExportTableOpts<T> {
+  filename: string;
+  title: string;
+  subtitle?: string;
+  rows: T[];
+  columns: CsvColumn<T>[];
+  /** Optional landscape (default) or portrait */
+  orientation?: "landscape" | "portrait";
 }
 
-function drawHeader(pdf: jsPDF, title: string, margin: number, pageW: number) {
-  pdf.setFontSize(10);
-  pdf.setTextColor(14, 165, 255);
-  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, margin + 4);
-  pdf.setFontSize(8);
-  pdf.setTextColor(148, 163, 184);
+export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
+  const { filename, title, subtitle, rows, columns, orientation = "landscape" } = opts;
+  const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 10;
+
+  const head = [columns.map((c) => c.header)];
+  const body = rows.map((r) =>
+    columns.map((c) => {
+      const v = c.value(r);
+      return v === null || v === undefined ? "" : String(v);
+    }),
+  );
+
   const stamp = new Date().toLocaleString("pt-BR");
-  pdf.text(stamp, pageW - margin, margin + 4, { align: "right" });
-  pdf.setFontSize(13);
-  pdf.setTextColor(255, 255, 255);
-  pdf.text(title, margin, margin + 11);
+
+  autoTable(pdf, {
+    head,
+    body,
+    startY: margin + 16,
+    margin: { left: margin, right: margin, bottom: margin + 8 },
+    styles: {
+      font: "helvetica",
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: "linebreak",
+      textColor: [30, 41, 59],
+      lineColor: [203, 213, 225],
+      lineWidth: 0.1,
+    },
+    headStyles: {
+      fillColor: [14, 78, 138],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+      halign: "left",
+    },
+    alternateRowStyles: { fillColor: [241, 245, 249] },
+    didDrawPage: () => {
+      // Header
+      pdf.setFontSize(9);
+      pdf.setTextColor(14, 78, 138);
+      pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, margin);
+      pdf.setFontSize(7);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(stamp, pageW - margin, margin, { align: "right" });
+
+      pdf.setFontSize(13);
+      pdf.setTextColor(2, 21, 45);
+      pdf.text(title, margin, margin + 7);
+
+      if (subtitle) {
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(subtitle, margin, margin + 12);
+      }
+
+      // Footer
+      const pageCount = pdf.getNumberOfPages();
+      const pageNum = pdf.getCurrentPageInfo().pageNumber;
+      pdf.setFontSize(7);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(
+        `Martin Brower CDNE · ${rows.length} registros`,
+        margin,
+        pageH - 4,
+      );
+      pdf.text(
+        `Página ${pageNum} de ${pageCount}`,
+        pageW - margin,
+        pageH - 4,
+        { align: "right" },
+      );
+    },
+  });
+
+  const stampFile = new Date().toISOString().slice(0, 10);
+  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
