@@ -3,6 +3,41 @@ import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
 import type { CsvColumn } from "./export-csv";
 
+function getPatchedCss(): string {
+  const rules: string[] = [];
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    try {
+      const sheet = document.styleSheets[i];
+      if (!sheet?.cssRules) continue;
+      for (let j = 0; j < sheet.cssRules.length; j++) {
+        rules.push(sheet.cssRules[j].cssText);
+      }
+    } catch {
+      // cross-origin ou inacessível, ignorar
+    }
+  }
+  return rules
+    .join("\n")
+    .replace(/oklch\([^)]+\)/g, "#0EA5FF")
+    .replace(/oklab\([^)]+\)/g, "#0EA5FF");
+}
+
+function makeOncloneInject(patchedCss: string) {
+  return (doc: Document) => {
+    if (!doc.head) return;
+    if (patchedCss) {
+      const style = doc.createElement("style");
+      style.textContent = patchedCss;
+      doc.head.appendChild(style);
+    }
+    try {
+      doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
+    } catch {
+      // ignore
+    }
+  };
+}
+
 interface ExportTableOpts<T> {
   filename: string;
   title: string;
@@ -116,37 +151,14 @@ export async function exportVisualPdf(
     throw new Error("html2canvas não está disponível");
   }
 
+  const patchedCss = getPatchedCss();
+
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
-    onclone: (doc) => {
-      // html2canvas não entende oklch/oklab; substitui no CSS clonado
-      const sheets = doc.styleSheets;
-      const rules: string[] = [];
-      for (let i = 0; i < sheets.length; i++) {
-        try {
-          const sheet = sheets[i];
-          if (!sheet) continue;
-          for (let j = 0; j < sheet.cssRules.length; j++) {
-            rules.push(sheet.cssRules[j].cssText);
-          }
-        } catch {
-          // cross-origin sheet, ignorar
-        }
-      }
-      const patchedCss = rules
-        .join("\n")
-        .replace(/oklch\([^)]+\)/g, "#0EA5FF")
-        .replace(/oklab\([^)]+\)/g, "#0EA5FF");
-
-      // Injeta CSS corrigido, remove links externos
-      const style = doc.createElement("style");
-      style.textContent = patchedCss;
-      doc.head.appendChild(style);
-      doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
-    },
+    onclone: makeOncloneInject(patchedCss),
   });
   return processCanvas(canvas, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
 }
@@ -273,34 +285,13 @@ export async function exportExecutiveSummary(
 
   // Try to capture a screenshot of charts if available
   try {
+    const execPatchedCss = getPatchedCss();
     const chartsCanvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
-      onclone: (doc) => {
-        const sheets = doc.styleSheets;
-        const rules: string[] = [];
-        for (let i = 0; i < sheets.length; i++) {
-          try {
-            const sheet = sheets[i];
-            if (!sheet) continue;
-            for (let j = 0; j < sheet.cssRules.length; j++) {
-              rules.push(sheet.cssRules[j].cssText);
-            }
-          } catch {
-            // cross-origin sheet, ignorar
-          }
-        }
-        const patchedCss = rules
-          .join("\n")
-          .replace(/oklch\([^)]+\)/g, "#0EA5FF")
-          .replace(/oklab\([^)]+\)/g, "#0EA5FF");
-        const style = doc.createElement("style");
-        style.textContent = patchedCss;
-        doc.head.appendChild(style);
-        doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
-      },
+      onclone: makeOncloneInject(execPatchedCss),
     });
     const imgData = chartsCanvas.toDataURL("image/png");
     const contentW = pageW - margin * 2;
