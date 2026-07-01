@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { RefreshCw, Circle, Calendar } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -76,15 +76,13 @@ function DateFilterControls() {
   const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
     useDateFilter();
   const [open, setOpen] = useState(false);
-  const startRef = useRef<HTMLInputElement>(null);
-  const endRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
-      {/* Mobile: botão compacto que abre popover */}
+      {/* Mobile trigger */}
       <div className="md:hidden">
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpen(true)}
           className={`flex items-center gap-1 rounded-md border px-2 py-1.5 text-[10px] font-semibold ${
             isActive
               ? "border-primary/50 bg-primary/10 text-primary"
@@ -95,80 +93,53 @@ function DateFilterControls() {
           {isActive ? "Filtro ativo" : "Filtrar"}
         </button>
         {open && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />
-            <div className="fixed inset-x-0 bottom-0 z-50 md:absolute md:inset-auto md:right-4 md:top-16 md:w-80 rounded-t-2xl md:rounded-xl border border-primary/30 bg-[#0f2a4a] p-5 pb-8 shadow-2xl md:shadow-lg">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-white">FILTRAR POR DATA</span>
-                <button onClick={() => setOpen(false)} className="text-sm text-white/70 hover:text-white">✕</button>
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setOpen(false)}>
+            <div
+              className="flex w-full max-w-md flex-col gap-4 rounded-t-2xl bg-[#0f2a4a] p-6 pb-10 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold tracking-wider text-white">FILTRAR POR DATA</span>
+                <button onClick={() => setOpen(false)} className="text-lg text-white/60 hover:text-white">✕</button>
               </div>
-            <div className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <button
-                  className="flex-1 text-sm py-2 rounded-lg bg-primary/20 text-white font-semibold active:bg-primary/30"
-                  onClick={() => {
-                    setPreset("week");
-                    setOpen(false);
-                  }}
+                  className="flex-1 rounded-lg bg-primary/20 py-2.5 text-sm font-semibold text-white active:bg-primary/30"
+                  onClick={() => { setPreset("week"); setOpen(false); }}
                 >
                   Semana
                 </button>
                 <button
-                  className="flex-1 text-sm py-2 rounded-lg bg-primary/20 text-white font-semibold active:bg-primary/30"
-                  onClick={() => {
-                    setPreset("month");
-                    setOpen(false);
-                  }}
+                  className="flex-1 rounded-lg bg-primary/20 py-2.5 text-sm font-semibold text-white active:bg-primary/30"
+                  onClick={() => { setPreset("month"); setOpen(false); }}
                 >
                   Mês
                 </button>
               </div>
-              <button
-                onClick={() => startRef.current?.showPicker?.() ?? startRef.current?.click()}
-                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900 text-left"
-              >
-                {startDate
-                  ? new Date(startDate + "T12:00:00").toLocaleDateString("pt-BR")
-                  : "Selecionar data início"}
-              </button>
               <input
-                ref={startRef}
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="sr-only"
+                className="w-full rounded-lg border-2 border-white/40 bg-white px-4 py-3 text-base text-gray-900 [color-scheme:light]"
               />
-              <button
-                onClick={() => endRef.current?.showPicker?.() ?? endRef.current?.click()}
-                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900 text-left"
-              >
-                {endDate
-                  ? new Date(endDate + "T12:00:00").toLocaleDateString("pt-BR")
-                  : "Selecionar data fim"}
-              </button>
               <input
-                ref={endRef}
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="sr-only"
+                className="w-full rounded-lg border-2 border-white/40 bg-white px-4 py-3 text-base text-gray-900 [color-scheme:light]"
               />
               <button
-                onClick={() => {
-                  clearFilter();
-                  setOpen(false);
-                }}
-                className={`w-full text-sm py-2.5 rounded-lg font-semibold ${
+                onClick={() => { clearFilter(); setOpen(false); }}
+                className={`w-full rounded-lg py-2.5 text-sm font-semibold ${
                   isActive
                     ? "bg-red-500/20 text-red-400 active:bg-red-500/30"
-                    : "bg-white/10 text-white/70 active:bg-white/20"
+                    : "bg-white/10 text-white/80 active:bg-white/20"
                 }`}
               >
                 {isActive ? "Limpar filtro" : "Fechar"}
               </button>
             </div>
           </div>
-          </>
         )}
       </div>
 
