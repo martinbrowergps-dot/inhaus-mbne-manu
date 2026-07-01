@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -12,7 +13,9 @@ import {
   Inbox,
   FileWarning,
   TrendingUp,
+  Calendar,
 } from "lucide-react";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import {
   Sidebar,
   SidebarContent,
@@ -43,6 +46,9 @@ const items = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
+    useDateFilter();
+  const [openCalendar, setOpenCalendar] = useState(false);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -92,10 +98,108 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border">
-        <div className="px-2 py-2 text-[10px] text-muted-foreground group-data-[collapsible=icon]:hidden">
-          <div className="font-semibold tracking-wider">GRP GPS</div>
-          <div>Excelência em operação e manutenção industrial.</div>
+      <SidebarFooter className="border-t border-sidebar-border p-0">
+        <div className="group-data-[collapsible=icon]:hidden">
+          <div className="flex items-center justify-between px-3 pt-3 pb-1">
+            <span className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground">
+              FILTRO DE DATAS
+            </span>
+            {isActive && (
+              <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold text-primary">
+                ativo
+              </span>
+            )}
+          </div>
+          <div className="px-3 pb-3 flex flex-col gap-1.5">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setPreset("week")}
+                className={`flex-1 rounded text-[10px] py-1 font-semibold ${
+                  isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
+                }`}
+              >
+                Semana
+              </button>
+              <button
+                onClick={() => setPreset("month")}
+                className={`flex-1 rounded text-[10px] py-1 font-semibold ${
+                  isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
+                }`}
+              >
+                Mês
+              </button>
+            </div>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+            />
+            {isActive && (
+              <button
+                onClick={clearFilter}
+                className="w-full rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Ícone do calendário quando sidebar está recolhida */}
+        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-2">
+          <button
+            onClick={() => setOpenCalendar(!openCalendar)}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+              isActive ? "bg-primary/20 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent"
+            }`}
+            title="Filtrar por data"
+          >
+            <Calendar className="h-4 w-4" />
+          </button>
+          {openCalendar && (
+            <div className="fixed bottom-16 left-4 z-50 flex w-64 flex-col gap-1.5 rounded-xl border border-sidebar-border bg-sidebar p-3 shadow-lg">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => { setPreset("week"); setOpenCalendar(false); }}
+                  className="flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                >
+                  Semana
+                </button>
+                <button
+                  onClick={() => { setPreset("month"); setOpenCalendar(false); }}
+                  className="flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                >
+                  Mês
+                </button>
+              </div>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+              />
+              {isActive && (
+                <button
+                  onClick={() => { clearFilter(); setOpenCalendar(false); }}
+                  className="rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>
