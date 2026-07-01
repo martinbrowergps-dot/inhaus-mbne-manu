@@ -95,15 +95,15 @@ function DateFilterControls() {
         {open && (
           <>
             <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 md:absolute md:right-4 md:top-16 md:bottom-auto md:left-auto md:w-72 rounded-t-2xl md:rounded-xl border border-border/80 bg-[#0a1e3d] p-5 shadow-2xl md:shadow-lg">
+            <div className="fixed inset-x-0 bottom-0 z-50 md:absolute md:inset-auto md:right-4 md:top-16 md:w-80 rounded-t-2xl md:rounded-xl border border-primary/30 bg-[#0f2a4a] p-5 pb-8 shadow-2xl md:shadow-lg">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-semibold tracking-wider text-foreground">FILTRAR POR DATA</span>
-                <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+                <span className="text-xs font-semibold tracking-wider text-white">FILTRAR POR DATA</span>
+                <button onClick={() => setOpen(false)} className="text-sm text-white/70 hover:text-white">✕</button>
               </div>
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
                 <button
-                  className="flex-1 text-xs py-1.5 rounded-md bg-primary/15 text-primary font-semibold active:bg-primary/25"
+                  className="flex-1 text-sm py-2 rounded-lg bg-primary/20 text-white font-semibold active:bg-primary/30"
                   onClick={() => {
                     setPreset("week");
                     setOpen(false);
@@ -112,7 +112,7 @@ function DateFilterControls() {
                   Semana
                 </button>
                 <button
-                  className="flex-1 text-xs py-1.5 rounded-md bg-primary/15 text-primary font-semibold active:bg-primary/25"
+                  className="flex-1 text-sm py-2 rounded-lg bg-primary/20 text-white font-semibold active:bg-primary/30"
                   onClick={() => {
                     setPreset("month");
                     setOpen(false);
@@ -126,27 +126,27 @@ function DateFilterControls() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-md border border-border/60 bg-[#0d2b4f] px-3 py-2 text-sm text-white [color-scheme:dark]"
+                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900"
               />
               <input
                 aria-label="Data fim"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-md border border-border/60 bg-[#0d2b4f] px-3 py-2 text-sm text-white [color-scheme:dark]"
+                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900"
               />
               <button
                 onClick={() => {
                   clearFilter();
                   setOpen(false);
                 }}
-                className={`w-full text-xs py-2 rounded-md font-medium ${
+                className={`w-full text-sm py-2.5 rounded-lg font-semibold ${
                   isActive
-                    ? "bg-destructive/20 text-destructive active:bg-destructive/30"
-                    : "bg-muted/20 text-muted-foreground"
+                    ? "bg-red-500/20 text-red-400 active:bg-red-500/30"
+                    : "bg-white/10 text-white/70 active:bg-white/20"
                 }`}
               >
-                Limpar filtro
+                {isActive ? "Limpar filtro" : "Fechar"}
               </button>
             </div>
           </div>
