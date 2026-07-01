@@ -1,20 +1,17 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ClipboardList,
-  Play,
   CheckCircle2,
-  Calendar,
-  AlertOctagon,
   Clock,
-  Users,
+  AlertTriangle,
+  AlertOctagon,
+  Zap,
   Thermometer,
+  Users,
 } from "lucide-react";
 import {
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
   Tooltip as ReTooltip,
   BarChart,
@@ -23,6 +20,9 @@ import {
   YAxis,
   CartesianGrid,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { KpiCard } from "@/components/kpi-card";
@@ -33,6 +33,10 @@ import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useFilteredProgramacao } from "@/lib/filters";
+import { normalizeTipo } from "@/lib/normalize";
+import { deriveExecStatus } from "@/lib/status";
+import { format, eachDayOfInterval } from "date-fns";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
@@ -42,12 +46,58 @@ const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa"
 
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
+  const programacao = useFilteredProgramacao(data);
   const pdfRef = useRef<HTMLDivElement>(null);
+
+  const kpis = useMemo(() => {
+    const total = programacao.length;
+    let executadas = 0;
+    let pendentes = 0;
+    let quebra = 0;
+    let anormais = 0;
+    let naoPlanejadas = 0;
+
+    for (const os of programacao) {
+      const st = deriveExecStatus(os);
+      const tipo = normalizeTipo(os.Tipo);
+      if (st === "Finalizada") executadas++;
+      else if (
+        st === "Programada" ||
+        st === "Em execução" ||
+        st === "Pausada" ||
+        st === "Reprogramada" ||
+        st === "Atrasada"
+      )
+        pendentes++;
+      if (tipo === "Quebra de Programação") quebra++;
+      if (tipo === "Não Planejada") naoPlanejadas++;
+      if (st === "Atrasada" || (os.DataReprogramada && os.DataReprogramada.trim())) anormais++;
+    }
+
+    const pct = (n: number) => (total > 0 ? ` · ${((n / total) * 100).toFixed(1)}%` : "");
+
+    return {
+      total,
+      executadas,
+      pendentes,
+      quebra,
+      anormais,
+      naoPlanejadas,
+      pct,
+    };
+  }, [programacao]);
+
+  const barChartData = useMemo(() => buildBarSeries(programacao), [programacao]);
+  const bySistema = useMemo(() => aggregate(programacao, (p) => p.Sistema || "—"), [programacao]);
+  const byCriticidade = useMemo(
+    () => aggregate(programacao, (p) => p.Criticidade || "—"),
+    [programacao],
+  );
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-28" />
         ))}
       </div>
@@ -65,25 +115,9 @@ function VisaoGeral() {
     );
   }
 
-  const { programacao, tecnicos, medicoes } = data;
-  const total = programacao.length;
-  const programadas = programacao.filter((p) => /programad/i.test(p.StatusExecucao || p.Status)).length;
-  const emAndamento = programacao.filter((p) => /andamento/i.test(p.StatusExecucao)).length;
-  const finalizadas = programacao.filter((p) => /finalizad|conclu/i.test(p.StatusExecucao)).length;
-  const aa = programacao.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
-  const totalHH = programacao.reduce((s, p) => s + (p.HH || 0), 0);
-
+  const { tecnicos, medicoes } = data;
   const locais = summarizeLocais(medicoes);
   const tempAlerta = locais.filter((l) => l.status !== "normal").length;
-
-  // OS por Sistema
-  const bySistema = aggregate(programacao, (p) => p.Sistema || "—");
-  // OS por Criticidade
-  const byCriticidade = aggregate(programacao, (p) => p.Criticidade || "—");
-  // OS por Dia (próximos 14 dias)
-  const byDia = aggregateByDay(programacao);
-  // Status
-  const byStatus = aggregate(programacao, (p) => p.StatusExecucao || p.Status || "—");
   const aderencia = computeAderencia(programacao);
 
   return (
@@ -92,7 +126,7 @@ function VisaoGeral() {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
           <p className="text-xs text-muted-foreground">
-            Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
+            Painel executivo · {formatInt(programacao.length)} OS no período selecionado
           </p>
         </div>
         <ExportButton
@@ -104,16 +138,64 @@ function VisaoGeral() {
             { header: "Sistema", value: (r) => r.Sistema },
             { header: "Descrição", value: (r) => r.Descricao },
             { header: "Criticidade", value: (r) => r.Criticidade },
+            { header: "Tipo", value: (r) => normalizeTipo(r.Tipo) },
             { header: "Cargo", value: (r) => r.Cargo },
             { header: "HH", value: (r) => r.HH },
             { header: "Executante", value: (r) => r.Executante },
-            { header: "Status", value: (r) => r.StatusExecucao || r.Status },
+            { header: "Status", value: (r) => deriveExecStatus(r) },
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Visão Geral · Centro de Controle"
         />
       </div>
 
+      {/* 6 KPIs canônicos */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <KpiCard
+          label="Total Programadas"
+          value={formatInt(kpis.total)}
+          icon={ClipboardList}
+          variant="primary"
+          hint="no período"
+        />
+        <KpiCard
+          label="Executadas"
+          value={formatInt(kpis.executadas)}
+          icon={CheckCircle2}
+          variant="success"
+          hint={`finalizadas${kpis.pct(kpis.executadas)}`}
+        />
+        <KpiCard
+          label="Pendentes"
+          value={formatInt(kpis.pendentes)}
+          icon={Clock}
+          variant="warning"
+          hint={`em aberto${kpis.pct(kpis.pendentes)}`}
+        />
+        <KpiCard
+          label="Quebra de Programação"
+          value={formatInt(kpis.quebra)}
+          icon={AlertTriangle}
+          variant="warning"
+          hint={`Tipo = QP${kpis.pct(kpis.quebra)}`}
+        />
+        <KpiCard
+          label="Anormais"
+          value={formatInt(kpis.anormais)}
+          icon={AlertOctagon}
+          variant="danger"
+          hint={`atrasadas + reprog${kpis.pct(kpis.anormais)}`}
+        />
+        <KpiCard
+          label="Não Planejadas"
+          value={formatInt(kpis.naoPlanejadas)}
+          icon={Zap}
+          variant="neutral"
+          hint={`Tipo = NP${kpis.pct(kpis.naoPlanejadas)}`}
+        />
+      </div>
+
+      {/* Aderência + equipe/temperatura */}
       <div className="grid gap-3 lg:grid-cols-3">
         <AderenciaCard
           pct={aderencia.pct}
@@ -122,47 +204,35 @@ function VisaoGeral() {
           className="lg:col-span-1"
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
-          <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
-          <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
-          <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
-          <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
+          <KpiCard
+            label="Técnicos Ativos"
+            value={formatInt(tecnicos.length)}
+            icon={Users}
+            variant="neutral"
+          />
+          <KpiCard
+            label="Temperaturas em Alerta"
+            value={formatInt(tempAlerta)}
+            hint={`${locais.length} locais monitorados`}
+            icon={Thermometer}
+            variant={tempAlerta > 0 ? "danger" : "success"}
+          />
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="OS Programadas" value={formatInt(programadas)} icon={Calendar} variant="neutral" />
-        <KpiCard label="HH Programado" value={formatBRNumber(totalHH, 1)} hint="horas-homem" icon={Clock} variant="primary" />
-        <KpiCard label="Técnicos Ativos" value={formatInt(tecnicos.length)} icon={Users} variant="neutral" />
-        <KpiCard
-          label="Temperaturas em Alerta"
-          value={formatInt(tempAlerta)}
-          hint={`${locais.length} locais monitorados`}
-          icon={Thermometer}
-          variant={tempAlerta > 0 ? "danger" : "success"}
-        />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="OS POR SISTEMA">
-          <ChartPie data={bySistema} />
-        </Panel>
-
-        <Panel title="OS POR CRITICIDADE">
-          <ChartDonut data={byCriticidade} />
-        </Panel>
-
-        <Panel title="STATUS DAS OS">
-          <ChartPie data={byStatus} />
-        </Panel>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="OS POR DIA" subtitle="Próximas 2 semanas">
-          <div className="h-64">
+      {/* Gráfico de barras — Fin / Canc / Não Planejadas */}
+      <Panel
+        title="EXECUÇÃO POR DIA"
+        subtitle="Finalizadas · Canceladas · Não Planejadas (respeita todos os filtros)"
+      >
+        {barChartData.length === 0 ? (
+          <Empty />
+        ) : (
+          <div className="h-72">
             <ResponsiveContainer>
-              <BarChart data={byDia}>
+              <BarChart data={barChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                <XAxis dataKey="periodo" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <ReTooltip
                   contentStyle={{
@@ -172,14 +242,27 @@ function VisaoGeral() {
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="finalizadas" name="Finalizadas" fill="#22C55E" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="canceladas" name="Canceladas" fill="#EF4444" radius={[3, 3, 0, 0]} />
+                <Bar
+                  dataKey="naoPlanejadas"
+                  name="Não Planejadas"
+                  fill="#EAB308"
+                  radius={[3, 3, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </Panel>
+        )}
+      </Panel>
 
-        <Panel title="HH POR CARGO">
-          <ChartBarHorizontal data={aggregateHH(programacao)} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel title="OS POR SISTEMA">
+          <ChartPie data={bySistema} />
+        </Panel>
+        <Panel title="OS POR CRITICIDADE">
+          <ChartPie data={byCriticidade} />
         </Panel>
       </div>
 
@@ -214,6 +297,8 @@ function VisaoGeral() {
   );
 }
 
+/* ─────────── helpers ─────────── */
+
 function aggregate<T>(items: T[], keyFn: (t: T) => string) {
   const map = new Map<string, number>();
   for (const it of items) {
@@ -225,33 +310,48 @@ function aggregate<T>(items: T[], keyFn: (t: T) => string) {
     .sort((a, b) => b.value - a.value);
 }
 
-function aggregateHH(rows: { Cargo: string; HH: number }[]) {
-  const map = new Map<string, number>();
+function buildBarSeries(rows: { DataProgramada: string; DataReprogramada: string; Tipo?: string; StatusExecucao: string; Status: string }[]) {
+  // Determine date range covered by rows
+  const dates: Date[] = [];
   for (const r of rows) {
-    const k = r.Cargo || "—";
-    map.set(k, (map.get(k) ?? 0) + (r.HH || 0));
+    const d = parseBRDate(r.DataReprogramada) || parseBRDate(r.DataProgramada);
+    if (d) dates.push(d);
   }
-  return Array.from(map.entries())
-    .map(([name, value]) => ({ name, value: Number(value.toFixed(1)) }))
-    .sort((a, b) => b.value - a.value);
-}
+  if (dates.length === 0) return [];
+  const min = new Date(Math.min(...dates.map((d) => d.getTime())));
+  const max = new Date(Math.max(...dates.map((d) => d.getTime())));
+  min.setHours(0, 0, 0, 0);
+  max.setHours(0, 0, 0, 0);
 
-function aggregateByDay(rows: { DataProgramada: string }[]) {
-  const map = new Map<string, number>();
-  for (const r of rows) {
-    const d = parseBRDate(r.DataProgramada);
-    if (!d) continue;
-    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    map.set(key, (map.get(key) ?? 0) + 1);
+  // Cap at 60 days to keep chart readable
+  const spanDays = Math.floor((max.getTime() - min.getTime()) / 86400000);
+  const start = spanDays > 60 ? new Date(max.getTime() - 59 * 86400000) : min;
+
+  const days = eachDayOfInterval({ start, end: max });
+  const map = new Map<
+    string,
+    { periodo: string; finalizadas: number; canceladas: number; naoPlanejadas: number }
+  >();
+  for (const d of days) {
+    const key = format(d, "dd/MM");
+    map.set(key, { periodo: key, finalizadas: 0, canceladas: 0, naoPlanejadas: 0 });
   }
-  return Array.from(map.entries())
-    .sort((a, b) => {
-      const [da, ma] = a[0].split("/").map(Number);
-      const [db, mb] = b[0].split("/").map(Number);
-      return ma - mb || da - db;
-    })
-    .slice(0, 14)
-    .map(([label, value]) => ({ label, value }));
+
+  for (const r of rows) {
+    const d = parseBRDate(r.DataReprogramada) || parseBRDate(r.DataProgramada);
+    if (!d) continue;
+    if (d < start) continue;
+    const key = format(d, "dd/MM");
+    const bucket = map.get(key);
+    if (!bucket) continue;
+    const st = deriveExecStatus(r as never);
+    const tipo = normalizeTipo(r.Tipo);
+    if (st === "Finalizada") bucket.finalizadas++;
+    else if (st === "Cancelada") bucket.canceladas++;
+    if (tipo === "Não Planejada") bucket.naoPlanejadas++;
+  }
+
+  return Array.from(map.values());
 }
 
 function ChartPie({ data }: { data: { name: string; value: number }[] }) {
@@ -289,75 +389,13 @@ function ChartPie({ data }: { data: { name: string; value: number }[] }) {
   );
 }
 
-function ChartDonut({ data }: { data: { name: string; value: number }[] }) {
-  if (data.length === 0) return <Empty />;
-  return (
-    <div className="h-64">
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={80}
-            paddingAngle={3}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] }) {
-  if (data.length === 0) return <Empty />;
-  return (
-    <div className="h-64">
-      <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-          <YAxis
-            type="category"
-            dataKey="name"
-            tick={{ fontSize: 10, fill: "#94A3B8" }}
-            stroke="#94A3B8"
-            width={110}
-          />
-          <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
-          <Bar dataKey="value" fill="#22C55E" radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 function Empty() {
   return (
     <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-      Sem registros
+      Sem registros no período selecionado
     </div>
   );
 }
+
+// suppress unused import warning
+void formatBRNumber;
