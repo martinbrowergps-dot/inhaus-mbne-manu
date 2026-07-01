@@ -94,12 +94,16 @@ function DateFilterControls() {
         </button>
         {open && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
-            <div className="absolute right-4 top-16 z-50 w-72 rounded-xl border border-border/60 bg-card p-4 shadow-lg">
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-1">
+            <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />
+            <div className="fixed bottom-0 left-0 right-0 z-50 md:absolute md:right-4 md:top-16 md:bottom-auto md:left-auto md:w-72 rounded-t-2xl md:rounded-xl border border-border/80 bg-[#0a1e3d] p-5 shadow-2xl md:shadow-lg">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold tracking-wider text-foreground">FILTRAR POR DATA</span>
+                <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+              </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
                 <button
-                  className="flex-1 text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+                  className="flex-1 text-xs py-1.5 rounded-md bg-primary/15 text-primary font-semibold active:bg-primary/25"
                   onClick={() => {
                     setPreset("week");
                     setOpen(false);
@@ -108,7 +112,7 @@ function DateFilterControls() {
                   Semana
                 </button>
                 <button
-                  className="flex-1 text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+                  className="flex-1 text-xs py-1.5 rounded-md bg-primary/15 text-primary font-semibold active:bg-primary/25"
                   onClick={() => {
                     setPreset("month");
                     setOpen(false);
@@ -122,23 +126,27 @@ function DateFilterControls() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-md border border-border/60 bg-card px-2 py-1 text-xs text-foreground [color-scheme:dark]"
+                className="w-full rounded-md border border-border/60 bg-[#0d2b4f] px-3 py-2 text-sm text-white [color-scheme:dark]"
               />
               <input
                 aria-label="Data fim"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-md border border-border/60 bg-card px-2 py-1 text-xs text-foreground [color-scheme:dark]"
+                className="w-full rounded-md border border-border/60 bg-[#0d2b4f] px-3 py-2 text-sm text-white [color-scheme:dark]"
               />
               <button
                 onClick={() => {
                   clearFilter();
                   setOpen(false);
                 }}
-                className={`text-[11px] px-2 py-1 rounded ${isActive ? "bg-destructive/10 text-destructive" : "bg-muted/10 text-muted-foreground"}`}
+                className={`w-full text-xs py-2 rounded-md font-medium ${
+                  isActive
+                    ? "bg-destructive/20 text-destructive active:bg-destructive/30"
+                    : "bg-muted/20 text-muted-foreground"
+                }`}
               >
-                Limpar
+                Limpar filtro
               </button>
             </div>
           </div>
