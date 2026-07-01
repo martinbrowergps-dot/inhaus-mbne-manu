@@ -15,7 +15,6 @@ export interface ProgramacaoRow {
   LocalMacro?: string;
   Localidade?: string;
   Tipo?: string;
-  MotivoCancelamento?: string;
 }
 
 export interface MedicaoRow {
