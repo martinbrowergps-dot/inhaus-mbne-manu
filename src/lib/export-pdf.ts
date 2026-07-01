@@ -25,15 +25,15 @@ function getPatchedCss(): string {
 function makeOncloneInject(patchedCss: string) {
   return (doc: Document) => {
     if (!doc.head) return;
+    try {
+      doc.querySelectorAll('link[rel="stylesheet"], style').forEach((el) => el.remove());
+    } catch {
+      // ignore
+    }
     if (patchedCss) {
       const style = doc.createElement("style");
       style.textContent = patchedCss;
       doc.head.appendChild(style);
-    }
-    try {
-      doc.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
-    } catch {
-      // ignore
     }
   };
 }
