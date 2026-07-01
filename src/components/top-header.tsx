@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { RefreshCw, Circle, Calendar } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -76,6 +76,8 @@ function DateFilterControls() {
   const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
     useDateFilter();
   const [open, setOpen] = useState(false);
+  const startRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -121,19 +123,35 @@ function DateFilterControls() {
                   Mês
                 </button>
               </div>
+              <button
+                onClick={() => startRef.current?.showPicker?.() ?? startRef.current?.click()}
+                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900 text-left"
+              >
+                {startDate
+                  ? new Date(startDate + "T12:00:00").toLocaleDateString("pt-BR")
+                  : "Selecionar data início"}
+              </button>
               <input
-                aria-label="Data início"
+                ref={startRef}
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900"
+                className="sr-only"
               />
+              <button
+                onClick={() => endRef.current?.showPicker?.() ?? endRef.current?.click()}
+                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900 text-left"
+              >
+                {endDate
+                  ? new Date(endDate + "T12:00:00").toLocaleDateString("pt-BR")
+                  : "Selecionar data fim"}
+              </button>
               <input
-                aria-label="Data fim"
+                ref={endRef}
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-lg border border-white/30 bg-white px-3 py-3 text-sm font-medium text-gray-900"
+                className="sr-only"
               />
               <button
                 onClick={() => {
