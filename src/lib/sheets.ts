@@ -91,6 +91,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     LocalMacro: pick(r, "LocalMacro"),
     Localidade: pick(r, "Localidade"),
     Tipo: pick(r, "Tipo"),
+    MotivoCancelamento: pick(r, "MotivoCancelamento", "Motivo Cancelamento", "Motivo de Cancelamento"),
   }));
 
   const medicoes: MedicaoRow[] = medicoesRaw.map((r) => ({
