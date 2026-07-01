@@ -47,14 +47,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-[0_0_20px_rgba(14,165,255,0.4)] overflow-hidden">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="h-full w-full object-contain p-0.5"
-            />
-          </div>
+        <div className="flex items-center gap-2 px-2 py-3">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-9 w-auto shrink-0"
+          />
           <div className="group-data-[collapsible=icon]:hidden">
             <div className="text-[10px] font-bold tracking-[0.18em] text-primary">
               MARTIN BROWER
