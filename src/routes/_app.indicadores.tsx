@@ -20,6 +20,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
@@ -43,13 +44,18 @@ function IndicadoresPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
 
+  const dateFilter = useDateFilter();
+
   const computed = useMemo(() => {
     if (!data) return null;
-    const aderencia = computeAderencia(data.programacao);
+    const programacaoFiltrada = data.programacao.filter((p) =>
+      dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
+    );
+    const aderencia = computeAderencia(programacaoFiltrada);
 
     // Aderência por sistema
     const bySys = new Map<string, { total: number; ok: number }>();
-    for (const p of data.programacao) {
+    for (const p of programacaoFiltrada) {
       if (!p.DataProgramada) continue;
       const k = p.Sistema || "—";
       const e = bySys.get(k) ?? { total: 0, ok: 0 };
@@ -65,7 +71,7 @@ function IndicadoresPage() {
 
     // Aderência semanal (últimas 8 semanas)
     const weekMap = new Map<string, { total: number; ok: number; ts: number }>();
-    for (const p of data.programacao) {
+    for (const p of programacaoFiltrada) {
       const d = parseBRDate(p.DataProgramada);
       if (!d) continue;
       const ws = new Date(d);
@@ -80,7 +86,11 @@ function IndicadoresPage() {
       weekMap.set(key, e);
     }
     const semanal = Array.from(weekMap.entries())
-      .map(([label, v]) => ({ label, value: v.total > 0 ? Number(((v.ok / v.total) * 100).toFixed(1)) : 0, ts: v.ts }))
+      .map(([label, v]) => ({
+        label,
+        value: v.total > 0 ? Number(((v.ok / v.total) * 100).toFixed(1)) : 0,
+        ts: v.ts,
+      }))
       .sort((a, b) => a.ts - b.ts)
       .slice(-8);
 
@@ -88,7 +98,7 @@ function IndicadoresPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const backlog = new Map<string, { count: number; hh: number }>();
-    for (const p of data.programacao) {
+    for (const p of programacaoFiltrada) {
       const status = deriveExecStatus(p);
       if (status !== "Atrasada") continue;
       const k = (p.Criticidade || "—").toUpperCase();
@@ -115,7 +125,11 @@ function IndicadoresPage() {
     const docasSet = new Set(data.checklistDocas.map((c) => (c.Data || "").slice(0, 10)));
     const geralSet = new Set(data.checklistGeral.map((c) => (c.Data || "").slice(0, 10)));
     const portasSet = new Set(data.checklistPortas.map((c) => (c.Data || "").slice(0, 10)));
-    const passagemSet = new Set(data.passagemTurno.map((c) => (c.Data || "").slice(0, 10)));
+    const passagemSet = new Set(
+      (data.passagemTurno ?? [])
+        .filter((p) => dateFilter.filterByDateRange(p.Data))
+        .map((c) => (c.Data || "").slice(0, 10)),
+    );
     const heatmap = days.map((d) => ({
       ...d,
       docas: docasSet.has(d.key),
@@ -126,7 +140,7 @@ function IndicadoresPage() {
 
     // HH por dia
     const hhDia = new Map<string, { value: number; ts: number }>();
-    for (const p of data.programacao) {
+    for (const p of programacaoFiltrada) {
       const d = parseBRDate(p.DataProgramada);
       if (!d) continue;
       const k = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
@@ -139,7 +153,7 @@ function IndicadoresPage() {
       .sort((a, b) => a.ts - b.ts);
 
     return { aderencia, aderSistema, semanal, backlogArr, heatmap, hhDiaArr };
-  }, [data]);
+  }, [data, dateFilter]);
 
   if (isLoading || !data || !computed)
     return (
@@ -166,7 +180,9 @@ function IndicadoresPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
-          <p className="text-xs text-muted-foreground">Análise consolidada do plano de manutenção</p>
+          <p className="text-xs text-muted-foreground">
+            Análise consolidada do plano de manutenção
+          </p>
         </div>
         <ExportButton
           filename="indicadores"
@@ -184,17 +200,34 @@ function IndicadoresPage() {
         <AderenciaCard
           pct={computed.aderencia.pct}
           finalizadasNoPrazo={computed.aderencia.finalizadasNoPrazo}
+          finalizadasForaPrazo={computed.aderencia.finalizadasForaPrazo}
+          canceladas={computed.aderencia.canceladas}
+          pendentes={computed.aderencia.pendentes}
           totalProgramadas={computed.aderencia.totalProgramadas}
         />
         <Panel title="ADERÊNCIA SEMANAL" className="lg:col-span-2">
           <div className="h-48">
             <ResponsiveContainer>
               <LineChart data={computed.semanal}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" unit="%" />
-                <ReTooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]} />
-                <Line type="monotone" dataKey="value" stroke="#0EA5FF" strokeWidth={2} dot={{ fill: "#0EA5FF", r: 3 }} />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 10, fill: "#94A3B8" }}
+                  stroke="#94A3B8"
+                  unit="%"
+                />
+                <ReTooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#0EA5FF"
+                  strokeWidth={2}
+                  dot={{ fill: "#0EA5FF", r: 3 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -206,13 +239,31 @@ function IndicadoresPage() {
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={computed.aderSistema} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-                <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={140} />
-                <ReTooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis
+                  type="number"
+                  domain={[0, 100]}
+                  unit="%"
+                  tick={{ fontSize: 10, fill: "#94A3B8" }}
+                  stroke="#94A3B8"
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 10, fill: "#94A3B8" }}
+                  stroke="#94A3B8"
+                  width={140}
+                />
+                <ReTooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
+                />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {computed.aderSistema.map((d, i) => (
-                    <Cell key={i} fill={d.value >= 95 ? "#22C55E" : d.value >= 85 ? "#EAB308" : "#EF4444"} />
+                    <Cell
+                      key={i}
+                      fill={d.value >= 95 ? "#22C55E" : d.value >= 85 ? "#EAB308" : "#EF4444"}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -229,7 +280,7 @@ function IndicadoresPage() {
             <div className="h-72">
               <ResponsiveContainer>
                 <BarChart data={computed.backlogArr}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <ReTooltip contentStyle={TOOLTIP_STYLE} />
@@ -266,11 +317,17 @@ function IndicadoresPage() {
         <div className="h-72">
           <ResponsiveContainer>
             <LineChart data={computed.hhDiaArr}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
               <ReTooltip contentStyle={TOOLTIP_STYLE} />
-              <Line type="monotone" dataKey="value" stroke="#0EA5FF" strokeWidth={2} dot={{ fill: "#0EA5FF", r: 3 }} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#0EA5FF"
+                strokeWidth={2}
+                dot={{ fill: "#0EA5FF", r: 3 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -297,7 +354,10 @@ function Heatmap({
           <span className="w-20 shrink-0 text-[10px] tracking-wider text-muted-foreground uppercase">
             {t.label}
           </span>
-          <div className="grid flex-1 grid-cols-30 gap-0.5" style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}>
+          <div
+            className="grid flex-1 grid-cols-30 gap-0.5"
+            style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}
+          >
             {rows.map((r) => (
               <div
                 key={r.label}
@@ -314,8 +374,12 @@ function Heatmap({
         </div>
       ))}
       <div className="flex items-center justify-end gap-3 pt-1 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-success/70" /> Cumprido</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-destructive/30" /> Faltou</span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-sm bg-success/70" /> Cumprido
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-sm bg-destructive/30" /> Faltou
+        </span>
       </div>
     </div>
   );
@@ -335,9 +399,15 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
     <div className="h-72">
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-          <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={140} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            stroke="#94A3B8"
+            width={140}
+          />
           <ReTooltip contentStyle={TOOLTIP_STYLE} />
           <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} />
         </BarChart>
@@ -346,13 +416,26 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
   );
 }
 
-function PieView({ data, colors = COLORS }: { data: { name: string; value: number }[]; colors?: string[] }) {
+function PieView({
+  data,
+  colors = COLORS,
+}: {
+  data: { name: string; value: number }[];
+  colors?: string[];
+}) {
   if (data.length === 0) return <p className="text-xs text-muted-foreground">Sem registros</p>;
   return (
     <div className="h-72">
       <ResponsiveContainer>
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            innerRadius={55}
+            outerRadius={90}
+            paddingAngle={2}
+          >
             {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}

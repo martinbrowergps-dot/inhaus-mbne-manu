@@ -14,6 +14,7 @@ import {
   Cell,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import type { BacklogRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
 import { KpiCard } from "@/components/kpi-card";
@@ -70,7 +71,12 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     cell: ({ row }) => {
       const d = row.original._idade;
       if (d === null) return <span className="text-muted-foreground">—</span>;
-      const cls = d > 180 ? "text-destructive font-bold" : d > 60 ? "text-warning font-semibold" : "text-foreground";
+      const cls =
+        d > 180
+          ? "text-destructive font-bold"
+          : d > 60
+            ? "text-warning font-semibold"
+            : "text-foreground";
       return <span className={cn("num", cls)}>{d}d</span>;
     },
   },
@@ -78,7 +84,16 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     accessorKey: "Assunto",
     header: "Assunto",
     cell: ({ getValue }) => (
-      <span className="line-clamp-2 max-w-[320px] text-xs">{getValue() as string}</span>
+      <span className="line-clamp-2 max-w-[260px] text-xs">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "OQuePrecisa",
+    header: "O que precisa",
+    cell: ({ getValue }) => (
+      <span className="line-clamp-2 max-w-[200px] text-muted-foreground text-[10px]">
+        {(getValue() as string) || "—"}
+      </span>
     ),
   },
   { accessorKey: "Solicitante", header: "Solicitante" },
@@ -88,7 +103,11 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     header: "Prioridade",
     cell: ({ getValue }) => {
       const v = (getValue() as string) || "—";
-      return <Badge variant="outline" className={`${priorityClass(v)} text-[10px] font-bold`}>{v}</Badge>;
+      return (
+        <Badge variant="outline" className={`${priorityClass(v)} text-[10px] font-bold`}>
+          {v}
+        </Badge>
+      );
     },
   },
   {
@@ -96,7 +115,11 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     header: "Estado",
     cell: ({ getValue }) => {
       const v = (getValue() as string) || "—";
-      return <Badge variant="outline" className={`${stateClass(v)} text-[10px]`}>{v}</Badge>;
+      return (
+        <Badge variant="outline" className={`${stateClass(v)} text-[10px]`}>
+          {v}
+        </Badge>
+      );
     },
   },
   {
@@ -116,13 +139,14 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
 
 function BacklogPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const dateFilter = useDateFilter();
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched = useMemo(() => {
-    const rows = data?.backlog ?? [];
+    const rows = (data?.backlog ?? []).filter((r) => dateFilter.filterByDateRange(r.DataCriacao));
     return rows
       .filter((r) => !/conclu|finaliz|cancel/i.test(r.Estado))
       .map((r) => {
@@ -133,7 +157,7 @@ function BacklogPage() {
           _vencido: !!venc && venc.getTime() < Date.now(),
         };
       });
-  }, [data]);
+  }, [data, dateFilter]);
 
   const filtered = useMemo(() => {
     return enriched.filter((r) => {
@@ -142,8 +166,12 @@ function BacklogPage() {
       if (q.trim()) {
         const l = q.toLowerCase();
         if (
-          ![r.Identificacao, r.Assunto, r.Solicitante, r.Tecnico, r.Grupo]
-            .some((v) => String(v ?? "").toLowerCase().includes(l))
+          ![r.Identificacao, r.Assunto, r.Solicitante, r.Tecnico, r.Grupo, r.OQuePrecisa].some(
+            (v) =>
+              String(v ?? "")
+                .toLowerCase()
+                .includes(l),
+          )
         )
           return false;
       }
@@ -199,13 +227,25 @@ function BacklogPage() {
     return buckets;
   }, [enriched]);
 
-  const estados = useMemo(() => Array.from(new Set(enriched.map((r) => r.Estado).filter(Boolean))), [enriched]);
-  const prioridades = useMemo(() => Array.from(new Set(enriched.map((r) => r.Prioridade).filter(Boolean))), [enriched]);
+  const estados = useMemo(
+    () => Array.from(new Set(enriched.map((r) => r.Estado).filter(Boolean))),
+    [enriched],
+  );
+  const prioridades = useMemo(
+    () => Array.from(new Set(enriched.map((r) => r.Prioridade).filter(Boolean))),
+    [enriched],
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-24" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-28" />)}
+        </div>
+        <Skeleton className="h-8 w-72" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-64" />)}
+        </div>
         <Skeleton className="h-96" />
       </div>
     );
@@ -214,7 +254,6 @@ function BacklogPage() {
   return (
     <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-
         <div>
           <h1 className="text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
           <p className="text-xs text-muted-foreground">
@@ -231,6 +270,7 @@ function BacklogPage() {
             { header: "Data Criação", value: (r) => r.DataCriacao },
             { header: "Idade (dias)", value: (r) => r._idade ?? "" },
             { header: "Assunto", value: (r) => r.Assunto },
+            { header: "O que precisa", value: (r) => r.OQuePrecisa ?? "" },
             { header: "Técnico", value: (r) => r.Tecnico },
             { header: "Prioridade", value: (r) => r.Prioridade },
             { header: "Vencimento", value: (r) => r.DataVencimento },
@@ -252,7 +292,12 @@ function BacklogPage() {
           icon={AlertTriangle}
           variant={vencidos > 0 ? "danger" : "neutral"}
         />
-        <KpiCard label="Prioridade alta" value={criticos} icon={Clock} variant={criticos > 0 ? "warning" : "neutral"} />
+        <KpiCard
+          label="Prioridade alta"
+          value={criticos}
+          icon={Clock}
+          variant={criticos > 0 ? "warning" : "neutral"}
+        />
         <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={Users} />
       </div>
 
@@ -283,18 +328,38 @@ function BacklogPage() {
         }
       >
         <div className="mb-3 flex flex-wrap gap-2">
-          <FilterChip label="Todas prioridades" active={!priFilter} onClick={() => setPriFilter(null)} />
+          <FilterChip
+            label="Todas prioridades"
+            active={!priFilter}
+            onClick={() => setPriFilter(null)}
+          />
           {prioridades.map((p) => (
-            <FilterChip key={p} label={p} active={priFilter === p} onClick={() => setPriFilter(p)} className={priorityClass(p)} />
+            <FilterChip
+              key={p}
+              label={p}
+              active={priFilter === p}
+              onClick={() => setPriFilter(p)}
+              className={priorityClass(p)}
+            />
           ))}
         </div>
         <div className="mb-3 flex flex-wrap gap-2">
-          <FilterChip label="Todos estados" active={!stateFilter} onClick={() => setStateFilter(null)} />
+          <FilterChip
+            label="Todos estados"
+            active={!stateFilter}
+            onClick={() => setStateFilter(null)}
+          />
           {estados.map((s) => (
-            <FilterChip key={s} label={s} active={stateFilter === s} onClick={() => setStateFilter(s)} className={stateClass(s)} />
+            <FilterChip
+              key={s}
+              label={s}
+              active={stateFilter === s}
+              onClick={() => setStateFilter(s)}
+              className={stateClass(s)}
+            />
           ))}
         </div>
-        <DataTable data={filtered} columns={columns} pageSize={20} />
+        <DataTable data={filtered} columns={columns} pageSize={15} />
       </Panel>
     </div>
   );
@@ -318,7 +383,7 @@ function FilterChip({
       className={cn(
         "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors",
         active
-          ? "border-primary bg-primary/15 text-primary shadow-[0_0_10px_oklch(0.72_0.18_240/0.3)]"
+          ? "border-primary bg-primary/15 text-primary shadow-[0_0_10px_rgba(14,165,255,0.3)]"
           : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
         active && className,
       )}
@@ -343,26 +408,49 @@ function ChartBars({
   const color = (name: string, i: number) => {
     if (colorBy === "priority") {
       const r = priorityRank(name);
-      return r === 0 ? "oklch(0.65 0.24 27)" : r === 1 ? "oklch(0.82 0.17 88)" : "oklch(0.72 0.18 240)";
+      return r === 0
+        ? "#EF4444"
+        : r === 1
+          ? "#EAB308"
+          : "#0EA5FF";
     }
     if (colorBy === "age") {
-      return ["oklch(0.72 0.18 240)", "oklch(0.82 0.17 88)", "oklch(0.82 0.17 88)", "oklch(0.65 0.24 27)"][i] || "oklch(0.72 0.18 240)";
+      return (
+        [
+          "#0EA5FF",
+          "#EAB308",
+          "#EAB308",
+          "#EF4444",
+        ][i] || "#0EA5FF"
+      );
     }
-    return "oklch(0.72 0.18 240)";
+    return "#0EA5FF";
   };
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ top: 4, right: 8, left: horizontal ? 80 : 0, bottom: 0 }}>
+      <BarChart
+        data={data}
+        layout={horizontal ? "vertical" : "horizontal"}
+        margin={{ top: 4, right: 8, left: horizontal ? 80 : 0, bottom: 0 }}
+      >
         <CartesianGrid stroke="hsl(var(--border) / 0.3)" strokeDasharray="3 3" />
         {horizontal ? (
           <>
             <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={80} />
+            <YAxis
+              type="category"
+              dataKey="name"
+              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              width={80}
+            />
           </>
         ) : (
           <>
             <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} />
+            <YAxis
+              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              allowDecimals={false}
+            />
           </>
         )}
         <Tooltip

@@ -45,10 +45,10 @@ export function TempTrendChart({
 
   const lineColor =
     kpis.criticos > 0
-      ? "oklch(0.65 0.24 27)"
-      : kpis.pctNaFaixa < 90
-        ? "oklch(0.82 0.17 88)"
-        : "oklch(0.74 0.19 145)";
+      ? "#EF4444"
+      : kpis.pctNaFaixa < 100
+        ? "#EAB308"
+        : "#22C55E";
 
   const temps = series.map((s) => s.temp);
   const minT = faixa ? Math.min(faixa.min - 2, ...temps) : Math.min(...temps, 0);
@@ -76,7 +76,7 @@ export function TempTrendChart({
         <div className="h-40">
           <ResponsiveContainer>
             <LineChart data={series} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis
                 dataKey="t"
                 type="number"
@@ -96,16 +96,24 @@ export function TempTrendChart({
                 <ReferenceArea
                   y1={faixa.min}
                   y2={faixa.max}
-                  fill="oklch(0.74 0.19 145)"
+                  fill="#22C55E"
                   fillOpacity={0.08}
-                  stroke="oklch(0.74 0.19 145)"
+                  stroke="#22C55E"
                   strokeOpacity={0.25}
                 />
               )}
               {faixa && (
                 <>
-                  <ReferenceLine y={faixa.min} stroke="oklch(0.74 0.19 145 / 0.5)" strokeDasharray="3 3" />
-                  <ReferenceLine y={faixa.max} stroke="oklch(0.74 0.19 145 / 0.5)" strokeDasharray="3 3" />
+                  <ReferenceLine
+                    y={faixa.min}
+                    stroke="rgba(34,197,94,0.5)"
+                    strokeDasharray="3 3"
+                  />
+                  <ReferenceLine
+                    y={faixa.max}
+                    stroke="rgba(34,197,94,0.5)"
+                    strokeDasharray="3 3"
+                  />
                 </>
               )}
               <ReTooltip
@@ -134,15 +142,35 @@ export function TempTrendChart({
 
       <div className="mt-3 grid grid-cols-4 gap-2 border-t border-border/40 pt-2 text-center">
         <Kpi label="Leituras" value={String(kpis.count)} />
-        <Kpi label="Na faixa" value={`${formatBRNumber(kpis.pctNaFaixa, 0)}%`} tone={kpis.pctNaFaixa >= 95 ? "good" : kpis.pctNaFaixa >= 85 ? "warn" : "bad"} />
-        <Kpi label="Críticos" value={String(kpis.criticos)} tone={kpis.criticos > 0 ? "bad" : "good"} />
-        <Kpi label="Desv. máx" value={`${formatBRNumber(kpis.desvioMax, 1)}°`} tone={kpis.desvioMax > 1 ? "bad" : kpis.desvioMax > 0 ? "warn" : "good"} />
+        <Kpi
+          label="Na faixa"
+          value={`${formatBRNumber(kpis.pctNaFaixa, 0)}%`}
+          tone={kpis.pctNaFaixa >= 95 ? "good" : kpis.pctNaFaixa >= 85 ? "warn" : "bad"}
+        />
+        <Kpi
+          label="Críticos"
+          value={String(kpis.criticos)}
+          tone={kpis.criticos > 0 ? "bad" : "good"}
+        />
+        <Kpi
+          label="Desv. máx"
+          value={`${formatBRNumber(kpis.desvioMax, 1)}°`}
+          tone={kpis.desvioMax > 1 ? "bad" : kpis.desvioMax > 0 ? "warn" : "good"}
+        />
       </div>
     </div>
   );
 }
 
-function Kpi({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "good" | "warn" | "bad" | "neutral" }) {
+function Kpi({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: "good" | "warn" | "bad" | "neutral";
+}) {
   const cls = {
     good: "text-success",
     warn: "text-warning",

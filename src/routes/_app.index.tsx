@@ -25,6 +25,7 @@ import {
   Legend,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
@@ -33,6 +34,8 @@ import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { deriveExecStatus, EXECUTADO_STATUSES } from "@/lib/status";
+import { exportExecutiveSummary } from "@/lib/export-pdf";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
@@ -43,6 +46,7 @@ const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa"
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const dateFilter = useDateFilter();
 
   if (isLoading) {
     return (
@@ -66,25 +70,79 @@ function VisaoGeral() {
   }
 
   const { programacao, tecnicos, medicoes } = data;
-  const total = programacao.length;
-  const programadas = programacao.filter((p) => /programad/i.test(p.StatusExecucao || p.Status)).length;
-  const emAndamento = programacao.filter((p) => /andamento/i.test(p.StatusExecucao)).length;
-  const finalizadas = programacao.filter((p) => /finalizad|conclu/i.test(p.StatusExecucao)).length;
-  const aa = programacao.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
-  const totalHH = programacao.reduce((s, p) => s + (p.HH || 0), 0);
+  const programacaoFiltrada = (programacao ?? []).filter((p) =>
+    dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
+  );
+  const medicoesFiltradas = (medicoes ?? []).filter((m) => dateFilter.filterByDateRange(m.DATA));
+  const total = programacaoFiltrada.length;
+  const enriched = programacaoFiltrada.map((p) => ({ ...p, _execStatus: deriveExecStatus(p) }));
+  const programadas = enriched.filter((p) => p._execStatus === "Programada").length;
+  const emAndamento = enriched.filter((p) => p._execStatus === "Em execução").length;
+  const finalizadas = enriched.filter((p) => p._execStatus === "Finalizada").length;
+  const aa = programacaoFiltrada.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
+  const totalHH = programacaoFiltrada.reduce((s, p) => s + (p.HH || 0), 0);
 
-  const locais = summarizeLocais(medicoes);
+  const locais = summarizeLocais(medicoesFiltradas);
   const tempAlerta = locais.filter((l) => l.status !== "normal").length;
 
   // OS por Sistema
-  const bySistema = aggregate(programacao, (p) => p.Sistema || "—");
+  const bySistema = aggregate(programacaoFiltrada, (p) => p.Sistema || "—");
   // OS por Criticidade
-  const byCriticidade = aggregate(programacao, (p) => p.Criticidade || "—");
+  const byCriticidade = aggregate(programacaoFiltrada, (p) => p.Criticidade || "—");
   // OS por Dia (próximos 14 dias)
-  const byDia = aggregateByDay(programacao);
+  const byDia = aggregateByDay(programacaoFiltrada);
   // Status
-  const byStatus = aggregate(programacao, (p) => p.StatusExecucao || p.Status || "—");
-  const aderencia = computeAderencia(programacao);
+  const byStatus = aggregate(programacaoFiltrada, (p) => p.StatusExecucao || p.Status || "—");
+  const aderencia = computeAderencia(programacaoFiltrada);
+
+  // Planejado vs Não Planejado
+  const byPlanejamento = aggregate(programacaoFiltrada, (p) => {
+    const s = (p.Status || "").trim();
+    if (s === "Planejado") return "Planejado";
+    if (s === "Não Planejado") return "Não Planejado";
+    return s || "—";
+  });
+
+  // Planejado vs Não Planejado por dia (últimos 14 dias)
+  const byPlanejamentoDia = aggregateByDayAndStatus(programacaoFiltrada);
+
+  // Quebra de Programação por solicitante
+  const quebras = programacaoFiltrada
+    .filter((p) => (p.Tipo || "").toUpperCase() === "QUEBRA DE PROGRAMAÇÃO")
+    .reduce<{ name: string; value: number }[]>((acc, p) => {
+      const name = p.SolicitanteQuebra || "Não informado";
+      const existing = acc.find((a) => a.name === name);
+      if (existing) existing.value++;
+      else acc.push({ name, value: 1 });
+      return acc;
+    }, [])
+    .sort((a, b) => b.value - a.value);
+
+  const handleExecutiveSummary = async () => {
+    if (!pdfRef.current) return;
+    try {
+      await exportExecutiveSummary(pdfRef.current, {
+        title: "Visão Geral · Centro de Controle",
+        aderencia: {
+          pct: aderencia.pct,
+          finalizadasNoPrazo: aderencia.finalizadasNoPrazo,
+          totalProgramadas: aderencia.totalProgramadas,
+        },
+        kpis: [
+          { label: "Total de OS", value: formatInt(total) },
+          { label: "Em Andamento", value: formatInt(emAndamento) },
+          { label: "Finalizadas", value: formatInt(finalizadas) },
+          { label: "Criticidade AA", value: formatInt(aa) },
+          { label: "OS Programadas", value: formatInt(programadas) },
+          { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h` },
+          { label: "Técnicos Ativos", value: formatInt(tecnicos.length) },
+          { label: "Temp. em Alerta", value: formatInt(tempAlerta) },
+        ],
+      }, "resumo-executivo");
+    } catch (err) {
+      console.error("Erro ao exportar resumo executivo:", err);
+    }
+  };
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -97,7 +155,7 @@ function VisaoGeral() {
         </div>
         <ExportButton
           filename="visao-geral"
-          rows={programacao}
+          rows={programacaoFiltrada}
           columns={[
             { header: "Nº OS", value: (r) => r.NumeroOS },
             { header: "Data", value: (r) => r.DataProgramada },
@@ -111,6 +169,7 @@ function VisaoGeral() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Visão Geral · Centro de Controle"
+          onExecutiveSummary={handleExecutiveSummary}
         />
       </div>
 
@@ -118,21 +177,60 @@ function VisaoGeral() {
         <AderenciaCard
           pct={aderencia.pct}
           finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+          finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
+          canceladas={aderencia.canceladas}
+          pendentes={aderencia.pendentes}
           totalProgramadas={aderencia.totalProgramadas}
           className="lg:col-span-1"
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
-          <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
-          <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
-          <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
-          <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
+          <KpiCard
+            label="Total de OS"
+            value={formatInt(total)}
+            icon={ClipboardList}
+            variant="primary"
+          />
+          <KpiCard
+            label="Em Andamento"
+            value={formatInt(emAndamento)}
+            icon={Play}
+            variant="warning"
+          />
+          <KpiCard
+            label="Finalizadas"
+            value={formatInt(finalizadas)}
+            icon={CheckCircle2}
+            variant="success"
+          />
+          <KpiCard
+            label="Criticidade AA"
+            value={formatInt(aa)}
+            icon={AlertOctagon}
+            variant="danger"
+          />
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="OS Programadas" value={formatInt(programadas)} icon={Calendar} variant="neutral" />
-        <KpiCard label="HH Programado" value={formatBRNumber(totalHH, 1)} hint="horas-homem" icon={Clock} variant="primary" />
-        <KpiCard label="Técnicos Ativos" value={formatInt(tecnicos.length)} icon={Users} variant="neutral" />
+        <KpiCard
+          label="OS Programadas"
+          value={formatInt(programadas)}
+          icon={Calendar}
+          variant="neutral"
+        />
+        <KpiCard
+          label="HH Programado"
+          value={formatBRNumber(totalHH, 1)}
+          hint="horas-homem"
+          icon={Clock}
+          variant="primary"
+        />
+        <KpiCard
+          label="Técnicos Ativos"
+          value={formatInt(tecnicos.length)}
+          icon={Users}
+          variant="neutral"
+        />
         <KpiCard
           label="Temperaturas em Alerta"
           value={formatInt(tempAlerta)}
@@ -161,7 +259,7 @@ function VisaoGeral() {
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={byDia}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <ReTooltip
@@ -180,6 +278,102 @@ function VisaoGeral() {
 
         <Panel title="HH POR CARGO">
           <ChartBarHorizontal data={aggregateHH(programacao)} />
+        </Panel>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Panel title="PLANEJADO vs NÃO PLANEJADO" subtitle="Status de planejamento das OS">
+          <ChartPie data={byPlanejamento} />
+        </Panel>
+
+        <Panel
+          title="PLANEJADO vs NÃO PLANEJADO POR DIA"
+          subtitle="Últimos 14 dias"
+          className="lg:col-span-2"
+        >
+          {byPlanejamentoDia.length === 0 ? (
+            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+              Sem registros no período
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer>
+                <BarChart data={byPlanejamentoDia} barCategoryGap="20%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 10, fill: "#94A3B8" }}
+                    stroke="#94A3B8"
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <ReTooltip
+                    contentStyle={{
+                      background: "#05254A",
+                      border: "1px solid #0EA5FF55",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
+                    formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
+                  />
+                  <Bar
+                    dataKey="planejado"
+                    name="planejado"
+                    stackId="a"
+                    fill="#22C55E"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="naoPlanejado"
+                    name="naoPlanejado"
+                    stackId="a"
+                    fill="#EF4444"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel
+          title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
+          subtitle="OS do tipo quebra agrupadas por solicitante"
+        >
+          {quebras.length === 0 ? (
+            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+              Nenhuma quebra de programação no período
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer>
+                <BarChart data={quebras} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tick={{ fontSize: 10, fill: "#94A3B8" }}
+                    stroke="#94A3B8"
+                    width={120}
+                  />
+                  <ReTooltip
+                    contentStyle={{
+                      background: "#05254A",
+                      border: "1px solid #0EA5FF55",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </Panel>
       </div>
 
@@ -252,6 +446,28 @@ function aggregateByDay(rows: { DataProgramada: string }[]) {
     })
     .slice(0, 14)
     .map(([label, value]) => ({ label, value }));
+}
+
+function aggregateByDayAndStatus(rows: { DataProgramada: string; Status: string }[]) {
+  const map = new Map<string, { planejado: number; naoPlanejado: number; label: string }>();
+  for (const r of rows) {
+    const d = parseBRDate(r.DataProgramada);
+    if (!d) continue;
+    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const e = map.get(key) ?? { planejado: 0, naoPlanejado: 0, label: key };
+    const status = (r.Status || "").trim();
+    const isPlanejado = status === "Planejado";
+    if (isPlanejado) e.planejado++;
+    else e.naoPlanejado++;
+    map.set(key, e);
+  }
+  return Array.from(map.values())
+    .sort((a, b) => {
+      const [da, ma] = a.label.split("/").map(Number);
+      const [db, mb] = b.label.split("/").map(Number);
+      return ma - mb || da - db;
+    })
+    .slice(-14);
 }
 
 function ChartPie({ data }: { data: { name: string; value: number }[] }) {
@@ -330,7 +546,7 @@ function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] 
     <div className="h-64">
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
           <YAxis
             type="category"

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -34,13 +35,17 @@ interface Alerta {
 }
 
 function normalize(s: string) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function AlertasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
-
+  const dateFilter = useDateFilter();
 
   if (isLoading)
     return (
@@ -58,7 +63,10 @@ function AlertasPage() {
   today.setHours(0, 0, 0, 0);
 
   // Temperaturas fora da faixa
-  const locais = summarizeLocais(data.medicoes);
+  const medicoesFiltradas = (data.medicoes ?? []).filter((m) =>
+    dateFilter.filterByDateRange(m.DATA),
+  );
+  const locais = summarizeLocais(medicoesFiltradas);
   for (const l of locais) {
     if (l.status === "critico") {
       alerts.push({
@@ -82,8 +90,11 @@ function AlertasPage() {
   }
 
   // HH sobrecarregado
+  const programacaoFiltrada = (data.programacao ?? []).filter((p) =>
+    dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
+  );
   const alocadoByCargo = new Map<string, number>();
-  for (const p of data.programacao) {
+  for (const p of programacaoFiltrada) {
     const k = normalize(p.Cargo);
     if (k) alocadoByCargo.set(k, (alocadoByCargo.get(k) ?? 0) + (p.HH || 0));
   }
@@ -102,7 +113,7 @@ function AlertasPage() {
   }
 
   // OS AA pendentes
-  for (const p of data.programacao) {
+  for (const p of programacaoFiltrada) {
     if (p.Criticidade?.toUpperCase() === "AA" && !/finaliz|conclu/i.test(p.StatusExecucao)) {
       alerts.push({
         id: `os-aa-${p.NumeroOS}`,
@@ -116,7 +127,7 @@ function AlertasPage() {
   }
 
   // OS atrasadas
-  for (const p of data.programacao) {
+  for (const p of programacaoFiltrada) {
     const d = parseBRDate(p.DataProgramada);
     if (d && d < today && !/finaliz|conclu/i.test(p.StatusExecucao)) {
       alerts.push({
@@ -132,11 +143,12 @@ function AlertasPage() {
 
   // Falta de checklist diário (hoje)
   const todayKey = today.toLocaleDateString("pt-BR");
-  const hasChecklistToday = [
-    ...data.checklistDocas,
-    ...data.checklistGeral,
-    ...data.checklistPortas,
-  ].some((r) => r.Data?.startsWith(todayKey));
+  const checklistAll = [
+    ...(data.checklistDocas ?? []),
+    ...(data.checklistGeral ?? []),
+    ...(data.checklistPortas ?? []),
+  ].filter((r) => dateFilter.filterByDateRange(r.Data));
+  const hasChecklistToday = checklistAll.some((r) => r.Data?.startsWith(todayKey));
   if (!hasChecklistToday) {
     alerts.push({
       id: "no-checklist",
@@ -148,7 +160,10 @@ function AlertasPage() {
   }
 
   // Falta passagem de turno hoje
-  const hasPassagemToday = data.passagemTurno.some((p) => p.Data?.startsWith(todayKey));
+  const passagemFiltrada = (data.passagemTurno ?? []).filter((p) =>
+    dateFilter.filterByDateRange(p.Data),
+  );
+  const hasPassagemToday = passagemFiltrada.some((p) => p.Data?.startsWith(todayKey));
   if (!hasPassagemToday && data.passagemTurno.length > 0) {
     alerts.push({
       id: "no-passagem",
@@ -171,7 +186,6 @@ function AlertasPage() {
   return (
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-
         <div>
           <h1 className="text-xl font-bold tracking-tight">Central de Alertas</h1>
           <p className="text-xs text-muted-foreground">
@@ -256,7 +270,9 @@ function AlertItem({ alert }: { alert: Alerta }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <p className="truncate text-sm font-semibold text-foreground">{alert.title}</p>
-          {alert.when && <span className="num text-[10px] text-muted-foreground">{alert.when}</span>}
+          {alert.when && (
+            <span className="num text-[10px] text-muted-foreground">{alert.when}</span>
+          )}
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">{alert.desc}</p>
       </div>

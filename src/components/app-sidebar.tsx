@@ -11,6 +11,8 @@ import {
   Activity,
   Factory,
   Inbox,
+  FileWarning,
+  TrendingUp,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,9 +34,11 @@ const items = [
   { title: "Equipe", url: "/equipe", icon: Users },
   { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
   { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
-  { title: "Checklists", url: "/checklists", icon: ClipboardCheck },
+  { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
   { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
   { title: "Alertas", url: "/alertas", icon: AlertTriangle },
+  { title: "NC", url: "/nc", icon: FileWarning },
+  { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
   { title: "Indicadores", url: "/indicadores", icon: Activity },
 ] as const;
 
@@ -45,7 +49,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-[0_0_20px_oklch(0.72_0.18_240/0.4)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-[0_0_20px_rgba(14,165,255,0.4)]">
             <Factory className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="group-data-[collapsible=icon]:hidden">

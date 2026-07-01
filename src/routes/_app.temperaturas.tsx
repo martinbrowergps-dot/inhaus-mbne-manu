@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
 import { filterByRange, summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
+import { useDateFilter } from "@/hooks/use-date-filter";
 
 const searchSchema = z.object({
   range: fallback(z.enum(["24h", "7d", "30d"]), "24h").default("24h"),
@@ -31,6 +32,8 @@ function TemperaturasPage() {
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
 
+  const dateFilter = useDateFilter();
+
   if (isLoading)
     return (
       <div className="grid gap-3 md:grid-cols-3">
@@ -41,6 +44,7 @@ function TemperaturasPage() {
     );
 
   const medicoes = data?.medicoes ?? [];
+  const medicoesFiltradas = medicoes.filter((m) => dateFilter.filterByDateRange(m.DATA));
   const locais = summarizeLocais(medicoes);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
@@ -50,7 +54,6 @@ function TemperaturasPage() {
   return (
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-
         <div>
           <h1 className="text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
           <p className="text-xs text-muted-foreground">
@@ -67,7 +70,7 @@ function TemperaturasPage() {
           </Tabs>
           <ExportButton
             filename={`temperaturas_${range}`}
-            rows={filterByRange(medicoes, range)}
+            rows={filterByRange(medicoesFiltradas, range)}
             columns={[
               { header: "Local", value: (r) => r.LOCAL },
               { header: "Data", value: (r) => r.DATA },
@@ -125,7 +128,12 @@ function TemperaturasPage() {
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {allLocais.map((local) => (
-              <TempTrendChart key={local} local={local} medicoes={medicoes} range={range} />
+              <TempTrendChart
+                key={local}
+                local={local}
+                medicoes={medicoesFiltradas}
+                range={range}
+              />
             ))}
           </div>
         )}

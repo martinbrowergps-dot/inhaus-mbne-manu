@@ -10,8 +10,18 @@ export function TempCard({ summary }: { summary: LocalSummary }) {
   const isAlerta = summary.status === "alerta";
 
   const statusConfig = {
-    normal: { color: "text-success", bg: "border-success/40 bg-success/5", Icon: CheckCircle2, label: "NORMAL" },
-    alerta: { color: "text-warning", bg: "border-warning/50 bg-warning/5", Icon: AlertTriangle, label: "ALERTA" },
+    normal: {
+      color: "text-success",
+      bg: "border-success/40 bg-success/5",
+      Icon: CheckCircle2,
+      label: "NORMAL",
+    },
+    alerta: {
+      color: "text-warning",
+      bg: "border-warning/50 bg-warning/5",
+      Icon: AlertTriangle,
+      label: "ALERTA",
+    },
     critico: {
       color: "text-destructive",
       bg: "border-destructive/60 bg-destructive/10 pulse-critical",
@@ -30,7 +40,12 @@ export function TempCard({ summary }: { summary: LocalSummary }) {
             {summary.local}
           </span>
         </div>
-        <div className={cn("flex items-center gap-1 text-[10px] font-bold tracking-wider", statusConfig.color)}>
+        <div
+          className={cn(
+            "flex items-center gap-1 text-[10px] font-bold tracking-wider",
+            statusConfig.color,
+          )}
+        >
           <StatusIcon className="h-3 w-3" />
           {statusConfig.label}
         </div>

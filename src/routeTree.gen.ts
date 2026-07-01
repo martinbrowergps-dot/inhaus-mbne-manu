@@ -13,7 +13,9 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppTemperaturasRouteImport } from './routes/_app.temperaturas'
 import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
+import { Route as AppPreditivasRouteImport } from './routes/_app.preditivas'
 import { Route as AppPassagemTurnoRouteImport } from './routes/_app.passagem-turno'
+import { Route as AppNcRouteImport } from './routes/_app.nc'
 import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
 import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
 import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
@@ -40,9 +42,19 @@ const AppProgramacaoRoute = AppProgramacaoRouteImport.update({
   path: '/programacao',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPreditivasRoute = AppPreditivasRouteImport.update({
+  id: '/preditivas',
+  path: '/preditivas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPassagemTurnoRoute = AppPassagemTurnoRouteImport.update({
   id: '/passagem-turno',
   path: '/passagem-turno',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNcRoute = AppNcRouteImport.update({
+  id: '/nc',
+  path: '/nc',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIndicadoresRoute = AppIndicadoresRouteImport.update({
@@ -84,7 +96,9 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
+  '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
   '/temperaturas': typeof AppTemperaturasRoute
 }
@@ -95,7 +109,9 @@ export interface FileRoutesByTo {
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
+  '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
   '/temperaturas': typeof AppTemperaturasRoute
   '/': typeof AppIndexRoute
@@ -109,7 +125,9 @@ export interface FileRoutesById {
   '/_app/equipe': typeof AppEquipeRoute
   '/_app/hh-semanal': typeof AppHhSemanalRoute
   '/_app/indicadores': typeof AppIndicadoresRoute
+  '/_app/nc': typeof AppNcRoute
   '/_app/passagem-turno': typeof AppPassagemTurnoRoute
+  '/_app/preditivas': typeof AppPreditivasRoute
   '/_app/programacao': typeof AppProgramacaoRoute
   '/_app/temperaturas': typeof AppTemperaturasRoute
   '/_app/': typeof AppIndexRoute
@@ -124,7 +142,9 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
+    | '/nc'
     | '/passagem-turno'
+    | '/preditivas'
     | '/programacao'
     | '/temperaturas'
   fileRoutesByTo: FileRoutesByTo
@@ -135,7 +155,9 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
+    | '/nc'
     | '/passagem-turno'
+    | '/preditivas'
     | '/programacao'
     | '/temperaturas'
     | '/'
@@ -148,7 +170,9 @@ export interface FileRouteTypes {
     | '/_app/equipe'
     | '/_app/hh-semanal'
     | '/_app/indicadores'
+    | '/_app/nc'
     | '/_app/passagem-turno'
+    | '/_app/preditivas'
     | '/_app/programacao'
     | '/_app/temperaturas'
     | '/_app/'
@@ -188,11 +212,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProgramacaoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/preditivas': {
+      id: '/_app/preditivas'
+      path: '/preditivas'
+      fullPath: '/preditivas'
+      preLoaderRoute: typeof AppPreditivasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/passagem-turno': {
       id: '/_app/passagem-turno'
       path: '/passagem-turno'
       fullPath: '/passagem-turno'
       preLoaderRoute: typeof AppPassagemTurnoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nc': {
+      id: '/_app/nc'
+      path: '/nc'
+      fullPath: '/nc'
+      preLoaderRoute: typeof AppNcRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/indicadores': {
@@ -247,7 +285,9 @@ interface AppRouteChildren {
   AppEquipeRoute: typeof AppEquipeRoute
   AppHhSemanalRoute: typeof AppHhSemanalRoute
   AppIndicadoresRoute: typeof AppIndicadoresRoute
+  AppNcRoute: typeof AppNcRoute
   AppPassagemTurnoRoute: typeof AppPassagemTurnoRoute
+  AppPreditivasRoute: typeof AppPreditivasRoute
   AppProgramacaoRoute: typeof AppProgramacaoRoute
   AppTemperaturasRoute: typeof AppTemperaturasRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -260,7 +300,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppEquipeRoute: AppEquipeRoute,
   AppHhSemanalRoute: AppHhSemanalRoute,
   AppIndicadoresRoute: AppIndicadoresRoute,
+  AppNcRoute: AppNcRoute,
   AppPassagemTurnoRoute: AppPassagemTurnoRoute,
+  AppPreditivasRoute: AppPreditivasRoute,
   AppProgramacaoRoute: AppProgramacaoRoute,
   AppTemperaturasRoute: AppTemperaturasRoute,
   AppIndexRoute: AppIndexRoute,

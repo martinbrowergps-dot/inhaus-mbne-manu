@@ -15,6 +15,14 @@ export interface ProgramacaoRow {
   LocalMacro?: string;
   Localidade?: string;
   Tipo?: string;
+  SolicitanteQuebra?: string;
+  TempoRealExec?: number;
+  DataCriacao?: string;
+  DataInicioExecucao?: string;
+  DataFimExecucao?: string;
+  ObservacoesExecucao?: string;
+  TemNaoConformidade?: string;
+  DescricaoNaoConformidade?: string;
 }
 
 export interface MedicaoRow {
@@ -40,14 +48,22 @@ export interface PassagemTurnoRow {
   ID?: string;
   Data: string;
   Turno: string;
+  HorarioInicio?: string;
+  HorarioTermino?: string;
   Supervisor: string;
   EquipeSaida: string;
   EquipeEntrada: string;
   TecnicoPassa: string;
   TecnicoRecebe: string;
+  Aprovador?: string;
   StatusGeral: string;
   Pendencias: string;
   Observacoes: string;
+  ResumoOcorrencias?: string;
+  ResumoOSAbertas?: string;
+  ResumoOSConcluidas?: string;
+  DataHoraRegistro?: string;
+  AssinadoPor?: string;
 }
 
 export interface TecnicoRow {
@@ -76,6 +92,34 @@ export interface BacklogRow {
   Grupo: string;
   StatusOficial: string;
   HHEstimado: number;
+  OQuePrecisa?: string;
+}
+
+export interface NcRow {
+  Codigo: string;
+  Tipo: string;
+  Categoria: string;
+  Prioridade: string;
+  Titulo: string;
+  Objetivo: string;
+  DescricaoAtividade: string;
+  Procedimento: string;
+  CriterioAceitacao: string;
+  evidencias: string;
+  HHEstimado: string;
+  Responsavel: string;
+  Status: string;
+}
+
+export interface PreditivaRow {
+  CodigoReferencia: string;
+  Tipo: string;
+  Categoria: string;
+  Prioridade: string;
+  Titulo: string;
+  Objetivo: string;
+  DescricaoAtividade: string;
+  HH: string;
 }
 
 export interface SheetsData {
@@ -88,5 +132,7 @@ export interface SheetsData {
   tecnicos: TecnicoRow[];
   parametrosHH: ParametroHHRow[];
   backlog: BacklogRow[];
+  nc: NcRow[];
+  preditiva: PreditivaRow[];
   fetchedAt: number;
 }

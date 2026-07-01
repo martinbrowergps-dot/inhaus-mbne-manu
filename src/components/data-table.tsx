@@ -42,7 +42,11 @@ export function DataTable<T>({
     const lower = q.toLowerCase();
     return data.filter((row) => {
       const keys = searchKeys ?? (Object.keys(row as object) as (keyof T)[]);
-      return keys.some((k) => String((row as Record<string, unknown>)[k as string] ?? "").toLowerCase().includes(lower));
+      return keys.some((k) =>
+        String((row as Record<string, unknown>)[k as string] ?? "")
+          .toLowerCase()
+          .includes(lower),
+      );
     });
   }, [data, q, searchKeys]);
 

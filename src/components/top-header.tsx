@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { RefreshCw, Circle } from "lucide-react";
+import { RefreshCw, Circle, Calendar } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
+import { useDateFilter } from "@/hooks/use-date-filter";
 
 export function TopHeader() {
   const qc = useQueryClient();
@@ -26,7 +27,7 @@ export function TopHeader() {
   const lastUpdate = data ? new Date(data.fetchedAt) : null;
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl relative">
       <SidebarTrigger className="text-primary" />
       <div className="flex-1">
         <h1 className="text-sm font-bold tracking-[0.22em] text-gradient sm:text-base">
@@ -64,6 +65,126 @@ export function TopHeader() {
         <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
         <span className="hidden sm:inline">Atualizar</span>
       </Button>
+
+      {/* Date filter controls */}
+      <DateFilterControls />
     </header>
+  );
+}
+
+function DateFilterControls() {
+  const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
+    useDateFilter();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile: botão compacto que abre popover */}
+      <div className="md:hidden">
+        <button
+          onClick={() => setOpen(!open)}
+          className={`flex items-center gap-1 rounded-md border px-2 py-1.5 text-[10px] font-semibold ${
+            isActive
+              ? "border-primary/50 bg-primary/10 text-primary"
+              : "border-border/60 bg-card/50 text-muted-foreground"
+          }`}
+        >
+          <Calendar className="h-3 w-3" />
+          {isActive ? "Filtro ativo" : "Filtrar"}
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
+            <div className="absolute right-4 top-16 z-50 w-72 rounded-xl border border-border/60 bg-card p-4 shadow-lg">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-1">
+                <button
+                  className="flex-1 text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+                  onClick={() => {
+                    setPreset("week");
+                    setOpen(false);
+                  }}
+                >
+                  Semana
+                </button>
+                <button
+                  className="flex-1 text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+                  onClick={() => {
+                    setPreset("month");
+                    setOpen(false);
+                  }}
+                >
+                  Mês
+                </button>
+              </div>
+              <input
+                aria-label="Data início"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-md border border-border/60 bg-card px-2 py-1 text-xs text-foreground [color-scheme:dark]"
+              />
+              <input
+                aria-label="Data fim"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-md border border-border/60 bg-card px-2 py-1 text-xs text-foreground [color-scheme:dark]"
+              />
+              <button
+                onClick={() => {
+                  clearFilter();
+                  setOpen(false);
+                }}
+                className={`text-[11px] px-2 py-1 rounded ${isActive ? "bg-destructive/10 text-destructive" : "bg-muted/10 text-muted-foreground"}`}
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+          </>
+        )}
+      </div>
+
+      {/* Desktop */}
+      <div className="hidden items-center gap-2 md:flex">
+        <div className="flex items-center gap-1">
+          <button
+            className="text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+            onClick={() => setPreset("week")}
+            title="Semana"
+          >
+            Semana
+          </button>
+          <button
+            className="text-[11px] px-2 py-1 rounded bg-primary/10 text-primary"
+            onClick={() => setPreset("month")}
+            title="Mês"
+          >
+            Mês
+          </button>
+        </div>
+        <input
+          aria-label="Data início"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="rounded-md border border-border/60 bg-card px-2 py-1 text-[12px] text-foreground [color-scheme:dark]"
+        />
+        <input
+          aria-label="Data fim"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="rounded-md border border-border/60 bg-card px-2 py-1 text-[12px] text-foreground [color-scheme:dark]"
+        />
+        <button
+          onClick={clearFilter}
+          className={`text-[11px] px-2 py-1 rounded ${isActive ? "bg-destructive/10 text-destructive" : "bg-muted/10 text-muted-foreground"}`}
+        >
+          Limpar
+        </button>
+      </div>
+    </>
   );
 }

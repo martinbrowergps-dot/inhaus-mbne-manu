@@ -4,8 +4,10 @@ import type {
   BacklogRow,
   ChecklistRow,
   MedicaoRow,
+  NcRow,
   ParametroHHRow,
   PassagemTurnoRow,
+  PreditivaRow,
   ProgramacaoRow,
   SheetsData,
   TecnicoRow,
@@ -24,6 +26,8 @@ const SHEETS = {
   tecnicos: "TECNICOS",
   parametrosHH: "PARAMETROS_HH",
   backlog: "BACKLOG",
+  nc: "NC",
+  preditiva: "PREDITIVA",
 } as const;
 
 function csvUrl(sheet: string): string {
@@ -62,6 +66,8 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     tecnicosRaw,
     parametrosRaw,
     backlogRaw,
+    ncRaw,
+    preditivaRaw,
   ] = await Promise.all([
     fetchCsv(SHEETS.programacao),
     fetchCsv(SHEETS.medicoes),
@@ -72,6 +78,8 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     fetchCsv(SHEETS.tecnicos),
     fetchCsv(SHEETS.parametrosHH),
     fetchCsv(SHEETS.backlog).catch(() => [] as Record<string, string>[]),
+    fetchCsv(SHEETS.nc).catch(() => [] as Record<string, string>[]),
+    fetchCsv(SHEETS.preditiva).catch(() => [] as Record<string, string>[]),
   ]);
 
   const programacao: ProgramacaoRow[] = programacaoRaw.map((r) => ({
@@ -91,6 +99,14 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     LocalMacro: pick(r, "LocalMacro"),
     Localidade: pick(r, "Localidade"),
     Tipo: pick(r, "Tipo"),
+    SolicitanteQuebra: pick(r, "Solicitante da Quebra de Programação", "SolicitanteQuebra"),
+    TempoRealExec: parseBRNumber(r["Tempo Real de Execução"] ?? r["TempoRealExec"]),
+    DataCriacao: pick(r, "DataCriacao"),
+    DataInicioExecucao: pick(r, "DataInicioExecucao"),
+    DataFimExecucao: pick(r, "DataFimExecucao"),
+    ObservacoesExecucao: pick(r, "ObservacoesExecucao"),
+    TemNaoConformidade: pick(r, "TemNaoConformidade"),
+    DescricaoNaoConformidade: pick(r, "DescricaoNaoConformidade"),
   }));
 
   const medicoes: MedicaoRow[] = medicoesRaw.map((r) => ({
@@ -117,14 +133,22 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     ID: pick(r, "ID"),
     Data: pick(r, "Data"),
     Turno: pick(r, "Turno"),
+    HorarioInicio: pick(r, "HorarioInicio"),
+    HorarioTermino: pick(r, "HorarioTermino"),
     Supervisor: pick(r, "Supervisor"),
     EquipeSaida: pick(r, "EquipeSaida", "Equipe Saida"),
     EquipeEntrada: pick(r, "EquipeEntrada", "Equipe Entrada"),
     TecnicoPassa: pick(r, "TecnicoPassa", "Tecnico Passa"),
     TecnicoRecebe: pick(r, "TecnicoRecebe", "Tecnico Recebe"),
+    Aprovador: pick(r, "Aprovador"),
     StatusGeral: pick(r, "StatusGeral", "Status Geral", "Status Passagem"),
     Pendencias: pick(r, "Pendencias", "Pendências"),
     Observacoes: pick(r, "Observacoes", "Observações", "Observacoes Gerais"),
+    ResumoOcorrencias: pick(r, "Resumo Ocorrencias", "ResumoOcorrencias"),
+    ResumoOSAbertas: pick(r, "Resumo OS Abertas", "ResumoOSAbertas"),
+    ResumoOSConcluidas: pick(r, "Resumo OS Concluidas", "ResumoOSConcluidas"),
+    DataHoraRegistro: pick(r, "DataHoraRegistro"),
+    AssinadoPor: pick(r, "Assinado Por", "AssinadoPor"),
   }));
 
   const tecnicos: TecnicoRow[] = tecnicosRaw.map((r) => ({
@@ -153,6 +177,34 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     Grupo: pick(r, "Grupo"),
     StatusOficial: pick(r, "Status Oficial", "StatusOficial"),
     HHEstimado: parseBRNumber(r["HH Estimado"] ?? r["HHEstimado"]),
+    OQuePrecisa: pick(r, "o que precisa", "OQuePrecisa"),
+  }));
+
+  const nc: NcRow[] = ncRaw.map((r) => ({
+    Codigo: pick(r, "Código", "Codigo"),
+    Tipo: pick(r, "Tipo"),
+    Categoria: pick(r, "Categoria"),
+    Prioridade: pick(r, "Prioridade"),
+    Titulo: pick(r, "Título", "Titulo"),
+    Objetivo: pick(r, "Objetivo"),
+    DescricaoAtividade: pick(r, "Descrição da Atividade", "DescricaoAtividade"),
+    Procedimento: pick(r, "Procedimento"),
+    CriterioAceitacao: pick(r, "Critério de Aceitação", "CriterioAceitacao"),
+    evidencias: pick(r, "Evidências", "evidencias"),
+    HHEstimado: pick(r, "HH Estimado", "HHEstimado"),
+    Responsavel: pick(r, "Responsável", "Responsavel"),
+    Status: pick(r, "Status"),
+  }));
+
+  const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({
+    CodigoReferencia: pick(r, "Código Referência", "CodigoReferencia"),
+    Tipo: pick(r, "Tipo"),
+    Categoria: pick(r, "Categoria"),
+    Prioridade: pick(r, "Prioridade"),
+    Titulo: pick(r, "Título", "Titulo"),
+    Objetivo: pick(r, "Objetivo"),
+    DescricaoAtividade: pick(r, "Descrição da Atividade", "DescricaoAtividade"),
+    HH: pick(r, "HH"),
   }));
 
   return {
@@ -165,6 +217,8 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     tecnicos,
     parametrosHH,
     backlog,
+    nc,
+    preditiva,
     fetchedAt: Date.now(),
   };
 }

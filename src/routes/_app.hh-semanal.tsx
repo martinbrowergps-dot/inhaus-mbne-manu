@@ -5,22 +5,46 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
-import { formatBRNumber } from "@/lib/format";
+import { formatBRNumber, getWeekStart, parseBRDate } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDateFilter } from "@/hooks/use-date-filter";
 
 export const Route = createFileRoute("/_app/hh-semanal")({
   component: HHPage,
 });
 
 function normalize(s: string) {
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function isDateInRange(
+  dateStr: string | undefined | null,
+  start: Date,
+  end: Date,
+): boolean {
+  if (!dateStr) return false;
+  const d = parseBRDate(dateStr);
+  if (!d) return false;
+  d.setHours(0, 0, 0, 0);
+  return d >= start && d <= end;
 }
 
 function HHPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const dateFilter = useDateFilter();
 
+  // Default: semana corrente. Se filtro ativo, usa ele.
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const weekStart = getWeekStart(hoje);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
 
   if (isLoading)
     return (
@@ -33,9 +57,15 @@ function HHPage() {
 
   if (!data) return null;
 
+  const programacaoFiltrada = data.programacao.filter((p) => {
+    const dateStr = p.DataReprogramada || p.DataProgramada;
+    if (dateFilter.isActive) return dateFilter.filterByDateRange(dateStr);
+    return isDateInRange(dateStr, weekStart, weekEnd);
+  });
+
   // Soma HH alocado por cargo
   const alocadoByCargo = new Map<string, number>();
-  for (const p of data.programacao) {
+  for (const p of programacaoFiltrada) {
     const key = normalize(p.Cargo);
     if (!key) continue;
     alocadoByCargo.set(key, (alocadoByCargo.get(key) ?? 0) + (p.HH || 0));
@@ -57,12 +87,16 @@ function HHPage() {
   return (
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-
         <div>
           <h1 className="text-xl font-bold tracking-tight">HH Semanal</h1>
           <p className="text-xs text-muted-foreground">
             Capacidade vs alocação de horas-homem por cargo
           </p>
+          {dateFilter.isActive && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              Filtro ativo
+            </span>
+          )}
         </div>
         <ExportButton
           filename="hh-semanal"
@@ -92,12 +126,7 @@ function HHPage() {
       <div className="grid gap-4 md:grid-cols-2">
         {rows.map((r) => (
           <Panel key={r.cargo} title={r.cargo}>
-            <Gauge
-              label="HH"
-              disponivel={r.disponivel}
-              alocado={r.alocado}
-              ocupacao={r.ocupacao}
-            />
+            <Gauge label="HH" disponivel={r.disponivel} alocado={r.alocado} ocupacao={r.ocupacao} />
           </Panel>
         ))}
         {rows.length === 0 && (
@@ -123,8 +152,7 @@ function Gauge({
   ocupacao: number;
   large?: boolean;
 }) {
-  const color =
-    ocupacao > 100 ? "bg-destructive" : ocupacao > 60 ? "bg-warning" : "bg-success";
+  const color = ocupacao > 100 ? "bg-destructive" : ocupacao > 60 ? "bg-warning" : "bg-success";
   const textColor =
     ocupacao > 100 ? "text-destructive" : ocupacao > 60 ? "text-warning" : "text-success";
   const saldo = disponivel - alocado;

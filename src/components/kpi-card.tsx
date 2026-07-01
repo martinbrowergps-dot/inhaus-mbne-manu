@@ -7,22 +7,22 @@ const VARIANTS: Record<Variant, { ring: string; icon: string; glow: string }> = 
   primary: {
     ring: "border-primary/30",
     icon: "bg-primary/15 text-primary",
-    glow: "shadow-[0_0_24px_oklch(0.72_0.18_240/0.18)]",
+    glow: "shadow-[0_0_24px_rgba(14,165,255,0.18)]",
   },
   success: {
     ring: "border-success/30",
     icon: "bg-success/15 text-success",
-    glow: "shadow-[0_0_24px_oklch(0.74_0.19_145/0.18)]",
+    glow: "shadow-[0_0_24px_rgba(34,197,94,0.18)]",
   },
   warning: {
     ring: "border-warning/30",
     icon: "bg-warning/15 text-warning",
-    glow: "shadow-[0_0_24px_oklch(0.82_0.17_88/0.18)]",
+    glow: "shadow-[0_0_24px_rgba(234,179,8,0.18)]",
   },
   danger: {
     ring: "border-destructive/40",
     icon: "bg-destructive/15 text-destructive",
-    glow: "shadow-[0_0_24px_oklch(0.65_0.24_27/0.22)]",
+    glow: "shadow-[0_0_24px_rgba(239,68,68,0.22)]",
   },
   neutral: {
     ring: "border-border/60",

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Calendar, Users, AlertTriangle, Clock } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { ProgramacaoRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
@@ -15,6 +15,7 @@ import { ExportButton } from "@/components/export-button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { formatBRNumber, parseBRDate, getWeekStart } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import {
   deriveExecStatus,
@@ -40,7 +41,9 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
   {
     accessorKey: "Descricao",
     header: "Descrição",
-    cell: ({ getValue }) => <span className="line-clamp-1 max-w-[280px]">{getValue() as string}</span>,
+    cell: ({ getValue }) => (
+      <span className="line-clamp-1 max-w-[280px]">{getValue() as string}</span>
+    ),
   },
   {
     accessorKey: "Criticidade",
@@ -48,10 +51,16 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
     cell: ({ getValue }) => {
       const v = (getValue() as string)?.toUpperCase();
       const color =
-        v === "AA" ? "bg-destructive/20 text-destructive border-destructive/40"
-        : v === "A" ? "bg-warning/20 text-warning border-warning/40"
-        : "bg-primary/15 text-primary border-primary/30";
-      return <Badge variant="outline" className={`${color} text-[10px] font-bold`}>{v || "—"}</Badge>;
+        v === "AA"
+          ? "bg-destructive/20 text-destructive border-destructive/40"
+          : v === "A"
+            ? "bg-warning/20 text-warning border-warning/40"
+            : "bg-primary/15 text-primary border-primary/30";
+      return (
+        <Badge variant="outline" className={`${color} text-[10px] font-bold`}>
+          {v || "—"}
+        </Badge>
+      );
     },
   },
   { accessorKey: "Cargo", header: "Cargo" },
@@ -61,6 +70,26 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
     cell: ({ getValue }) => <span className="num">{formatBRNumber(getValue() as number, 2)}</span>,
   },
   { accessorKey: "Executante", header: "Executante" },
+  {
+    accessorKey: "Tipo",
+    header: "Tipo",
+    cell: ({ getValue }) => {
+      const v = (getValue() as string) || "—";
+      const isQuebra = v.toUpperCase() === "QUEBRA DE PROGRAMAÇÃO";
+      return (
+        <span
+          className={
+            isQuebra
+              ? "text-destructive font-semibold text-[10px]"
+              : "text-muted-foreground text-[10px]"
+          }
+        >
+          {isQuebra ? <><AlertTriangle className="mr-0.5 inline h-3 w-3" />QUEBRA</> : v}
+        </span>
+      );
+    },
+  },
+  { accessorKey: "LocalMacro", header: "Local" },
   {
     accessorKey: "_status",
     header: "Status",
@@ -88,7 +117,11 @@ function isoToDate(iso: string): Date {
 }
 
 function sameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function ProgramacaoPage() {
@@ -97,6 +130,7 @@ function ProgramacaoPage() {
   const [sistemaF, setSistemaF] = useState<string | null>(null);
   const [critF, setCritF] = useState<string | null>(null);
   const [execF, setExecF] = useState<string | null>(null);
+  const [tipoF, setTipoF] = useState<string | null>(null);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -106,18 +140,22 @@ function ProgramacaoPage() {
     `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`,
   );
 
+  const dateFilter = useDateFilter();
+
   const enriched: EnrichedRow[] = useMemo(
     () =>
-      (data?.programacao ?? []).map((p) => {
-        const d = parseBRDate(p.DataProgramada);
-        return {
-          ...p,
-          _status: deriveExecStatus(p),
-          _diasAtraso: daysOverdue(d),
-          _date: d,
-        };
-      }),
-    [data],
+      (data?.programacao ?? [])
+        .filter((p) => dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada))
+        .map((p) => {
+          const d = parseBRDate(p.DataProgramada);
+          return {
+            ...p,
+            _status: deriveExecStatus(p),
+            _diasAtraso: daysOverdue(d),
+            _date: d,
+          };
+        }),
+    [data, dateFilter],
   );
 
   const filtered = useMemo(() => {
@@ -125,17 +163,21 @@ function ProgramacaoPage() {
       if (sistemaF && r.Sistema !== sistemaF) return false;
       if (critF && (r.Criticidade || "").toUpperCase() !== critF) return false;
       if (execF && r.Executante !== execF) return false;
+      if (tipoF && (r.Tipo || "") !== tipoF) return false;
       if (q.trim()) {
         const l = q.toLowerCase();
         if (
-          ![r.NumeroOS, r.TAG, r.Descricao, r.Sistema, r.Executante, r.Cargo]
-            .some((v) => String(v ?? "").toLowerCase().includes(l))
+          ![r.NumeroOS, r.TAG, r.Descricao, r.Sistema, r.Executante, r.Cargo].some((v) =>
+            String(v ?? "")
+              .toLowerCase()
+              .includes(l),
+          )
         )
           return false;
       }
       return true;
     });
-  }, [enriched, q, sistemaF, critF, execF]);
+  }, [enriched, q, sistemaF, critF, execF, tipoF]);
 
   const sumHH = (rows: EnrichedRow[]) => rows.reduce((s, r) => s + (r.HH || 0), 0);
 
@@ -144,11 +186,18 @@ function ProgramacaoPage() {
     [enriched],
   );
   const criticidades = useMemo(
-    () => Array.from(new Set(enriched.map((r) => (r.Criticidade || "").toUpperCase()).filter(Boolean))).sort(),
+    () =>
+      Array.from(
+        new Set(enriched.map((r) => (r.Criticidade || "").toUpperCase()).filter(Boolean)),
+      ).sort(),
     [enriched],
   );
   const executantes = useMemo(
     () => Array.from(new Set(enriched.map((r) => r.Executante).filter(Boolean))).sort(),
+    [enriched],
+  );
+  const tipos = useMemo(
+    () => Array.from(new Set(enriched.map((r) => r.Tipo).filter((t): t is string => !!t))).sort(),
     [enriched],
   );
 
@@ -229,6 +278,8 @@ function ProgramacaoPage() {
             { header: "Cargo", value: (r) => r.Cargo },
             { header: "HH", value: (r) => r.HH },
             { header: "Executante", value: (r) => r.Executante },
+            { header: "Tipo", value: (r) => r.Tipo ?? "" },
+            { header: "Local", value: (r) => r.LocalMacro ?? r.Localidade ?? "" },
             { header: "Status", value: (r) => r._status },
             { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
           ]}
@@ -238,7 +289,11 @@ function ProgramacaoPage() {
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-96" />
+        <div className="space-y-4">
+          <div className="flex gap-2"><Skeleton className="h-8 w-96" /></div>
+          <div className="flex flex-wrap gap-2"><Skeleton className="h-6 w-20" /><Skeleton className="h-6 w-20" /><Skeleton className="h-6 w-20" /></div>
+          <div className="grid gap-2 md:grid-cols-7">{Array.from({length:7}).map((_,i)=><Skeleton key={i} className="h-32" />)}</div>
+        </div>
       ) : (
         <Tabs defaultValue="semanal" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -267,19 +322,27 @@ function ProgramacaoPage() {
               options={criticidades}
               onChange={setCritF}
               colorFor={(v) =>
-                v === "AA" ? "border-destructive/40 text-destructive"
-                : v === "A" ? "border-warning/40 text-warning"
-                : "border-primary/30 text-primary"
+                v === "AA"
+                  ? "border-destructive/40 text-destructive"
+                  : v === "A"
+                    ? "border-warning/40 text-warning"
+                    : "border-primary/30 text-primary"
               }
             />
             <FilterRow label="Executante" value={execF} options={executantes} onChange={setExecF} />
+            <FilterRow label="Tipo" value={tipoF} options={tipos} onChange={setTipoF} />
           </div>
 
           {/* DIÁRIA */}
           <TabsContent value="diaria" className="m-0 space-y-3">
             <DateNav
               icon={Calendar}
-              label={diaDate.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+              label={diaDate.toLocaleDateString("pt-BR", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
               onPrev={() => shiftDay(-1)}
               onNext={() => shiftDay(1)}
               control={
@@ -296,7 +359,10 @@ function ProgramacaoPage() {
                 title={`PROGRAMADO · ${diaProg.length} OS`}
                 subtitle={`${formatBRNumber(sumHH(diaProg), 1)} HH alocados`}
               >
-                <OsGroupedByExecutante rows={diaProg} emptyLabel="Nenhuma OS programada para esse dia" />
+                <OsGroupedByExecutante
+                  rows={diaProg}
+                  emptyLabel="Nenhuma OS programada para esse dia"
+                />
               </Panel>
               <Panel
                 title={`EXECUTADO · ${diaExec.length} OS`}
@@ -334,7 +400,9 @@ function ProgramacaoPage() {
                     key={d.toISOString()}
                     className={cn(
                       "rounded-lg border bg-card/40 p-2",
-                      isToday ? "border-primary/60 shadow-[0_0_10px_oklch(0.72_0.18_240/0.25)]" : "border-border/50",
+                      isToday
+                        ? "border-primary/60 shadow-[0_0_10px_rgba(14,165,255,0.25)]"
+                        : "border-border/50",
                     )}
                   >
                     <div className="mb-2 flex items-center justify-between">
@@ -342,13 +410,21 @@ function ProgramacaoPage() {
                         {d.toLocaleDateString("pt-BR", { weekday: "short" })}
                       </span>
                       <span className="num text-[11px] font-bold text-foreground">
-                        {String(d.getDate()).padStart(2, "0")}/{String(d.getMonth() + 1).padStart(2, "0")}
+                        {String(d.getDate()).padStart(2, "0")}/
+                        {String(d.getMonth() + 1).padStart(2, "0")}
                       </span>
                     </div>
                     <div className="space-y-1 text-[10px]">
                       <Stat label="Prog." value={prog.length} tone="primary" />
                       <Stat label="Exec." value={exec.length} tone="success" />
-                      <Stat label="HH" value={formatBRNumber(dayRows.reduce((s, r) => s + (r.HH || 0), 0), 1)} tone="muted" />
+                      <Stat
+                        label="HH"
+                        value={formatBRNumber(
+                          dayRows.reduce((s, r) => s + (r.HH || 0), 0),
+                          1,
+                        )}
+                        tone="muted"
+                      />
                     </div>
                   </div>
                 );
@@ -444,9 +520,21 @@ function DateNav({
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: number | string; tone: "primary" | "success" | "muted" }) {
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  tone: "primary" | "success" | "muted";
+}) {
   const cls =
-    tone === "primary" ? "text-primary" : tone === "success" ? "text-success" : "text-muted-foreground";
+    tone === "primary"
+      ? "text-primary"
+      : tone === "success"
+        ? "text-success"
+        : "text-muted-foreground";
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
@@ -458,13 +546,21 @@ function Stat({ label, value, tone }: { label: string; value: number | string; t
 function KpiBox({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-lg border border-border/50 bg-card/40 p-3">
-      <p className="text-[10px] font-bold tracking-wider uppercase text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
+        {label}
+      </p>
       <p className="num mt-1 text-2xl font-bold text-foreground">{value}</p>
     </div>
   );
 }
 
-function CalendarHeatmap({ days, today }: { days: { date: Date; total: number; prog: number; exec: number; hh: number }[]; today: Date }) {
+function CalendarHeatmap({
+  days,
+  today,
+}: {
+  days: { date: Date; total: number; prog: number; exec: number; hh: number }[];
+  today: Date;
+}) {
   const max = Math.max(...days.map((d) => d.total), 1);
   return (
     <div className="grid grid-cols-7 gap-1 sm:grid-cols-14 md:grid-cols-[repeat(16,minmax(0,1fr))]">
@@ -481,9 +577,7 @@ function CalendarHeatmap({ days, today }: { days: { date: Date; total: number; p
             )}
             style={{
               background:
-                d.total === 0
-                  ? "transparent"
-                  : `oklch(0.45 0.18 240 / ${0.15 + intensity * 0.65})`,
+                d.total === 0 ? "transparent" : `rgba(7,89,179,${0.15 + intensity * 0.65})`,
             }}
           >
             <span className="font-bold text-foreground">{d.date.getDate()}</span>
@@ -547,7 +641,10 @@ function Chip({
         "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
         active
           ? "border-primary bg-primary/15 text-primary"
-          : cn("border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground", extraClass),
+          : cn(
+              "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+              extraClass,
+            ),
       )}
     >
       {label}
@@ -578,13 +675,22 @@ function OsGroupedByDate({ rows, emptyLabel }: { rows: EnrichedRow[]; emptyLabel
       {groups.map(([date, items]) => (
         <div key={date}>
           <div className="sticky top-0 z-10 mb-1.5 flex items-center justify-between rounded-md border border-border/40 bg-card/80 px-2 py-1 backdrop-blur">
-            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">📅 {date}</span>
+            <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-primary uppercase">
+              <Calendar className="h-3 w-3" /> {date}
+            </span>
             <span className="text-[10px] text-muted-foreground">
-              {items.length} OS · {formatBRNumber(items.reduce((s, r) => s + (r.HH || 0), 0), 1)}h
+              {items.length} OS ·{" "}
+              {formatBRNumber(
+                items.reduce((s, r) => s + (r.HH || 0), 0),
+                1,
+              )}
+              h
             </span>
           </div>
           <ul className="space-y-2">
-            {items.map((r) => <OsCard key={`${r.NumeroOS}-${r._status}`} row={r} />)}
+            {items.map((r) => (
+              <OsCard key={`${r.NumeroOS}-${r._status}`} row={r} />
+            ))}
           </ul>
         </div>
       ))}
@@ -611,13 +717,22 @@ function OsGroupedByExecutante({ rows, emptyLabel }: { rows: EnrichedRow[]; empt
       {groups.map(([exe, items]) => (
         <div key={exe}>
           <div className="sticky top-0 z-10 mb-1.5 flex items-center justify-between rounded-md border border-border/40 bg-card/80 px-2 py-1 backdrop-blur">
-            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">👤 {exe}</span>
+            <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-primary uppercase">
+              <Users className="h-3 w-3" /> {exe}
+            </span>
             <span className="text-[10px] text-muted-foreground">
-              {items.length} OS · {formatBRNumber(items.reduce((s, r) => s + (r.HH || 0), 0), 1)}h
+              {items.length} OS ·{" "}
+              {formatBRNumber(
+                items.reduce((s, r) => s + (r.HH || 0), 0),
+                1,
+              )}
+              h
             </span>
           </div>
           <ul className="space-y-2">
-            {items.map((r) => <OsCard key={`${r.NumeroOS}-${r._status}`} row={r} />)}
+            {items.map((r) => (
+              <OsCard key={`${r.NumeroOS}-${r._status}`} row={r} />
+            ))}
           </ul>
         </div>
       ))}
@@ -635,8 +750,8 @@ function OsCard({ row: r }: { row: EnrichedRow }) {
             <span className="num text-[11px] font-bold text-primary">{r.NumeroOS}</span>
             <span className="text-[10px] text-muted-foreground">{r.Sistema}</span>
             {isAtrasada && (
-              <span className="rounded-full border border-destructive/50 bg-destructive/15 px-1.5 py-0.5 text-[9px] font-bold text-destructive">
-                ⚠ {r._diasAtraso}d atrasada
+              <span className="inline-flex items-center gap-0.5 rounded-full border border-destructive/50 bg-destructive/15 px-1.5 py-0.5 text-[9px] font-bold text-destructive">
+                <AlertTriangle className="h-2.5 w-2.5" /> {r._diasAtraso}d atrasada
               </span>
             )}
           </div>
@@ -645,11 +760,23 @@ function OsCard({ row: r }: { row: EnrichedRow }) {
         <StatusBadge status={r._status} />
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/30 pt-1.5 text-[10px] text-muted-foreground">
-        {r.DataReprogramada && <span>↻ <span className="num text-warning">{r.DataReprogramada}</span></span>}
-        <span>👤 {r.Executante || "—"}</span>
-        <span>⏱ <span className="num text-foreground">{formatBRNumber(r.HH || 0, 1)}h</span></span>
+        {r.DataReprogramada && (
+          <span>
+            <Clock className="mr-0.5 inline h-2.5 w-2.5" /> <span className="num text-warning">{r.DataReprogramada}</span>
+          </span>
+        )}
+          <span className="inline-flex items-center gap-0.5"><Users className="h-2.5 w-2.5" /> {r.Executante || "—"}</span>
+          <span className="inline-flex items-center gap-0.5">
+            <Clock className="h-2.5 w-2.5" /> <span className="num text-foreground">{formatBRNumber(r.HH || 0, 1)}h</span>
+        </span>
         {r.Criticidade && (
-          <span className={r.Criticidade.toUpperCase() === "AA" ? "font-bold text-destructive" : "text-foreground"}>
+          <span
+            className={
+              r.Criticidade.toUpperCase() === "AA"
+                ? "font-bold text-destructive"
+                : "text-foreground"
+            }
+          >
             {r.Criticidade}
           </span>
         )}

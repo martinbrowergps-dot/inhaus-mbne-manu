@@ -101,7 +101,11 @@ export interface SeriesPoint {
   status: TempStatus;
 }
 
-export function buildSeries(medicoes: MedicaoRow[], local: string, tipo?: LocalTipo): SeriesPoint[] {
+export function buildSeries(
+  medicoes: MedicaoRow[],
+  local: string,
+  tipo?: LocalTipo,
+): SeriesPoint[] {
   const lt = tipo ?? classifyLocal(local);
   return medicoes
     .filter((m) => m.LOCAL === local)
@@ -144,7 +148,8 @@ export function computeRangeKpis(
     if (p.status === "critico") criticos++;
     if (faixa) {
       if (p.temp >= faixa.min && p.temp <= faixa.max) dentro++;
-      const desvio = p.temp < faixa.min ? faixa.min - p.temp : p.temp > faixa.max ? p.temp - faixa.max : 0;
+      const desvio =
+        p.temp < faixa.min ? faixa.min - p.temp : p.temp > faixa.max ? p.temp - faixa.max : 0;
       if (desvio > desvioMax) desvioMax = desvio;
     } else {
       dentro++;

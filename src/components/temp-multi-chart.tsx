@@ -14,14 +14,14 @@ import type { MedicaoRow } from "@/lib/sheets-types";
 import { formatBRNumber } from "@/lib/format";
 
 const PALETTE = [
-  "oklch(0.72 0.18 240)",
-  "oklch(0.74 0.19 145)",
-  "oklch(0.82 0.17 88)",
-  "oklch(0.65 0.24 27)",
-  "oklch(0.65 0.20 300)",
-  "oklch(0.55 0.22 254)",
-  "oklch(0.70 0.16 200)",
-  "oklch(0.78 0.15 50)",
+  "#0EA5FF",
+  "#22C55E",
+  "#EAB308",
+  "#EF4444",
+  "#A78BFA",
+  "#2563EB",
+  "#0EA5FF",
+  "#FBBF24",
 ];
 
 function fmtX(t: number, range: TempRange): string {
@@ -69,7 +69,7 @@ export function TempMultiChart({
     <div className="h-80">
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis
             dataKey="t"
             type="number"
@@ -79,11 +79,7 @@ export function TempMultiChart({
             stroke="#94A3B8"
             minTickGap={40}
           />
-          <YAxis
-            tick={{ fontSize: 10, fill: "#94A3B8" }}
-            stroke="#94A3B8"
-            width={36}
-          />
+          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={36} />
           <ReTooltip
             contentStyle={{
               background: "#05254A",

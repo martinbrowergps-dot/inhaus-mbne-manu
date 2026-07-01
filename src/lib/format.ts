@@ -15,7 +15,10 @@ export function parseBRNumberOrNull(value: string | number | null | undefined): 
 }
 
 export function formatBRNumber(n: number, digits = 1): string {
-  return n.toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return n.toLocaleString("pt-BR", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }
 
 export function formatInt(n: number): string {

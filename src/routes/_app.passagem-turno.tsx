@@ -9,17 +9,35 @@ import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
+import { useDateFilter } from "@/hooks/use-date-filter";
 
 export const Route = createFileRoute("/_app/passagem-turno")({
   component: PassagemPage,
 });
 
 const cols: ColumnDef<PassagemTurnoRow>[] = [
-  { accessorKey: "Data", header: "Data" },
+  { accessorKey: "Data", header: "Data/Hora" },
   { accessorKey: "Turno", header: "Turno" },
   { accessorKey: "Supervisor", header: "Supervisor" },
   { accessorKey: "EquipeSaida", header: "Equipe Saída" },
   { accessorKey: "EquipeEntrada", header: "Equipe Entrada" },
+  { accessorKey: "TecnicoPassa", header: "Técnico Passa" },
+  { accessorKey: "TecnicoRecebe", header: "Técnico Recebe" },
+  {
+    accessorKey: "HorarioInicio",
+    header: "Início",
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "HorarioTermino",
+    header: "Término",
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  { accessorKey: "Aprovador", header: "Aprovador" },
   {
     accessorKey: "StatusGeral",
     header: "Status",
@@ -27,7 +45,10 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
       const v = String(getValue() ?? "");
       if (!v) return <span className="text-muted-foreground">—</span>;
       return (
-        <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary text-[10px]">
+        <Badge
+          variant="outline"
+          className="border-primary/30 bg-primary/10 text-primary text-[10px]"
+        >
           {v}
         </Badge>
       );
@@ -37,21 +58,45 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
     accessorKey: "Pendencias",
     header: "Pendências",
     cell: ({ getValue }) => (
-      <span className="line-clamp-1 max-w-[260px] text-muted-foreground">
+      <span className="line-clamp-1 max-w-[200px] text-muted-foreground">
         {(getValue() as string) || "—"}
       </span>
     ),
   },
+  {
+    accessorKey: "ResumoOcorrencias",
+    header: "Ocorrências",
+    cell: ({ getValue }) => (
+      <span className="line-clamp-1 max-w-[200px] text-muted-foreground">
+        {(getValue() as string) || "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "ResumoOSAbertas",
+    header: "OS Abertas",
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "ResumoOSConcluidas",
+    header: "OS Concluídas",
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{(getValue() as string) || "—"}</span>
+    ),
+  },
+  { accessorKey: "AssinadoPor", header: "Assinado Por" },
 ];
 
 function PassagemPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const dateFilter = useDateFilter();
 
   return (
     <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-
         <div>
           <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
           <p className="text-xs text-muted-foreground">
@@ -60,7 +105,7 @@ function PassagemPage() {
         </div>
         <ExportButton
           filename="passagem-turno"
-          rows={data?.passagemTurno ?? []}
+          rows={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
           columns={[
             { header: "Data", value: (r) => r.Data },
             { header: "Turno", value: (r) => r.Turno },
@@ -69,8 +114,15 @@ function PassagemPage() {
             { header: "Equipe Entrada", value: (r) => r.EquipeEntrada },
             { header: "Técnico Passa", value: (r) => r.TecnicoPassa },
             { header: "Técnico Recebe", value: (r) => r.TecnicoRecebe },
+            { header: "Horário Início", value: (r) => r.HorarioInicio ?? "" },
+            { header: "Horário Término", value: (r) => r.HorarioTermino ?? "" },
+            { header: "Aprovador", value: (r) => r.Aprovador ?? "" },
             { header: "Status", value: (r) => r.StatusGeral },
             { header: "Pendências", value: (r) => r.Pendencias },
+            { header: "Ocorrências", value: (r) => r.ResumoOcorrencias ?? "" },
+            { header: "OS Abertas", value: (r) => r.ResumoOSAbertas ?? "" },
+            { header: "OS Concluídas", value: (r) => r.ResumoOSConcluidas ?? "" },
+            { header: "Assinado Por", value: (r) => r.AssinadoPor ?? "" },
             { header: "Observações", value: (r) => r.Observacoes },
           ]}
           pdfTargetRef={pdfRef}
@@ -82,7 +134,7 @@ function PassagemPage() {
           <Skeleton className="h-80" />
         ) : (
           <DataTable
-            data={data?.passagemTurno ?? []}
+            data={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
             columns={cols}
             searchPlaceholder="Buscar supervisor, turno, equipe…"
             searchKeys={[
@@ -93,7 +145,10 @@ function PassagemPage() {
               "EquipeEntrada",
               "TecnicoPassa",
               "TecnicoRecebe",
+              "Aprovador",
               "Pendencias",
+              "ResumoOcorrencias",
+              "AssinadoPor",
             ]}
             pageSize={15}
           />
