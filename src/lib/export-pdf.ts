@@ -268,25 +268,18 @@ export async function exportVisualPdf(
   const contentY = margin + 16;
   const availH = pageH - contentY - margin - 4;
 
-  const restoreStyle = installLiveOverride();
-  const restoreInline = sanitizeLiveInlineColors(element);
-  // Give the browser one frame to apply the override.
-  await new Promise((r) => requestAnimationFrame(() => r(null)));
-
-  try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      onclone: makeOncloneInject(""),
-    });
-    return await processCanvas(canvas, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
-  } finally {
-    restoreInline();
-    restoreStyle();
-  }
+  const dataUrl = await toPng(element, {
+    pixelRatio: 2,
+    backgroundColor: "#ffffff",
+    cacheBust: true,
+    style: {
+      // Neutralize any dark theme so the export renders on white paper.
+      color: "#0f172a",
+    },
+  });
+  return await processDataUrl(dataUrl, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
 }
+
 
 
 async function processCanvas(
