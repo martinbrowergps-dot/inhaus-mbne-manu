@@ -409,14 +409,16 @@ export async function exportExecutiveSummary(
   y += barH + 6;
 
   // Try to capture a screenshot of charts if available
+  const restoreStyle = installLiveOverride();
+  const restoreInline = sanitizeLiveInlineColors(element);
+  await new Promise((r) => requestAnimationFrame(() => r(null)));
   try {
-    const execPatchedCss = getPatchedCss();
     const chartsCanvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
-      onclone: makeOncloneInject(execPatchedCss),
+      onclone: makeOncloneInject(""),
     });
     const imgData = chartsCanvas.toDataURL("image/png");
     const contentW = pageW - margin * 2;
@@ -433,7 +435,11 @@ export async function exportExecutiveSummary(
     }
   } catch {
     // Chart capture failed — just export text
+  } finally {
+    restoreInline();
+    restoreStyle();
   }
+
 
   // Footer
   const pageCount = pdf.getNumberOfPages();
