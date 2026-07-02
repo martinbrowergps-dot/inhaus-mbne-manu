@@ -146,7 +146,48 @@ function IndicadoresPage() {
       .map(([label, v]) => ({ label, value: Number(v.value.toFixed(2)), ts: v.ts }))
       .sort((a, b) => a.ts - b.ts);
 
-    return { aderencia, aderSistema, semanal, backlogArr, heatmap, hhDiaArr };
+    // Tempo real: Criação → Início → Fim
+    const tempos: { criacaoInicio: number; inicioFim: number; criacaoFim: number }[] = [];
+    const byExec = new Map<string, { criacaoInicio: number[]; inicioFim: number[] }>();
+    for (const p of programacaoFiltrada) {
+      if (p.StatusExecucao !== "Finalizada") continue;
+      const cri = parseBRDate(p.DataCriacao);
+      const ini = parseBRDate(p.DataInicioExecucao);
+      const fim = parseBRDate(p.DataFimExecucao);
+      if (!cri) continue;
+      if (ini) {
+        const h1 = (ini.getTime() - cri.getTime()) / 3_600_000;
+        tempos.push({ criacaoInicio: h1, inicioFim: 0, criacaoFim: 0 });
+        const exe = p.Executante || "—";
+        const e = byExec.get(exe) ?? { criacaoInicio: [], inicioFim: [] };
+        e.criacaoInicio.push(h1);
+        if (fim) {
+          const h2 = (fim.getTime() - ini.getTime()) / 3_600_000;
+          tempos[tempos.length - 1].inicioFim = h2;
+          tempos[tempos.length - 1].criacaoFim = h1 + h2;
+          e.inicioFim.push(h2);
+        }
+        byExec.set(exe, e);
+      }
+    }
+    const tempoMedio = tempos.length > 0
+      ? {
+          criacaoInicio: tempos.reduce((s, t) => s + t.criacaoInicio, 0) / tempos.length,
+          inicioFim: tempos.filter((t) => t.inicioFim > 0).reduce((s, t) => s + t.inicioFim, 0) / tempos.filter((t) => t.inicioFim > 0).length || 0,
+          criacaoFim: tempos.filter((t) => t.criacaoFim > 0).reduce((s, t) => s + t.criacaoFim, 0) / tempos.filter((t) => t.criacaoFim > 0).length || 0,
+        }
+      : null;
+    const tempoPorExec = Array.from(byExec.entries())
+      .map(([name, v]) => ({
+        name,
+        criacaoInicio: Number((v.criacaoInicio.reduce((s, x) => s + x, 0) / v.criacaoInicio.length).toFixed(1)),
+        inicioFim: v.inicioFim.length > 0
+          ? Number((v.inicioFim.reduce((s, x) => s + x, 0) / v.inicioFim.length).toFixed(1))
+          : 0,
+      }))
+      .sort((a, b) => b.criacaoInicio - a.criacaoInicio);
+
+    return { aderencia, aderSistema, semanal, backlogArr, heatmap, hhDiaArr, tempoMedio, tempoPorExec };
   }, [data, dateFilter]);
 
   if (isLoading || !data || !computed)
@@ -326,6 +367,70 @@ function IndicadoresPage() {
           </ResponsiveContainer>
         </div>
       </Panel>
+
+      {computed.tempoMedio && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="TEMPO REAL (MÉDIA)" subtitle="Horas decorridas entre etapas">
+            <div className="flex flex-wrap gap-6 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Criação → Início</p>
+                <p className="num text-3xl font-bold text-foreground">
+                  {formatBRNumber(computed.tempoMedio.criacaoInicio / 24, 1)}
+                  <span className="ml-0.5 text-sm text-muted-foreground">dias</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {formatBRNumber(computed.tempoMedio.criacaoInicio, 0)}h
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-warning">Início → Fim</p>
+                <p className="num text-3xl font-bold text-foreground">
+                  {formatBRNumber(computed.tempoMedio.inicioFim, 0)}
+                  <span className="ml-0.5 text-sm text-muted-foreground">h</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-success">Criação → Fim</p>
+                <p className="num text-3xl font-bold text-foreground">
+                  {formatBRNumber(computed.tempoMedio.criacaoFim / 24, 1)}
+                  <span className="ml-0.5 text-sm text-muted-foreground">dias</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {formatBRNumber(computed.tempoMedio.criacaoFim, 0)}h
+                </p>
+              </div>
+            </div>
+          </Panel>
+
+          <Panel title="TEMPO MÉDIO Criação → Início" subtitle="Por executante (horas)">
+            {computed.tempoPorExec.length === 0 ? (
+              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+                Sem dados
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={computed.tempoPorExec} layout="vertical" margin={{ left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "#94A3B8" }}
+                      stroke="#94A3B8"
+                      width={120}
+                    />
+                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="criacaoInicio" name="Criação → Início" fill="#0EA5FF" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="inicioFim" name="Início → Fim" fill="#EAB308" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Panel>
+        </div>
+      )}
     </div>
   );
 }
