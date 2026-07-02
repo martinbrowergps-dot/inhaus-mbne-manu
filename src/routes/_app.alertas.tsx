@@ -17,6 +17,7 @@ import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/section-header";
 import type { LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_app/alertas")({
@@ -206,25 +207,29 @@ function AlertasPage() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryChip label="ALTA" value={counts.alta} variant="danger" />
-        <SummaryChip label="MÉDIA" value={counts.media} variant="warning" />
-        <SummaryChip label="BAIXA" value={counts.baixa} variant="success" />
-      </div>
+      <SectionHeader label="Resumo" insight={`${alerts.length} alertas ativos · ${counts.alta} alta · ${counts.media} média · ${counts.baixa} baixa`}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <SummaryChip label="ALTA" value={counts.alta} variant="danger" />
+          <SummaryChip label="MÉDIA" value={counts.media} variant="warning" />
+          <SummaryChip label="BAIXA" value={counts.baixa} variant="success" />
+        </div>
+      </SectionHeader>
 
-      <Panel title={`${alerts.length} ALERTAS ATIVOS`}>
-        {alerts.length === 0 ? (
-          <div className="rounded-md border border-success/40 bg-success/10 p-4 text-sm text-success">
-            Tudo sob controle — nenhum alerta ativo no momento.
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {alerts.map((a) => (
-              <AlertItem key={a.id} alert={a} />
-            ))}
-          </ul>
-        )}
-      </Panel>
+      <SectionHeader label="Detalhamento" insight={alerts.length > 0 ? `${alerts.length} alertas requerem atenção` : "Tudo sob controle"}>
+        <Panel title={`${alerts.length} ALERTAS ATIVOS`}>
+          {alerts.length === 0 ? (
+            <div className="rounded-md border border-success/40 bg-success/10 p-4 text-sm text-success">
+              Tudo sob controle — nenhum alerta ativo no momento.
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {alerts.map((a) => (
+                <AlertItem key={a.id} alert={a} />
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </SectionHeader>
     </div>
   );
 }

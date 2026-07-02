@@ -14,6 +14,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/checklists")({
   component: ChecklistsPage,
@@ -136,6 +137,7 @@ function ChecklistsPage() {
         />
       </div>
 
+      <SectionHeader label="Planos por Tipo" insight={`${docas.length} itens em docas · ${geral.length} em áreas gerais · ${portas.length} em portas`}>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="docas">Docas ({docas.length})</TabsTrigger>
@@ -188,6 +190,7 @@ function ChecklistsPage() {
           </TabsContent>
         ))}
       </Tabs>
+      </SectionHeader>
     </div>
   );
 }

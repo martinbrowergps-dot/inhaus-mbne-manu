@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/nc")({
   component: NcPage,
@@ -109,50 +110,58 @@ function NcPage() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
-        <KpiCard label="Total de NCs" value={total} icon={ClipboardList} variant="primary" />
-        <KpiCard label="Abertas" value={abertas} icon={AlertTriangle} variant={abertas > 0 ? "warning" : "success"} />
-        <KpiCard label="Fechadas" value={fechadas} icon={CheckCircle2} variant="success" />
-        <KpiCard label="Processos" value={byProcesso.length} icon={FileSearch} variant="neutral" />
-      </div>
+      <SectionHeader label="Panorama" insight={`${total} NCs · ${abertas} abertas · ${fechadas} fechadas · ${byProcesso.length} processos`}>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <KpiCard label="Total de NCs" value={total} icon={ClipboardList} variant="primary" />
+          <KpiCard label="Abertas" value={abertas} icon={AlertTriangle} variant={abertas > 0 ? "warning" : "success"} />
+          <KpiCard label="Fechadas" value={fechadas} icon={CheckCircle2} variant="success" />
+          <KpiCard label="Processos" value={byProcesso.length} icon={FileSearch} variant="neutral" />
+        </div>
+      </SectionHeader>
 
-      {byProcesso.length > 0 && (
-        <Panel title="NC POR PROCESSO">
-          <div className="flex flex-wrap gap-2">
-            {byProcesso.map(({ name, value }) => (
-              <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                {name} <span className="num font-bold">{value}</span>
-              </span>
-            ))}
-          </div>
-        </Panel>
-      )}
+      <SectionHeader label="Análise" insight="NCs distribuídas por processo e status de fechamento">
+        <div className="grid gap-4 lg:grid-cols-2">
+          {byProcesso.length > 0 && (
+            <Panel title="NC POR PROCESSO">
+              <div className="flex flex-wrap gap-2">
+                {byProcesso.map(({ name, value }) => (
+                  <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    {name} <span className="num font-bold">{value}</span>
+                  </span>
+                ))}
+              </div>
+            </Panel>
+          )}
 
-      {byStatus.length > 0 && (
-        <Panel title="NC POR STATUS">
-          <div className="flex flex-wrap gap-2">
-            {byStatus.map(({ name, value }) => (
-              <span key={name} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
-                style={{
-                  borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
-                  background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
-                  color: /conclu|finaliz|fechado/i.test(name) ? "#22C55E" : "#EAB308",
-                }}
-              >
-                {name} <span className="num font-bold">{value}</span>
-              </span>
-            ))}
-          </div>
-        </Panel>
-      )}
+          {byStatus.length > 0 && (
+            <Panel title="NC POR STATUS">
+              <div className="flex flex-wrap gap-2">
+                {byStatus.map(({ name, value }) => (
+                  <span key={name} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+                    style={{
+                      borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
+                      background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
+                      color: /conclu|finaliz|fechado/i.test(name) ? "#22C55E" : "#EAB308",
+                    }}
+                  >
+                    {name} <span className="num font-bold">{value}</span>
+                  </span>
+                ))}
+              </div>
+            </Panel>
+          )}
+        </div>
+      </SectionHeader>
 
-      <DataTable
-        data={nc}
-        columns={columns}
-        pageSize={15}
-        searchKeys={["Codigo", "DescricaoNC", "Processo", "Responsavel", "CausaRaiz", "PlanoAcao"]}
-        searchPlaceholder="Buscar NC por código, processo, responsável, causa raiz…"
-      />
+      <SectionHeader label="Registro" insight={`${nc.length} não conformidades cadastradas`}>
+        <DataTable
+          data={nc}
+          columns={columns}
+          pageSize={15}
+          searchKeys={["Codigo", "DescricaoNC", "Processo", "Responsavel", "CausaRaiz", "PlanoAcao"]}
+          searchPlaceholder="Buscar NC por código, processo, responsável, causa raiz…"
+        />
+      </SectionHeader>
     </div>
   );
 }

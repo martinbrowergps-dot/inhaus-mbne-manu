@@ -22,6 +22,7 @@ import { formatBRNumber, parseBRDate, getWeekStart } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/section-header";
 import {
   deriveExecStatus,
   EXECUTADO_STATUSES,
@@ -301,10 +302,15 @@ function ProgramacaoPage() {
         </div>
       ) : (
         <>
-        <SummaryCards filtered={filtered} sumHH={sumHH} />
+        <SectionHeader label="Panorama" insight={`${filtered.length} OS no período · ${filtered.filter(r => r._status === 'Programada').length} programadas · ${filtered.filter(r => r._status === 'Em execução').length} em execução · ${filtered.filter(r => r._status === 'Finalizada').length} finalizadas · ${formatBRNumber(sumHH(filtered), 1)}h HH`}>
+          <SummaryCards filtered={filtered} sumHH={sumHH} />
+        </SectionHeader>
 
-        <HhComparisonChart rows={filtered} />
+        <SectionHeader label="HH: Planejado vs Executado" insight="Comparativo de horas-homem alocadas vs realizadas por executante">
+          <HhComparisonChart rows={filtered} />
+        </SectionHeader>
 
+        <SectionHeader label="Detalhamento" insight={`Navegue pelas visões diária, semanal, mensal ou pela tabela completa`}>
         <Tabs defaultValue="semanal" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
@@ -493,6 +499,7 @@ function ProgramacaoPage() {
             </Panel>
           </TabsContent>
         </Tabs>
+        </SectionHeader>
         </>
       )}
     </div>

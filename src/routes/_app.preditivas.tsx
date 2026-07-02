@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
+import { SectionHeader } from "@/components/section-header";
 import { formatBRNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/preditivas")({
@@ -87,25 +88,31 @@ function PreditivasPage() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
-        <KpiCard label="HH Estimado" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="neutral" />
-        <KpiCard label="Tipos distintos" value={byTipo.length} icon={TrendingUp} variant="success" />
-      </div>
+      <SectionHeader label="Panorama" insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byTipo.length} tipos`}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
+          <KpiCard label="HH Estimado" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="neutral" />
+          <KpiCard label="Tipos distintos" value={byTipo.length} icon={TrendingUp} variant="success" />
+        </div>
+      </SectionHeader>
 
       {byTipo.length > 0 && (
-        <Panel title="AÇÕES POR TIPO">
-          <div className="flex flex-wrap gap-2">
-            {byTipo.map(({ name, value }) => (
-              <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                {name} <span className="num font-bold">{value}</span>
-              </span>
-            ))}
-          </div>
-        </Panel>
+        <SectionHeader label="Distribuição" insight={`${byTipo.length} tipos de manutenção preditiva`}>
+          <Panel title="AÇÕES POR TIPO">
+            <div className="flex flex-wrap gap-2">
+              {byTipo.map(({ name, value }) => (
+                <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  {name} <span className="num font-bold">{value}</span>
+                </span>
+              ))}
+            </div>
+          </Panel>
+        </SectionHeader>
       )}
 
-      <DataTable data={preditiva} columns={columns} pageSize={15} />
+      <SectionHeader label="Registro" insight={`${preditiva.length} ações cadastradas`}>
+        <DataTable data={preditiva} columns={columns} pageSize={15} />
+      </SectionHeader>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { formatBRNumber, getWeekStart, parseBRDate } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/hh-semanal")({
   component: HHPage,
@@ -113,28 +114,32 @@ function HHPage() {
         />
       </div>
 
-      <Panel title="OCUPAÇÃO TOTAL DA EQUIPE">
-        <Gauge
-          label="Capacidade semanal global"
-          disponivel={totalDisp}
-          alocado={totalAloc}
-          ocupacao={totalOc}
-          large
-        />
-      </Panel>
+      <SectionHeader label="Capacidade Global" insight={`${formatBRNumber(totalDisp, 1)}h disponíveis · ${formatBRNumber(totalAloc, 1)}h alocadas · ocupação de ${formatBRNumber(totalOc, 1)}%`}>
+        <Panel title="OCUPAÇÃO TOTAL DA EQUIPE">
+          <Gauge
+            label="Capacidade semanal global"
+            disponivel={totalDisp}
+            alocado={totalAloc}
+            ocupacao={totalOc}
+            large
+          />
+        </Panel>
+      </SectionHeader>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {rows.map((r) => (
-          <Panel key={r.cargo} title={r.cargo}>
-            <Gauge label="HH" disponivel={r.disponivel} alocado={r.alocado} ocupacao={r.ocupacao} />
-          </Panel>
-        ))}
-        {rows.length === 0 && (
-          <Panel>
-            <p className="text-sm text-muted-foreground">Sem parâmetros de HH cadastrados.</p>
-          </Panel>
-        )}
-      </div>
+      <SectionHeader label="Detalhamento por Cargo" insight={`${rows.length} cargos analisados`}>
+        <div className="grid gap-4 md:grid-cols-2">
+          {rows.map((r) => (
+            <Panel key={r.cargo} title={r.cargo}>
+              <Gauge label="HH" disponivel={r.disponivel} alocado={r.alocado} ocupacao={r.ocupacao} />
+            </Panel>
+          ))}
+          {rows.length === 0 && (
+            <Panel>
+              <p className="text-sm text-muted-foreground">Sem parâmetros de HH cadastrados.</p>
+            </Panel>
+          )}
+        </div>
+      </SectionHeader>
     </div>
   );
 }

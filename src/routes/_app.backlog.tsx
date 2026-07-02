@@ -25,6 +25,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/backlog")({
   component: BacklogPage,
@@ -284,83 +285,59 @@ function BacklogPage() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total em aberto" value={total} icon={Inbox} />
-        <KpiCard
-          label="Vencidos"
-          value={vencidos}
-          icon={AlertTriangle}
-          variant={vencidos > 0 ? "danger" : "neutral"}
-        />
-        <KpiCard
-          label="Prioridade alta"
-          value={criticos}
-          icon={Clock}
-          variant={criticos > 0 ? "warning" : "neutral"}
-        />
-        <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={Users} />
-      </div>
+      <SectionHeader label="Panorama" insight={`${total} solicitações abertas · ${vencidos} vencidas · ${criticos} alta prioridade · ${tecnicos} técnicos`}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="Total em aberto" value={total} icon={Inbox} />
+          <KpiCard label="Vencidos" value={vencidos} icon={AlertTriangle} variant={vencidos > 0 ? "danger" : "neutral"} />
+          <KpiCard label="Prioridade alta" value={criticos} icon={Clock} variant={criticos > 0 ? "warning" : "neutral"} />
+          <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={Users} />
+        </div>
+      </SectionHeader>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="POR PRIORIDADE">
-          <ChartBars data={porPrioridade} colorBy="priority" />
-        </Panel>
-        <Panel title="POR IDADE">
-          <ChartBars data={faixasIdade} colorBy="age" />
-        </Panel>
-        <Panel title="TOP TÉCNICOS">
-          <ChartBars data={porTecnico} colorBy="primary" horizontal />
-        </Panel>
-      </div>
+      <SectionHeader label="Distribuição" insight="Solicitações por prioridade, idade e técnico">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Panel title="POR PRIORIDADE">
+            <ChartBars data={porPrioridade} colorBy="priority" />
+          </Panel>
+          <Panel title="POR IDADE">
+            <ChartBars data={faixasIdade} colorBy="age" />
+          </Panel>
+          <Panel title="TOP TÉCNICOS">
+            <ChartBars data={porTecnico} colorBy="primary" horizontal />
+          </Panel>
+        </div>
+      </SectionHeader>
 
-      <Panel
-        title={`SOLICITAÇÕES · ${filtered.length} de ${total}`}
-        action={
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar ID, assunto, técnico…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="h-9 border-border/60 bg-card/50 pl-8 text-xs"
-            />
+      <SectionHeader label="Registro" insight={`${filtered.length} de ${total} solicitações exibidas`}>
+        <Panel
+          title={`SOLICITAÇÕES · ${filtered.length} de ${total}`}
+          action={
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar ID, assunto, técnico…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="h-9 border-border/60 bg-card/50 pl-8 text-xs"
+              />
+            </div>
+          }
+        >
+          <div className="mb-3 flex flex-wrap gap-2">
+            <FilterChip label="Todas prioridades" active={!priFilter} onClick={() => setPriFilter(null)} />
+            {prioridades.map((p) => (
+              <FilterChip key={p} label={p} active={priFilter === p} onClick={() => setPriFilter(p)} className={priorityClass(p)} />
+            ))}
           </div>
-        }
-      >
-        <div className="mb-3 flex flex-wrap gap-2">
-          <FilterChip
-            label="Todas prioridades"
-            active={!priFilter}
-            onClick={() => setPriFilter(null)}
-          />
-          {prioridades.map((p) => (
-            <FilterChip
-              key={p}
-              label={p}
-              active={priFilter === p}
-              onClick={() => setPriFilter(p)}
-              className={priorityClass(p)}
-            />
-          ))}
-        </div>
-        <div className="mb-3 flex flex-wrap gap-2">
-          <FilterChip
-            label="Todos estados"
-            active={!stateFilter}
-            onClick={() => setStateFilter(null)}
-          />
-          {estados.map((s) => (
-            <FilterChip
-              key={s}
-              label={s}
-              active={stateFilter === s}
-              onClick={() => setStateFilter(s)}
-              className={stateClass(s)}
-            />
-          ))}
-        </div>
-        <DataTable data={filtered} columns={columns} pageSize={15} />
-      </Panel>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <FilterChip label="Todos estados" active={!stateFilter} onClick={() => setStateFilter(null)} />
+            {estados.map((s) => (
+              <FilterChip key={s} label={s} active={stateFilter === s} onClick={() => setStateFilter(s)} className={stateClass(s)} />
+            ))}
+          </div>
+          <DataTable data={filtered} columns={columns} pageSize={15} />
+        </Panel>
+      </SectionHeader>
     </div>
   );
 }

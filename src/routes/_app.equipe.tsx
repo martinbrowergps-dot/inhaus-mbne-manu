@@ -9,6 +9,7 @@ import { Panel } from "@/components/panel";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/equipe")({
   component: EquipePage,
@@ -54,18 +55,20 @@ function EquipePage() {
           pdfTitle="Equipe · Centro de Controle"
         />
       </div>
-      <Panel title={`${data?.tecnicos.length ?? 0} TÉCNICOS ATIVOS`}>
-        {isLoading ? (
-          <Skeleton className="h-80" />
-        ) : (
-          <DataTable
-            data={data?.tecnicos ?? []}
-            columns={cols}
-            searchPlaceholder="Buscar por nome, cargo, ID…"
-            pageSize={20}
-          />
-        )}
-      </Panel>
+      <SectionHeader label="Equipe" insight={`${data?.tecnicos.length ?? 0} técnicos ativos`}>
+        <Panel title={`${data?.tecnicos.length ?? 0} TÉCNICOS ATIVOS`}>
+          {isLoading ? (
+            <Skeleton className="h-80" />
+          ) : (
+            <DataTable
+              data={data?.tecnicos ?? []}
+              columns={cols}
+              searchPlaceholder="Buscar por nome, cargo, ID…"
+              pageSize={20}
+            />
+          )}
+        </Panel>
+      </SectionHeader>
     </div>
   );
 }

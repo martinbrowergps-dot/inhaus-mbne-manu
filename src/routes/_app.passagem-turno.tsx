@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/passagem-turno")({
   component: PassagemPage,
@@ -129,31 +130,33 @@ function PassagemPage() {
           pdfTitle="Passagem de Turno · Centro de Controle"
         />
       </div>
-      <Panel>
-        {isLoading ? (
-          <Skeleton className="h-80" />
-        ) : (
-          <DataTable
-            data={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
-            columns={cols}
-            searchPlaceholder="Buscar supervisor, turno, equipe…"
-            searchKeys={[
-              "Data",
-              "Turno",
-              "Supervisor",
-              "EquipeSaida",
-              "EquipeEntrada",
-              "TecnicoPassa",
-              "TecnicoRecebe",
-              "Aprovador",
-              "Pendencias",
-              "ResumoOcorrencias",
-              "AssinadoPor",
-            ]}
-            pageSize={15}
-          />
-        )}
-      </Panel>
+      <SectionHeader label="Registro" insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}>
+        <Panel>
+          {isLoading ? (
+            <Skeleton className="h-80" />
+          ) : (
+            <DataTable
+              data={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
+              columns={cols}
+              searchPlaceholder="Buscar supervisor, turno, equipe…"
+              searchKeys={[
+                "Data",
+                "Turno",
+                "Supervisor",
+                "EquipeSaida",
+                "EquipeEntrada",
+                "TecnicoPassa",
+                "TecnicoRecebe",
+                "Aprovador",
+                "Pendencias",
+                "ResumoOcorrencias",
+                "AssinadoPor",
+              ]}
+              pageSize={15}
+            />
+          )}
+        </Panel>
+      </SectionHeader>
     </div>
   );
 }

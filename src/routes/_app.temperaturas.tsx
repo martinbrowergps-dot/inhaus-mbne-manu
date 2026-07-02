@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
 import { filterByRange, summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { SectionHeader } from "@/components/section-header";
 
 const searchSchema = z.object({
   range: fallback(z.enum(["24h", "7d", "30d"]), "24h").default("24h"),
@@ -87,64 +88,68 @@ function TemperaturasPage() {
         </div>
       </div>
 
-      {criticos.length > 0 && (
-        <Panel title="CRÍTICOS" glow>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {criticos.map((l) => (
-              <TempCard key={l.local} summary={l} />
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      {alertas.length > 0 && (
-        <Panel title="EM ALERTA">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {alertas.map((l) => (
-              <TempCard key={l.local} summary={l} />
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      <Panel title={`NORMAIS (${normais.length})`}>
-        {normais.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem registros</p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {normais.map((l) => (
-              <TempCard key={l.local} summary={l} />
-            ))}
-          </div>
+      <SectionHeader label="Status dos Locais" insight={`${locais.length} locais monitorados · ${criticos.length} críticos · ${alertas.length} em alerta · ${normais.length} normais`}>
+        {criticos.length > 0 && (
+          <Panel title="CRÍTICOS" glow>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {criticos.map((l) => (
+                <TempCard key={l.local} summary={l} />
+              ))}
+            </div>
+          </Panel>
         )}
-      </Panel>
 
-      <Panel
-        title={`TENDÊNCIA POR LOCAL · ${range.toUpperCase()}`}
-        subtitle="Faixa-alvo em verde · linha colorida pelo status do período"
-      >
-        {allLocais.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem registros</p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {allLocais.map((local) => (
-              <TempTrendChart
-                key={local}
-                local={local}
-                medicoes={medicoesFiltradas}
-                range={range}
-              />
-            ))}
-          </div>
+        {alertas.length > 0 && (
+          <Panel title="EM ALERTA">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {alertas.map((l) => (
+                <TempCard key={l.local} summary={l} />
+              ))}
+            </div>
+          </Panel>
         )}
-      </Panel>
 
-      <Panel
-        title="VISÃO COMPARATIVA"
-        subtitle="Todos os locais sobrepostos · ideal para detectar desvios simultâneos"
-      >
-        <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
-      </Panel>
+        <Panel title={`NORMAIS (${normais.length})`}>
+          {normais.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem registros</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {normais.map((l) => (
+                <TempCard key={l.local} summary={l} />
+              ))}
+            </div>
+          )}
+        </Panel>
+      </SectionHeader>
+
+      <SectionHeader label="Análise" insight={`Tendência e comparativo no período de ${range.toUpperCase()}`}>
+        <Panel
+          title={`TENDÊNCIA POR LOCAL · ${range.toUpperCase()}`}
+          subtitle="Faixa-alvo em verde · linha colorida pelo status do período"
+        >
+          {allLocais.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem registros</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {allLocais.map((local) => (
+                <TempTrendChart
+                  key={local}
+                  local={local}
+                  medicoes={medicoesFiltradas}
+                  range={range}
+                />
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel
+          title="VISÃO COMPARATIVA"
+          subtitle="Todos os locais sobrepostos · ideal para detectar desvios simultâneos"
+        >
+          <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
+        </Panel>
+      </SectionHeader>
     </div>
   );
 }
