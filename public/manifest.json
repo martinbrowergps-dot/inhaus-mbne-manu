@@ -1,0 +1,23 @@
+{
+  "name": "In Haus - Martin Brower CDNE",
+  "short_name": "In Haus Manutenção",
+  "description": "Centro de Controle de Manutenção Industrial — Contrato In Haus · Martin Brower CDNE Recife",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1A30",
+  "theme_color": "#0B1A30",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
