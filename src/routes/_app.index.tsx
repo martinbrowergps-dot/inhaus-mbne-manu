@@ -103,6 +103,8 @@ function VisaoGeral() {
     if (s === "Não Planejado") return "Não Planejado";
     return s || "—";
   });
+  const planejados = byPlanejamento.find((p) => p.name === "Planejado")?.value ?? 0;
+  const naoPlanejados = byPlanejamento.find((p) => p.name === "Não Planejado")?.value ?? 0;
 
   // Planejado vs Não Planejado por dia (últimos 14 dias)
   const byPlanejamentoDia = aggregateByDayAndStatus(programacaoFiltrada);
@@ -146,7 +148,7 @@ function VisaoGeral() {
   };
 
   return (
-    <div ref={pdfRef} className="space-y-6">
+    <div ref={pdfRef} className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
@@ -174,90 +176,49 @@ function VisaoGeral() {
         />
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
-        <AderenciaCard
-          pct={aderencia.pct}
-          finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
-          finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
-          canceladas={aderencia.canceladas}
-          pendentes={aderencia.pendentes}
-          totalProgramadas={aderencia.totalProgramadas}
-          className="lg:col-span-1"
-        />
-        <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
-          <KpiCard
-            label="Total de OS"
-            value={formatInt(total)}
-            icon={ClipboardList}
-            variant="primary"
-          />
-          <KpiCard
-            label="Em Andamento"
-            value={formatInt(emAndamento)}
-            icon={Play}
-            variant="warning"
-          />
-          <KpiCard
-            label="Finalizadas"
-            value={formatInt(finalizadas)}
-            icon={CheckCircle2}
-            variant="success"
-          />
-          <KpiCard
-            label="Criticidade AA"
-            value={formatInt(aa)}
-            icon={AlertOctagon}
-            variant="danger"
-          />
+      {/* ═══════════ ① O PLANO ═══════════ */}
+      <Section
+        label="O Plano"
+        insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
+          <KpiCard label="OS Programadas" value={formatInt(programadas)} icon={Calendar} variant="neutral" />
+          <KpiCard label="HH Programado" value={formatBRNumber(totalHH, 1)} hint="horas-homem" icon={Clock} variant="primary" />
         </div>
-      </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="OS Programadas"
-          value={formatInt(programadas)}
-          icon={Calendar}
-          variant="neutral"
-        />
-        <KpiCard
-          label="HH Programado"
-          value={formatBRNumber(totalHH, 1)}
-          hint="horas-homem"
-          icon={Clock}
-          variant="primary"
-        />
-        <KpiCard
-          label="Técnicos Ativos"
-          value={formatInt(tecnicos.length)}
-          icon={Users}
-          variant="neutral"
-        />
-        <KpiCard
-          label="Temperaturas em Alerta"
-          value={formatInt(tempAlerta)}
-          hint={`${locais.length} locais monitorados`}
-          icon={Thermometer}
-          variant={tempAlerta > 0 ? "danger" : "success"}
-        />
-      </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Panel title="PLANEJADO vs NÃO PLANEJADO">
+            <ChartPie data={byPlanejamento} />
+          </Panel>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="OS POR SISTEMA">
-          <ChartPie data={bySistema} />
-        </Panel>
+          <Panel title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2">
+            {byPlanejamentoDia.length === 0 ? (
+              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+                Sem registros no período
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={byPlanejamentoDia} barCategoryGap="20%">
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                    <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Legend wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
+                    />
+                    <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Panel>
+        </div>
 
-        <Panel title="OS POR CRITICIDADE">
-          <ChartDonut data={byCriticidade} />
-        </Panel>
-
-        <Panel title="STATUS DAS OS">
-          <ChartPie data={byStatus} />
-        </Panel>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="OS POR DIA" subtitle="Próximas 2 semanas">
-          <div className="h-64">
+          <div className="h-56">
             <ResponsiveContainer>
               <BarChart data={byDia}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -269,96 +230,94 @@ function VisaoGeral() {
             </ResponsiveContainer>
           </div>
         </Panel>
+      </Section>
 
-        <Panel title="HH POR CARGO">
-          <ChartBarHorizontal data={aggregateHH(programacao)} />
-        </Panel>
-      </div>
+      {/* ═══════════ ② A EXECUÇÃO ═══════════ */}
+      <Section
+        label="A Execução"
+        insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
+      >
+        <div className="grid gap-4 lg:grid-cols-3">
+          <AderenciaCard
+            pct={aderencia.pct}
+            finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+            finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
+            canceladas={aderencia.canceladas}
+            pendentes={aderencia.pendentes}
+            totalProgramadas={aderencia.totalProgramadas}
+            className="lg:col-span-1"
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
+            <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
+            <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
+          </div>
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="PLANEJADO vs NÃO PLANEJADO" subtitle="Status de planejamento das OS">
-          <ChartPie data={byPlanejamento} />
-        </Panel>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="STATUS DAS OS">
+            <ChartPie data={byStatus} />
+          </Panel>
+          <Panel title="OS POR SISTEMA">
+            <ChartPie data={bySistema} />
+          </Panel>
+        </div>
+      </Section>
 
-        <Panel
-          title="PLANEJADO vs NÃO PLANEJADO POR DIA"
-          subtitle="Últimos 14 dias"
-          className="lg:col-span-2"
-        >
-          {byPlanejamentoDia.length === 0 ? (
-            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-              Sem registros no período
-            </div>
-          ) : (
-            <div className="h-64">
-              <ResponsiveContainer>
-                <BarChart data={byPlanejamentoDia} barCategoryGap="20%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 10, fill: "#94A3B8" }}
-                    stroke="#94A3B8"
-                  />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                  <Legend
-                    wrapperStyle={{ fontSize: 11 }}
-                    formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
-                  />
-                  <Bar
-                    dataKey="planejado"
-                    name="planejado"
-                    stackId="a"
-                    fill="#22C55E"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="naoPlanejado"
-                    name="naoPlanejado"
-                    stackId="a"
-                    fill="#EF4444"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Panel>
-      </div>
+      {/* ═══════════ ③ OS PROBLEMAS ═══════════ */}
+      <Section
+        label="Os Problemas"
+        insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
+      >
+        <div className="grid gap-3 sm:grid-cols-3">
+          <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
+          <KpiCard label="Temperaturas em Alerta" value={formatInt(tempAlerta)} hint={`${locais.length} locais monitorados`} icon={Thermometer} variant={tempAlerta > 0 ? "danger" : "success"} />
+          <KpiCard label="Técnicos Ativos" value={formatInt(tecnicos.length)} icon={Users} variant="neutral" />
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
-          title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
-          subtitle="OS do tipo quebra agrupadas por solicitante"
-        >
-          {quebras.length === 0 ? (
-            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-              Nenhuma quebra de programação no período
-            </div>
-          ) : (
-            <div className="h-64">
-              <ResponsiveContainer>
-                <BarChart data={quebras} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 10, fill: "#94A3B8" }}
-                    stroke="#94A3B8"
-                    width={120}
-                  />
-                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                  <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Panel>
-      </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="OS POR CRITICIDADE">
+            <ChartDonut data={byCriticidade} />
+          </Panel>
+          <Panel
+            title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
+            subtitle="OS do tipo quebra agrupadas por solicitante"
+          >
+            {quebras.length === 0 ? (
+              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+                Nenhuma quebra de programação no período
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={quebras} layout="vertical" margin={{ left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
+                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Panel>
+        </div>
+      </Section>
 
+      {/* ═══════════ ④ RECURSOS ═══════════ */}
+      <Section
+        label="Recursos"
+        insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="HH POR CARGO">
+            <ChartBarHorizontal data={aggregateHH(programacao)} />
+          </Panel>
+        </div>
+      </Section>
+
+      {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}
       <Panel
-        title="ATALHOS"
+        title="Navegação Rápida"
         action={
           <Link to="/alertas">
             <Button size="sm" variant="ghost" className="text-primary">
@@ -372,7 +331,7 @@ function VisaoGeral() {
             { url: "/programacao", label: "Programação Semanal" },
             { url: "/temperaturas", label: "Monitor Térmico" },
             { url: "/hh-semanal", label: "Capacidade HH" },
-            { url: "/checklists", label: "Checklists Operacionais" },
+            { url: "/checklists", label: "Planos de Manutenção" },
           ].map((s) => (
             <Link
               key={s.url}
@@ -385,6 +344,22 @@ function VisaoGeral() {
         </div>
       </Panel>
     </div>
+  );
+}
+
+function Section({ label, insight, children }: { label: string; insight: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-baseline gap-3 border-b border-border/30 pb-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
+          {label}
+        </span>
+        <p className="text-xs text-muted-foreground/70 leading-relaxed">
+          {insight}
+        </p>
+      </div>
+      {children}
+    </section>
   );
 }
 
