@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronLeft, ChevronRight, Calendar, Users, AlertTriangle, Clock } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Calendar, Users, AlertTriangle, Clock, Play, CheckCircle2, Ban, AlertOctagon } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { ProgramacaoRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge } from "@/components/status-badge";
 import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
@@ -295,6 +296,9 @@ function ProgramacaoPage() {
           <div className="grid gap-2 md:grid-cols-7">{Array.from({length:7}).map((_,i)=><Skeleton key={i} className="h-32" />)}</div>
         </div>
       ) : (
+        <>
+        <SummaryCards filtered={filtered} sumHH={sumHH} />
+
         <Tabs defaultValue="semanal" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
@@ -483,6 +487,7 @@ function ProgramacaoPage() {
             </Panel>
           </TabsContent>
         </Tabs>
+        </>
       )}
     </div>
   );
@@ -649,6 +654,25 @@ function Chip({
     >
       {label}
     </button>
+  );
+}
+
+function SummaryCards({ filtered, sumHH }: { filtered: EnrichedRow[]; sumHH: (rows: EnrichedRow[]) => number }) {
+  const prog = filtered.filter((r) => r._status === "Programada").length;
+  const exec = filtered.filter((r) => r._status === "Em execução").length;
+  const atr  = filtered.filter((r) => r._status === "Atrasada").length;
+  const fin  = filtered.filter((r) => r._status === "Finalizada").length;
+  const can  = filtered.filter((r) => r._status === "Cancelada").length;
+  const hh   = sumHH(filtered);
+  return (
+    <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+      <KpiCard label="Programadas" value={prog} icon={Calendar} variant="primary" />
+      <KpiCard label="Em Execução" value={exec} icon={Play} variant="warning" />
+      <KpiCard label="Atrasadas" value={atr} icon={AlertOctagon} variant={atr > 0 ? "danger" : "neutral"} />
+      <KpiCard label="Finalizadas" value={fin} icon={CheckCircle2} variant="success" />
+      <KpiCard label="Canceladas" value={can} icon={Ban} variant="neutral" />
+      <KpiCard label="HH Total" value={`${formatBRNumber(hh, 1)}h`} icon={Clock} variant="neutral" />
+    </div>
   );
 }
 
