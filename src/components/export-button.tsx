@@ -64,9 +64,26 @@ export function ExportButton<T>({
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Erro ao exportar PDF visual:", err);
-      toast.error(`Erro: ${msg}`);
+      // Fallback para PDF tabular se possível
+      if (rows.length > 0) {
+        toast.warning("PDF visual falhou. Gerando PDF tabular…");
+        try {
+          exportTableToPdf({
+            filename,
+            title: pdfTitle ?? filename,
+            subtitle: pdfSubtitle,
+            rows,
+            columns,
+          });
+          return;
+        } catch (fallbackErr) {
+          console.error("Fallback PDF tabular também falhou:", fallbackErr);
+        }
+      }
+      toast.error(`Erro ao gerar PDF: ${msg}`);
     }
   };
+
 
   return (
     <DropdownMenu>
