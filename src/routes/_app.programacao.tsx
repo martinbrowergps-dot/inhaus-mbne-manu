@@ -825,24 +825,30 @@ function OsCard({ row: r }: { row: EnrichedRow }) {
 const HH_COLORS = ["#0EA5FF", "#22C55E"];
 
 function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
-  const chartData = useMemo(() => {
+  const chartByDay = useMemo(() => {
     const map = new Map<string, { planejado: number; executado: number }>();
     rows.forEach((r) => {
-      const name = r.Executante || "Sem executante";
-      const e = map.get(name) ?? { planejado: 0, executado: 0 };
+      const d = parseBRDate(r.DataProgramada);
+      if (!d) return;
+      const label = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      const e = map.get(label) ?? { planejado: 0, executado: 0 };
       e.planejado += r.HH || 0;
       if (r.StatusExecucao === "Finalizada") {
         e.executado += r.TempoRealExec ?? 0;
       }
-      map.set(name, e);
+      map.set(label, e);
     });
     return Array.from(map.entries())
-      .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.planejado - a.planejado);
+      .map(([label, v]) => ({ label, ...v }))
+      .sort((a, b) => {
+        const [da, ma] = a.label.split("/").map(Number);
+        const [db, mb] = b.label.split("/").map(Number);
+        return ma - mb || da - db;
+      });
   }, [rows]);
 
-  const totalPlan = chartData.reduce((s, d) => s + d.planejado, 0);
-  const totalExec = chartData.reduce((s, d) => s + d.executado, 0);
+  const totalPlan = chartByDay.reduce((s, d) => s + d.planejado, 0);
+  const totalExec = chartByDay.reduce((s, d) => s + d.executado, 0);
 
   if (rows.length === 0) return null;
 
@@ -872,30 +878,24 @@ function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
         </div>
       </Panel>
 
-      <Panel title="HH PLANEJADO vs EXECUTADO" subtitle="Por executante">
-        {chartData.length === 0 ? (
+      <Panel title="HH PLANEJADO vs EXECUTADO" subtitle="Por dia">
+        {chartByDay.length === 0 ? (
           <div className="flex h-56 items-center justify-center text-xs text-muted-foreground">
             Sem dados no período
           </div>
         ) : (
           <div className="h-64">
             <ResponsiveContainer>
-              <BarChart data={chartData} layout="vertical" margin={{ left: 24 }}>
+              <BarChart data={chartByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 10, fill: "#94A3B8" }}
-                  stroke="#94A3B8"
-                  width={100}
-                />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Legend wrapperStyle={{ fontSize: 11 }}
                   formatter={(value) => (value === "planejado" ? "Planejado" : "Executado")}
                 />
-                <Bar dataKey="planejado" name="planejado" fill={HH_COLORS[0]} radius={[0, 4, 4, 0]} />
-                <Bar dataKey="executado" name="executado" fill={HH_COLORS[1]} radius={[0, 4, 4, 0]} />
+                <Bar dataKey="planejado" name="planejado" fill={HH_COLORS[0]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="executado" name="executado" fill={HH_COLORS[1]} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
