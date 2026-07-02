@@ -3,40 +3,103 @@ import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
 import type { CsvColumn } from "./export-csv";
 
-function getPatchedCss(): string {
-  const rules: string[] = [];
-  for (let i = 0; i < document.styleSheets.length; i++) {
-    try {
-      const sheet = document.styleSheets[i];
-      if (!sheet?.cssRules) continue;
-      for (let j = 0; j < sheet.cssRules.length; j++) {
-        rules.push(sheet.cssRules[j].cssText);
-      }
-    } catch {
-      // cross-origin ou inacessível, ignorar
-    }
-  }
-  return rules
-    .join("\n")
-    .replace(/oklch\([^)]+\)/g, "#0EA5FF")
-    .replace(/oklab\([^)]+\)/g, "#0EA5FF");
+// Fallback palette used to replace oklch/oklab colors that html2canvas cannot parse.
+const COLOR_OVERRIDES: Record<string, string> = {
+  "--background": "#ffffff",
+  "--foreground": "#0f172a",
+  "--card": "#ffffff",
+  "--card-foreground": "#0f172a",
+  "--popover": "#ffffff",
+  "--popover-foreground": "#0f172a",
+  "--primary": "#0ea5ff",
+  "--primary-foreground": "#ffffff",
+  "--secondary": "#f1f5f9",
+  "--secondary-foreground": "#0f172a",
+  "--muted": "#f1f5f9",
+  "--muted-foreground": "#64748b",
+  "--accent": "#e0f2fe",
+  "--accent-foreground": "#0f172a",
+  "--destructive": "#ef4444",
+  "--destructive-foreground": "#ffffff",
+  "--success": "#22c55e",
+  "--success-foreground": "#ffffff",
+  "--warning": "#eab308",
+  "--warning-foreground": "#0f172a",
+  "--border": "#e2e8f0",
+  "--input": "#e2e8f0",
+  "--ring": "#0ea5ff",
+  "--sidebar": "#f8fafc",
+  "--sidebar-foreground": "#0f172a",
+  "--sidebar-primary": "#0ea5ff",
+  "--sidebar-primary-foreground": "#ffffff",
+  "--sidebar-accent": "#e0f2fe",
+  "--sidebar-accent-foreground": "#0f172a",
+  "--sidebar-border": "#e2e8f0",
+  "--sidebar-ring": "#0ea5ff",
+  "--chart-1": "#0ea5ff",
+  "--chart-2": "#22c55e",
+  "--chart-3": "#eab308",
+  "--chart-4": "#ef4444",
+  "--chart-5": "#8b5cf6",
+};
+
+const OKLCH_FALLBACK = "#0ea5ff";
+const OKLCH_RE = /oklch\([^)]*\)/gi;
+const OKLAB_RE = /oklab\([^)]*\)/gi;
+
+function stripModern(str: string): string {
+  return str.replace(OKLCH_RE, OKLCH_FALLBACK).replace(OKLAB_RE, OKLCH_FALLBACK);
 }
 
-function makeOncloneInject(patchedCss: string) {
-  return (doc: Document) => {
-    if (!doc.head) return;
-    try {
-      doc.querySelectorAll('link[rel="stylesheet"], style').forEach((el) => el.remove());
-    } catch {
-      // ignore
-    }
-    if (patchedCss) {
-      const style = doc.createElement("style");
-      style.textContent = patchedCss;
-      doc.head.appendChild(style);
-    }
-  };
+function buildOverrideCss(): string {
+  const lines = Object.entries(COLOR_OVERRIDES).map(([k, v]) => `${k}: ${v} !important;`);
+  const block = lines.join("\n  ");
+  return `:root, .dark, [data-theme] {\n  ${block}\n}\n`;
 }
+
+function sanitizeClonedDoc(doc: Document) {
+  // 1. Patch stylesheets in place — replace oklch/oklab in every rule so
+  //    computed styles (var(--primary) etc.) resolve to safe colors.
+  const styleEls = doc.querySelectorAll("style");
+  styleEls.forEach((el) => {
+    if (el.textContent && (el.textContent.includes("oklch(") || el.textContent.includes("oklab("))) {
+      el.textContent = stripModern(el.textContent);
+    }
+  });
+
+  // 2. Append override block that redefines all CSS custom properties as hex.
+  const override = doc.createElement("style");
+  override.setAttribute("data-pdf-override", "true");
+  override.textContent = buildOverrideCss();
+  doc.head?.appendChild(override);
+
+  // 3. Sanitize inline style attributes and SVG fill/stroke attributes.
+  const all = doc.querySelectorAll<HTMLElement>("*");
+  all.forEach((el) => {
+    const inline = el.getAttribute("style");
+    if (inline && (inline.includes("oklch(") || inline.includes("oklab("))) {
+      el.setAttribute("style", stripModern(inline));
+    }
+    const fill = el.getAttribute("fill");
+    if (fill && (fill.includes("oklch(") || fill.includes("oklab("))) {
+      el.setAttribute("fill", stripModern(fill));
+    }
+    const stroke = el.getAttribute("stroke");
+    if (stroke && (stroke.includes("oklch(") || stroke.includes("oklab("))) {
+      el.setAttribute("stroke", stripModern(stroke));
+    }
+  });
+}
+
+// Kept for backwards compatibility — no longer strips stylesheets, just sanitizes.
+function getPatchedCss(): string {
+  return "";
+}
+
+function makeOncloneInject(_patchedCss: string) {
+  return (doc: Document) => sanitizeClonedDoc(doc);
+}
+
 
 interface ExportTableOpts<T> {
   filename: string;
