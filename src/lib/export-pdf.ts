@@ -196,6 +196,63 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
 
+/**
+ * Injects a <style> element into the LIVE document that overrides CSS custom
+ * properties and forces any `oklch(...)` / `oklab(...)` inline colors to
+ * fallback hex. This is required because html2canvas reads computed styles
+ * from the live document (via getComputedStyle) — modifying only the cloned
+ * document is not enough.
+ *
+ * Returns a cleanup function that removes the override.
+ */
+function installLiveOverride(): () => void {
+  const styleEl = document.createElement("style");
+  styleEl.setAttribute("data-pdf-live-override", "true");
+  // Force custom properties and, as a safety net, override any element that
+  // currently has an oklch/oklab color via attribute selectors is impossible,
+  // so we rely on the token override to cascade through var(--x) references.
+  const overrides = Object.entries(COLOR_OVERRIDES)
+    .map(([k, v]) => `${k}: ${v} !important;`)
+    .join("\n  ");
+  styleEl.textContent = `:root, .dark, [data-theme], html, body {\n  ${overrides}\n}\n`;
+  document.head.appendChild(styleEl);
+  return () => {
+    styleEl.remove();
+  };
+}
+
+/**
+ * Walk the element subtree and replace any inline style / SVG attribute
+ * containing oklch/oklab with a hex fallback. Returns a cleanup fn that
+ * restores original values.
+ */
+function sanitizeLiveInlineColors(root: HTMLElement): () => void {
+  const restores: Array<() => void> = [];
+  const all = root.querySelectorAll<HTMLElement>("*");
+  const check = (val: string | null) => val && (val.includes("oklch(") || val.includes("oklab("));
+  all.forEach((el) => {
+    const inline = el.getAttribute("style");
+    if (check(inline)) {
+      const orig = inline!;
+      el.setAttribute("style", stripModern(orig));
+      restores.push(() => el.setAttribute("style", orig));
+    }
+    const fill = el.getAttribute("fill");
+    if (check(fill)) {
+      const orig = fill!;
+      el.setAttribute("fill", stripModern(orig));
+      restores.push(() => el.setAttribute("fill", orig));
+    }
+    const stroke = el.getAttribute("stroke");
+    if (check(stroke)) {
+      const orig = stroke!;
+      el.setAttribute("stroke", stripModern(orig));
+      restores.push(() => el.setAttribute("stroke", orig));
+    }
+  });
+  return () => restores.forEach((fn) => fn());
+}
+
 export async function exportVisualPdf(
   element: HTMLElement,
   filename: string,
@@ -210,21 +267,26 @@ export async function exportVisualPdf(
   const contentY = margin + 16;
   const availH = pageH - contentY - margin - 4;
 
-  if (typeof html2canvas !== "function" && typeof (html2canvas as any)?.default === "function") {
-    throw new Error("html2canvas não está disponível");
+  const restoreStyle = installLiveOverride();
+  const restoreInline = sanitizeLiveInlineColors(element);
+  // Give the browser one frame to apply the override.
+  await new Promise((r) => requestAnimationFrame(() => r(null)));
+
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+      onclone: makeOncloneInject(""),
+    });
+    return await processCanvas(canvas, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
+  } finally {
+    restoreInline();
+    restoreStyle();
   }
-
-  const patchedCss = getPatchedCss();
-
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-    onclone: makeOncloneInject(patchedCss),
-  });
-  return processCanvas(canvas, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
 }
+
 
 async function processCanvas(
   canvas: HTMLCanvasElement,
