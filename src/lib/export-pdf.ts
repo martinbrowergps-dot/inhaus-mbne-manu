@@ -58,47 +58,28 @@ function buildOverrideCss(): string {
   return `:root, .dark, [data-theme] {\n  ${block}\n}\n`;
 }
 
-function sanitizeClonedDoc(doc: Document) {
-  // 1. Patch stylesheets in place — replace oklch/oklab in every rule so
-  //    computed styles (var(--primary) etc.) resolve to safe colors.
-  const styleEls = doc.querySelectorAll("style");
-  styleEls.forEach((el) => {
-    if (el.textContent && (el.textContent.includes("oklch(") || el.textContent.includes("oklab("))) {
-      el.textContent = stripModern(el.textContent);
-    }
-  });
 
-  // 2. Append override block that redefines all CSS custom properties as hex.
-  const override = doc.createElement("style");
-  override.setAttribute("data-pdf-override", "true");
-  override.textContent = buildOverrideCss();
-  doc.head?.appendChild(override);
 
-  // 3. Sanitize inline style attributes and SVG fill/stroke attributes.
-  const all = doc.querySelectorAll<HTMLElement>("*");
-  all.forEach((el) => {
-    const inline = el.getAttribute("style");
-    if (inline && (inline.includes("oklch(") || inline.includes("oklab("))) {
-      el.setAttribute("style", stripModern(inline));
-    }
-    const fill = el.getAttribute("fill");
-    if (fill && (fill.includes("oklch(") || fill.includes("oklab("))) {
-      el.setAttribute("fill", stripModern(fill));
-    }
-    const stroke = el.getAttribute("stroke");
-    if (stroke && (stroke.includes("oklch(") || stroke.includes("oklab("))) {
-      el.setAttribute("stroke", stripModern(stroke));
-    }
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
+    img.src = src;
   });
 }
 
-// Kept for backwards compatibility — no longer strips stylesheets, just sanitizes.
-function getPatchedCss(): string {
-  return "";
-}
-
-function makeOncloneInject(_patchedCss: string) {
-  return (doc: Document) => sanitizeClonedDoc(doc);
+function cropImage(
+  img: HTMLImageElement,
+  srcY: number,
+  sliceH: number,
+): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = sliceH;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, srcY, img.naturalWidth, sliceH, 0, 0, img.naturalWidth, sliceH);
+  return canvas.toDataURL("image/png");
 }
 
 
@@ -301,47 +282,38 @@ async function processDataUrl(
   contentY: number,
   availH: number,
 ) {
-  // Determine natural dimensions from the data URL.
-  const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-    img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
-    img.src = imgData;
-  });
+  const img = await loadImage(imgData);
 
-  const imgW = contentW;
-  const imgH = (dims.h / dims.w) * imgW;
+  // Image dimensions in mm (scaled to fit content width)
+  const imgW_mm = contentW;
+  const imgH_mm = (img.naturalHeight / img.naturalWidth) * imgW_mm;
 
   drawHeader(pdf, title, subtitle, margin);
 
-  if (imgH <= availH) {
-    pdf.addImage(imgData, "PNG", margin, contentY, imgW, imgH);
+  if (imgH_mm <= availH) {
+    pdf.addImage(imgData, "PNG", margin, contentY, imgW_mm, imgH_mm);
+    drawFooter(pdf, 0, margin);
   } else {
-    // Paginate: slice the tall image across multiple pages.
-    const pageImgH = availH;
-    const totalPages = Math.ceil(imgH / pageImgH);
+    // Pixel‑exact page slicing via canvas — no jsPDF clipping, no cut charts.
+    const pxPerMm = img.naturalWidth / contentW;
+    const pagePx = Math.floor(availH * pxPerMm);
+    const totalPages = Math.ceil(img.naturalHeight / pagePx);
+
     for (let i = 0; i < totalPages; i++) {
       if (i > 0) {
         pdf.addPage();
         drawHeader(pdf, title, subtitle, margin);
       }
-      // Offset the image upward so only the current slice shows within the clip.
-      const yOffset = contentY - i * pageImgH;
-      // Use a clipping rect via saveGraphicsState.
-      pdf.saveGraphicsState();
-      (pdf as unknown as { rect: (x: number, y: number, w: number, h: number) => void }).rect(margin, contentY, imgW, pageImgH);
-      (pdf as unknown as { clip: () => void }).clip();
-      (pdf as unknown as { discardPath: () => void }).discardPath();
-      pdf.addImage(imgData, "PNG", margin, yOffset, imgW, imgH);
-      pdf.restoreGraphicsState();
+
+      const srcY = i * pagePx;
+      const sliceH = Math.min(pagePx, img.naturalHeight - srcY);
+      const sliceDataUrl = cropImage(img, srcY, sliceH);
+
+      const sliceMmH = (sliceH / img.naturalWidth) * imgW_mm;
+      pdf.addImage(sliceDataUrl, "PNG", margin, contentY, imgW_mm, sliceMmH);
       drawFooter(pdf, 0, margin);
     }
-    const stampFile = new Date().toISOString().slice(0, 10);
-    pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
-    return;
   }
-
-  drawFooter(pdf, 0, margin);
 
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
@@ -441,23 +413,30 @@ export async function exportExecutiveSummary(
     });
     cleanLiveOverride2();
     cleanLiveInline2();
-    const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
-      const img = new window.Image();
-      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-      img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
-      img.src = imgData;
-    });
+    const chartImg = await loadImage(imgData);
     const contentW = pageW - margin * 2;
-    const imgW = contentW;
-    const imgH = (dims.h / dims.w) * imgW;
+    const imgW_mm = contentW;
+    const imgH_mm = (chartImg.naturalHeight / chartImg.naturalWidth) * imgW_mm;
 
-    if (y + imgH + 10 < pageH) {
-      pdf.addImage(imgData, "PNG", margin, y, imgW, imgH);
+    if (y + imgH_mm + 10 < pageH) {
+      pdf.addImage(imgData, "PNG", margin, y, imgW_mm, imgH_mm);
     } else {
-      pdf.addPage();
-      drawHeader(pdf, data.title, undefined, margin);
-      const availH2 = pageH - margin - margin - 6;
-      pdf.addImage(imgData, "PNG", margin, margin + 16, imgW, Math.min(imgH, availH2));
+      // Put chart on a fresh page with same canvas‑crop approach
+      const freshY = margin + 16;
+      const freshH = pageH - freshY - margin - 4;
+      const pxPerMm = chartImg.naturalWidth / contentW;
+      const pagePx = Math.floor(freshH * pxPerMm);
+      const totalPages = Math.ceil(chartImg.naturalHeight / pagePx);
+
+      for (let i = 0; i < totalPages; i++) {
+        pdf.addPage();
+        drawHeader(pdf, data.title, undefined, margin);
+        const srcY = i * pagePx;
+        const sliceH = Math.min(pagePx, chartImg.naturalHeight - srcY);
+        const sliceDataUrl = cropImage(chartImg, srcY, sliceH);
+        const sliceMmH = (sliceH / chartImg.naturalWidth) * imgW_mm;
+        pdf.addImage(sliceDataUrl, "PNG", margin, freshY, imgW_mm, sliceMmH);
+      }
     }
   } catch {
     // Chart capture failed — just export text
