@@ -1,7 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import type { CsvColumn } from "./export-csv";
+
 
 // Fallback palette used to replace oklch/oklab colors that html2canvas cannot parse.
 const COLOR_OVERRIDES: Record<string, string> = {
