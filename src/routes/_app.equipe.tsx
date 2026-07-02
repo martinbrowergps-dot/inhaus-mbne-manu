@@ -37,7 +37,7 @@ function EquipePage() {
     <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Equipe</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Equipe</h1>
           <p className="text-xs text-muted-foreground">
             Técnicos cadastrados no plano de manutenção
           </p>

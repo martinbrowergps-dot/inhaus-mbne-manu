@@ -3,8 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Activity, Clock, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
+import { priorityBadge } from "@/lib/chart-utils";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
@@ -20,7 +22,15 @@ const columns: ColumnDef<PreditivaRow>[] = [
   { accessorKey: "CodigoReferencia", header: "Código" },
   { accessorKey: "Tipo", header: "Tipo" },
   { accessorKey: "Categoria", header: "Categoria" },
-  { accessorKey: "Prioridade", header: "Prioridade" },
+  {
+    accessorKey: "Prioridade",
+    header: "Prioridade",
+    cell: ({ row }) => (
+      <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", priorityBadge(row.original.Prioridade))}>
+        {row.original.Prioridade}
+      </span>
+    ),
+  },
   { accessorKey: "Titulo", header: "Título" },
   { accessorKey: "Objetivo", header: "Objetivo" },
   { accessorKey: "HH", header: "HH" },
@@ -56,8 +66,8 @@ function PreditivasPage() {
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="fade-up text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
+          <p className="fade-up text-xs text-muted-foreground">
             Ações preditivas e corretivas-preditivas registradas
           </p>
         </div>

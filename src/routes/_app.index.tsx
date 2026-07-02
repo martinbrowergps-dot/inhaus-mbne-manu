@@ -26,6 +26,7 @@ import {
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
@@ -148,8 +149,8 @@ function VisaoGeral() {
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="fade-up text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
+          <p className="fade-up text-xs text-muted-foreground">
             Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
           </p>
         </div>
@@ -262,14 +263,7 @@ function VisaoGeral() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <ReTooltip
-                  contentStyle={{
-                    background: "#05254A",
-                    border: "1px solid #0EA5FF55",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
+                <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -306,14 +300,7 @@ function VisaoGeral() {
                     stroke="#94A3B8"
                   />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <ReTooltip
-                    contentStyle={{
-                      background: "#05254A",
-                      border: "1px solid #0EA5FF55",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                  />
+                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend
                     wrapperStyle={{ fontSize: 11 }}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
@@ -361,14 +348,7 @@ function VisaoGeral() {
                     stroke="#94A3B8"
                     width={120}
                   />
-                  <ReTooltip
-                    contentStyle={{
-                      background: "#05254A",
-                      border: "1px solid #0EA5FF55",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                  />
+                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -397,7 +377,7 @@ function VisaoGeral() {
             <Link
               key={s.url}
               to={s.url}
-              className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-foreground transition-all hover:border-primary/50 hover:bg-primary/5"
+              className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-foreground transition-all hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {s.label}
             </Link>
@@ -483,7 +463,7 @@ function ChartPie({ data }: { data: { name: string; value: number }[] }) {
             cx="50%"
             cy="50%"
             outerRadius={80}
-            label={(e) => `${e.value}`}
+            label={(e) => `${e.name}: ${e.value}`}
             labelLine={false}
           >
             {data.map((_, i) => (

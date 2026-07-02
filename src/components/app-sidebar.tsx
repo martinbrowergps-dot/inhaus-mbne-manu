@@ -57,9 +57,11 @@ export function AppSidebar() {
           <img
             src="/logo.png"
             alt="Logo"
+            width={36}
+            height={36}
             className="h-9 w-auto shrink-0"
           />
-          <div className="group-data-[collapsible=icon]:hidden">
+          <div className="transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
             <div className="text-[10px] font-bold tracking-[0.18em] text-primary">
               MARTIN BROWER
             </div>
@@ -86,7 +88,7 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
                     >
-                      <Link to={item.url} className="flex items-center gap-3">
+                      <Link to={item.url} className="flex items-center gap-3" aria-current={active ? "page" : undefined}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -114,17 +116,17 @@ export function AppSidebar() {
             <div className="flex gap-1">
               <button
                 onClick={() => setPreset("week")}
-                className={`flex-1 rounded text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded text-[10px] py-1 font-semibold ${
                   isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
-                }`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
               >
                 Semana
               </button>
               <button
                 onClick={() => setPreset("month")}
-                className={`flex-1 rounded text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded text-[10px] py-1 font-semibold ${
                   isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
-                }`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
               >
                 Mês
               </button>
@@ -133,18 +135,20 @@ export function AppSidebar() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+              aria-label="Data inicial"
+              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
             />
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+              aria-label="Data final"
+              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
             />
             {isActive && (
               <button
                 onClick={clearFilter}
-                className="w-full rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                className="clay-sm w-full rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
               >
                 Limpar
               </button>
@@ -155,25 +159,25 @@ export function AppSidebar() {
         <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-2">
           <button
             onClick={() => setOpenCalendar(!openCalendar)}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+            className={`clay-sm flex h-8 w-8 items-center justify-center rounded-lg ${
               isActive ? "bg-primary/20 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent"
-            }`}
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
             title="Filtrar por data"
           >
             <Calendar className="h-4 w-4" />
           </button>
           {openCalendar && (
-            <div className="fixed bottom-16 left-4 z-50 flex w-64 flex-col gap-1.5 rounded-xl border border-sidebar-border bg-sidebar p-3 shadow-lg">
+            <div className="clay fixed bottom-16 left-4 z-50 flex w-64 flex-col gap-1.5 rounded-xl border border-sidebar-border bg-sidebar p-3">
               <div className="flex gap-1">
                 <button
                   onClick={() => { setPreset("week"); setOpenCalendar(false); }}
-                  className="flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                  className="clay-sm flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
                 >
                   Semana
                 </button>
                 <button
                   onClick={() => { setPreset("month"); setOpenCalendar(false); }}
-                  className="flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                  className="clay-sm flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
                 >
                   Mês
                 </button>
@@ -182,18 +186,20 @@ export function AppSidebar() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+                aria-label="Data inicial"
+                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
               />
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark]"
+                aria-label="Data final"
+                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
               />
               {isActive && (
                 <button
                   onClick={() => { clearFilter(); setOpenCalendar(false); }}
-                  className="rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                  className="clay-sm rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
                 >
                   Limpar
                 </button>

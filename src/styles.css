@@ -108,6 +108,8 @@
   --gradient-bg: radial-gradient(ellipse at top, #041936 0%, #02152D 60%);
   --shadow-elevated: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 30px rgba(14, 165, 255, 0.35);
+  --clay-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  --clay-shadow-hover: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .dark {
@@ -117,6 +119,9 @@
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+  html {
+    color-scheme: dark;
   }
   html, body {
     background: var(--background);
@@ -128,6 +133,12 @@
     background-attachment: fixed;
     min-height: 100vh;
   }
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--background); }
+  ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
 }
 
 @layer utilities {
@@ -139,11 +150,18 @@
   .panel {
     background: var(--gradient-card);
     border: 1px solid rgba(14, 165, 255, 0.15);
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--clay-shadow);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .panel:hover {
+    box-shadow: var(--clay-shadow-hover);
   }
   .panel-glow {
-    box-shadow: var(--shadow-elevated), var(--shadow-glow);
+    box-shadow: var(--clay-shadow), var(--shadow-glow);
     border-color: rgba(14, 165, 255, 0.45);
+  }
+  .panel-glow:hover {
+    box-shadow: var(--clay-shadow-hover), var(--shadow-glow);
   }
   .text-gradient {
     background: linear-gradient(135deg, #E0F2FE, #0EA5FF);
@@ -155,6 +173,22 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+  }
+  .clay {
+    box-shadow: var(--clay-shadow);
+  }
+  .clay-sm {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .clay-btn {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: box-shadow 0.15s ease;
+  }
+  .clay-btn:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .clay-btn:active {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.2);
   }
 }
 

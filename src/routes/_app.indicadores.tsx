@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
@@ -32,13 +33,6 @@ export const Route = createFileRoute("/_app/indicadores")({
 });
 
 const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
-
-const TOOLTIP_STYLE = {
-  background: "#05254A",
-  border: "1px solid #0EA5FF55",
-  borderRadius: 8,
-  fontSize: 12,
-};
 
 function IndicadoresPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
@@ -179,7 +173,7 @@ function IndicadoresPage() {
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
           <p className="text-xs text-muted-foreground">
             Análise consolidada do plano de manutenção
           </p>
@@ -218,7 +212,7 @@ function IndicadoresPage() {
                   unit="%"
                 />
                 <ReTooltip
-                  contentStyle={TOOLTIP_STYLE}
+                  contentStyle={CHART_TOOLTIP_STYLE}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
                 />
                 <Line
@@ -255,7 +249,7 @@ function IndicadoresPage() {
                   width={140}
                 />
                 <ReTooltip
-                  contentStyle={TOOLTIP_STYLE}
+                  contentStyle={CHART_TOOLTIP_STYLE}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
                 />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
@@ -283,7 +277,7 @@ function IndicadoresPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <ReTooltip contentStyle={TOOLTIP_STYLE} />
+                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="HH" fill="#EAB308" radius={[4, 4, 0, 0]} />
@@ -320,7 +314,7 @@ function IndicadoresPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
               <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-              <ReTooltip contentStyle={TOOLTIP_STYLE} />
+              <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
               <Line
                 type="monotone"
                 dataKey="value"
@@ -408,7 +402,7 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
             stroke="#94A3B8"
             width={140}
           />
-          <ReTooltip contentStyle={TOOLTIP_STYLE} />
+          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
           <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
@@ -440,7 +434,7 @@ function PieView({
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
-          <ReTooltip contentStyle={TOOLTIP_STYLE} />
+          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
           <Legend wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>

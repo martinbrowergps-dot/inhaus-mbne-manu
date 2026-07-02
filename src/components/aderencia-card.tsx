@@ -44,8 +44,8 @@ export function AderenciaCard({
         </div>
       </div>
 
-      <div className="mt-2 flex items-center gap-4">
-        <div className="relative h-32 w-32 shrink-0">
+      <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative h-24 w-24 sm:h-32 sm:w-32 shrink-0">
           <ResponsiveContainer>
             <RadialBarChart
               cx="50%"

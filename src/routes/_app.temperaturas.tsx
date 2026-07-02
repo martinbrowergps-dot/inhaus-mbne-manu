@@ -55,7 +55,7 @@ function TemperaturasPage() {
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
           <p className="text-xs text-muted-foreground">
             Antecâmara 1°/7°C • Congelados -23°/-20°C • Resfriados 1°/4°C
           </p>

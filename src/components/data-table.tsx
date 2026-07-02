@@ -134,7 +134,7 @@ export function DataTable<T>({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/60"
+            className="h-7 border-border/60 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -143,7 +143,7 @@ export function DataTable<T>({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/60"
+            className="h-7 border-border/60 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >

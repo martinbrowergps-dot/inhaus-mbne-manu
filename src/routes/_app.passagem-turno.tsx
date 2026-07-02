@@ -98,7 +98,7 @@ function PassagemPage() {
     <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Passagem de Turno</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Passagem de Turno</h1>
           <p className="text-xs text-muted-foreground">
             Registros de troca de turno • supervisores, equipes e pendências
           </p>

@@ -259,7 +259,7 @@ function ProgramacaoPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Programação</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Programação</h1>
           <p className="text-xs text-muted-foreground">
             Visões diária, semanal e mensal — comparativo programado vs executado
           </p>
@@ -638,9 +638,9 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors",
+        "rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active
-          ? "border-primary bg-primary/15 text-primary"
+          ? "border-primary bg-primary/15 text-primary shadow-[0_0_10px_rgba(14,165,255,0.3)]"
           : cn(
               "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
               extraClass,

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { buildSeries, filterByRange, type TempRange } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 const PALETTE = [
@@ -81,12 +82,7 @@ export function TempMultiChart({
           />
           <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={36} />
           <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 11,
-            }}
+            contentStyle={CHART_TOOLTIP_STYLE}
             labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
             formatter={(v: number, name) => [`${formatBRNumber(v, 1)}°C`, name as string]}
           />

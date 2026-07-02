@@ -25,7 +25,7 @@ function AppLayout() {
           </main>
         </SidebarInset>
       </div>
-      <Toaster theme="dark" position="top-right" />
+      <Toaster theme="dark" position="top-right" offset={{ top: 64 }} />
     </SidebarProvider>
   );
 }

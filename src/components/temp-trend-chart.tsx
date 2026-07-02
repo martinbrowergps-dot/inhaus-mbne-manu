@@ -20,6 +20,7 @@ import {
   type TempRange,
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 function fmtX(t: number, range: TempRange): string {
@@ -117,12 +118,7 @@ export function TempTrendChart({
                 </>
               )}
               <ReTooltip
-                contentStyle={{
-                  background: "#05254A",
-                  border: "1px solid #0EA5FF55",
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
+                contentStyle={CHART_TOOLTIP_STYLE}
                 labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
                 formatter={(v: number) => [`${formatBRNumber(v, 1)}°C`, "Temperatura"]}
               />
@@ -140,7 +136,7 @@ export function TempTrendChart({
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-border/40 pt-2 text-center">
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-t border-border/40 pt-2 text-center">
         <Kpi label="Leituras" value={String(kpis.count)} />
         <Kpi
           label="Na faixa"

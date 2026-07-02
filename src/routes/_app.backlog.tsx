@@ -255,7 +255,7 @@ function BacklogPage() {
     <div ref={pdfRef} className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
           <p className="text-xs text-muted-foreground">
             Solicitações em aberto na aba BACKLOG da planilha
           </p>
@@ -381,7 +381,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors",
+        "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active
           ? "border-primary bg-primary/15 text-primary shadow-[0_0_10px_rgba(14,165,255,0.3)]"
           : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
