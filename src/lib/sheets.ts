@@ -181,19 +181,20 @@ export async function fetchSheetsData(): Promise<SheetsData> {
   }));
 
   const nc: NcRow[] = ncRaw.map((r) => ({
-    Codigo: pick(r, "Código", "Codigo"),
-    Tipo: pick(r, "Tipo"),
-    Categoria: pick(r, "Categoria"),
-    Prioridade: pick(r, "Prioridade"),
-    Titulo: pick(r, "Título", "Titulo"),
-    Objetivo: pick(r, "Objetivo"),
-    DescricaoAtividade: pick(r, "Descrição da Atividade", "DescricaoAtividade"),
-    Procedimento: pick(r, "Procedimento"),
-    CriterioAceitacao: pick(r, "Critério de Aceitação", "CriterioAceitacao"),
-    evidencias: pick(r, "Evidências", "evidencias"),
-    HHEstimado: pick(r, "HH Estimado", "HHEstimado"),
+    Codigo: pick(r, "Código NC", "Código", "Codigo"),
+    Data: pick(r, "Data"),
+    Processo: pick(r, "Processo"),
+    DescricaoNC: pick(r, "Descrição da NC", "Descricao da NC"),
+    Contencao: pick(r, "Contenção", "Contencao"),
+    AnaliseIshikawa: pick(r, "Análise Ishikawa", "Analise Ishikawa"),
+    CincoPorques: pick(r, "5 Porquês", "5 Porques"),
+    CausaRaiz: pick(r, "Causa Raiz", "CausaRaiz"),
+    PlanoAcao: pick(r, "Plano de Ação", "Plano de Acao"),
+    Prazo: pick(r, "Prazo"),
     Responsavel: pick(r, "Responsável", "Responsavel"),
     Status: pick(r, "Status"),
+    DataFechamento: pick(r, "Data de Fechamento", "DataFechamento"),
+    evidencias: pick(r, "Evidências", "evidencias"),
   }));
 
   const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({

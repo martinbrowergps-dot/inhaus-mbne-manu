@@ -97,18 +97,19 @@ export interface BacklogRow {
 
 export interface NcRow {
   Codigo: string;
-  Tipo: string;
-  Categoria: string;
-  Prioridade: string;
-  Titulo: string;
-  Objetivo: string;
-  DescricaoAtividade: string;
-  Procedimento: string;
-  CriterioAceitacao: string;
-  evidencias: string;
-  HHEstimado: string;
+  Data: string;
+  Processo: string;
+  DescricaoNC: string;
+  Contencao: string;
+  AnaliseIshikawa: string;
+  CincoPorques: string;
+  CausaRaiz: string;
+  PlanoAcao: string;
+  Prazo: string;
   Responsavel: string;
   Status: string;
+  DataFechamento: string;
+  evidencias: string;
 }
 
 export interface PreditivaRow {

@@ -2,11 +2,11 @@ import { useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertTriangle, AlertOctagon, ClipboardList } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ClipboardList, FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { NcRow } from "@/lib/sheets-types";
-import { priorityBadge, statusBadge } from "@/lib/chart-utils";
+import { statusBadge } from "@/lib/chart-utils";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
@@ -19,18 +19,20 @@ export const Route = createFileRoute("/_app/nc")({
 
 const columns: ColumnDef<NcRow>[] = [
   { accessorKey: "Codigo", header: "Código" },
-  { accessorKey: "Tipo", header: "Tipo" },
-  { accessorKey: "Categoria", header: "Categoria" },
+  { accessorKey: "Data", header: "Data" },
+  { accessorKey: "Processo", header: "Processo" },
   {
-    accessorKey: "Prioridade",
-    header: "Prioridade",
+    accessorKey: "DescricaoNC",
+    header: "Descrição da NC",
     cell: ({ row }) => (
-      <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", priorityBadge(row.original.Prioridade))}>
-        {row.original.Prioridade}
+      <span className="max-w-xs truncate block" title={row.original.DescricaoNC}>
+        {row.original.DescricaoNC}
       </span>
     ),
   },
-  { accessorKey: "Titulo", header: "Título" },
+  { accessorKey: "CausaRaiz", header: "Causa Raiz" },
+  { accessorKey: "PlanoAcao", header: "Plano de Ação" },
+  { accessorKey: "Prazo", header: "Prazo" },
   { accessorKey: "Responsavel", header: "Responsável" },
   {
     accessorKey: "Status",
@@ -41,6 +43,7 @@ const columns: ColumnDef<NcRow>[] = [
       </span>
     ),
   },
+  { accessorKey: "DataFechamento", header: "Data Fechamento" },
 ];
 
 function NcPage() {
@@ -61,12 +64,18 @@ function NcPage() {
 
   const nc = data.nc;
   const total = nc.length;
-  const criticas = nc.filter((r) => /alta|crit|urgent/i.test(r.Prioridade)).length;
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
+  const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
 
-  const byTipo = useMemo(() => {
+  const byProcesso = useMemo(() => {
     const m = new Map<string, number>();
-    nc.forEach((r) => { const k = r.Tipo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
+    nc.forEach((r) => { const k = r.Processo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
+    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [nc]);
+
+  const byStatus = useMemo(() => {
+    const m = new Map<string, number>();
+    nc.forEach((r) => { const k = r.Status || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
     return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [nc]);
 
@@ -76,7 +85,7 @@ function NcPage() {
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Não Conformidades</h1>
           <p className="fade-up text-xs text-muted-foreground">
-            Ações de não conformidade registradas
+            Registro de não conformidades com análise de causa raiz
           </p>
         </div>
         <ExportButton
@@ -84,28 +93,33 @@ function NcPage() {
           rows={nc}
           columns={[
             { header: "Código", value: (r) => r.Codigo },
-            { header: "Tipo", value: (r) => r.Tipo },
-            { header: "Categoria", value: (r) => r.Categoria },
-            { header: "Prioridade", value: (r) => r.Prioridade },
-            { header: "Título", value: (r) => r.Titulo },
+            { header: "Data", value: (r) => r.Data },
+            { header: "Processo", value: (r) => r.Processo },
+            { header: "Descrição", value: (r) => r.DescricaoNC },
+            { header: "Contenção", value: (r) => r.Contencao },
+            { header: "Causa Raiz", value: (r) => r.CausaRaiz },
+            { header: "Plano de Ação", value: (r) => r.PlanoAcao },
+            { header: "Prazo", value: (r) => r.Prazo },
             { header: "Responsável", value: (r) => r.Responsavel },
             { header: "Status", value: (r) => r.Status },
+            { header: "Data Fechamento", value: (r) => r.DataFechamento },
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Não Conformidades · Centro de Controle"
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <KpiCard label="Total de NCs" value={total} icon={ClipboardList} variant="primary" />
-        <KpiCard label="Críticas/Alta" value={criticas} icon={AlertOctagon} variant={criticas > 0 ? "danger" : "neutral"} />
         <KpiCard label="Abertas" value={abertas} icon={AlertTriangle} variant={abertas > 0 ? "warning" : "success"} />
+        <KpiCard label="Fechadas" value={fechadas} icon={CheckCircle2} variant="success" />
+        <KpiCard label="Processos" value={byProcesso.length} icon={FileSearch} variant="neutral" />
       </div>
 
-      {byTipo.length > 0 && (
-        <Panel title="NC POR TIPO">
+      {byProcesso.length > 0 && (
+        <Panel title="NC POR PROCESSO">
           <div className="flex flex-wrap gap-2">
-            {byTipo.map(({ name, value }) => (
+            {byProcesso.map(({ name, value }) => (
               <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 {name} <span className="num font-bold">{value}</span>
               </span>
@@ -114,7 +128,31 @@ function NcPage() {
         </Panel>
       )}
 
-      <DataTable data={nc} columns={columns} pageSize={15} />
+      {byStatus.length > 0 && (
+        <Panel title="NC POR STATUS">
+          <div className="flex flex-wrap gap-2">
+            {byStatus.map(({ name, value }) => (
+              <span key={name} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+                style={{
+                  borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
+                  background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
+                  color: /conclu|finaliz|fechado/i.test(name) ? "#22C55E" : "#EAB308",
+                }}
+              >
+                {name} <span className="num font-bold">{value}</span>
+              </span>
+            ))}
+          </div>
+        </Panel>
+      )}
+
+      <DataTable
+        data={nc}
+        columns={columns}
+        pageSize={15}
+        searchKeys={["Codigo", "DescricaoNC", "Processo", "Responsavel", "CausaRaiz", "PlanoAcao"]}
+        searchPlaceholder="Buscar NC por código, processo, responsável, causa raiz…"
+      />
     </div>
   );
 }
