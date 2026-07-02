@@ -425,21 +425,21 @@ export async function exportExecutiveSummary(
   y += barH + 6;
 
   // Try to capture a screenshot of charts if available
-  const restoreStyle = installLiveOverride();
-  const restoreInline = sanitizeLiveInlineColors(element);
-  await new Promise((r) => requestAnimationFrame(() => r(null)));
   try {
-    const chartsCanvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
+    const imgData = await toPng(element, {
+      pixelRatio: 2,
       backgroundColor: "#ffffff",
-      onclone: makeOncloneInject(""),
+      cacheBust: true,
     });
-    const imgData = chartsCanvas.toDataURL("image/png");
+    const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
+      img.src = imgData;
+    });
     const contentW = pageW - margin * 2;
     const imgW = contentW;
-    const imgH = (chartsCanvas.height / chartsCanvas.width) * imgW;
+    const imgH = (dims.h / dims.w) * imgW;
 
     if (y + imgH + 10 < pageH) {
       pdf.addImage(imgData, "PNG", margin, y, imgW, imgH);
@@ -451,9 +451,6 @@ export async function exportExecutiveSummary(
     }
   } catch {
     // Chart capture failed — just export text
-  } finally {
-    restoreInline();
-    restoreStyle();
   }
 
 
