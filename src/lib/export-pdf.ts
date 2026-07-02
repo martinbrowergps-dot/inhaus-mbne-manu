@@ -282,8 +282,8 @@ export async function exportVisualPdf(
 
 
 
-async function processCanvas(
-  canvas: HTMLCanvasElement,
+async function processDataUrl(
+  imgData: string,
   pdf: jsPDF,
   filename: string,
   title: string,
@@ -295,23 +295,44 @@ async function processCanvas(
   contentY: number,
   availH: number,
 ) {
-  let imgData: string;
-  try {
-    imgData = canvas.toDataURL("image/png");
-  } catch {
-    throw new Error("Falha ao gerar imagem — possível conteúdo cross-origin no canvas");
-  }
+  // Determine natural dimensions from the data URL.
+  const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
+    img.src = imgData;
+  });
 
   const imgW = contentW;
-  const imgH = (canvas.height / canvas.width) * imgW;
+  const imgH = (dims.h / dims.w) * imgW;
 
   drawHeader(pdf, title, subtitle, margin);
 
   if (imgH <= availH) {
     pdf.addImage(imgData, "PNG", margin, contentY, imgW, imgH);
   } else {
-    const scale = availH / imgH;
-    pdf.addImage(imgData, "PNG", margin, contentY, imgW * scale, availH);
+    // Paginate: slice the tall image across multiple pages.
+    const pageImgH = availH;
+    const totalPages = Math.ceil(imgH / pageImgH);
+    for (let i = 0; i < totalPages; i++) {
+      if (i > 0) {
+        pdf.addPage();
+        drawHeader(pdf, title, subtitle, margin);
+      }
+      // Offset the image upward so only the current slice shows within the clip.
+      const yOffset = contentY - i * pageImgH;
+      // Use a clipping rect via saveGraphicsState.
+      pdf.saveGraphicsState();
+      (pdf as unknown as { rect: (x: number, y: number, w: number, h: number) => void }).rect(margin, contentY, imgW, pageImgH);
+      (pdf as unknown as { clip: () => void }).clip();
+      (pdf as unknown as { discardPath: () => void }).discardPath();
+      pdf.addImage(imgData, "PNG", margin, yOffset, imgW, imgH);
+      pdf.restoreGraphicsState();
+      drawFooter(pdf, 0, margin);
+    }
+    const stampFile = new Date().toISOString().slice(0, 10);
+    pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
+    return;
   }
 
   drawFooter(pdf, 0, margin);
@@ -319,6 +340,7 @@ async function processCanvas(
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
+
 
 export async function exportExecutiveSummary(
   element: HTMLElement,
