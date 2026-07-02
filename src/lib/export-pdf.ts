@@ -268,15 +268,21 @@ export async function exportVisualPdf(
   const contentY = margin + 16;
   const availH = pageH - contentY - margin - 4;
 
+  const cleanLiveOverride = installLiveOverride();
+  const cleanLiveInline = sanitizeLiveInlineColors(element);
+
   const dataUrl = await toPng(element, {
     pixelRatio: 2,
     backgroundColor: "#ffffff",
     cacheBust: true,
     style: {
-      // Neutralize any dark theme so the export renders on white paper.
       color: "#0f172a",
     },
   });
+
+  cleanLiveOverride();
+  cleanLiveInline();
+
   return await processDataUrl(dataUrl, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
 }
 
@@ -426,11 +432,15 @@ export async function exportExecutiveSummary(
 
   // Try to capture a screenshot of charts if available
   try {
+    const cleanLiveOverride2 = installLiveOverride();
+    const cleanLiveInline2 = sanitizeLiveInlineColors(element);
     const imgData = await toPng(element, {
       pixelRatio: 2,
       backgroundColor: "#ffffff",
       cacheBust: true,
     });
+    cleanLiveOverride2();
+    cleanLiveInline2();
     const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
