@@ -1,7 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import type { CsvColumn } from "./export-csv";
+
 
 // Fallback palette used to replace oklch/oklab colors that html2canvas cannot parse.
 const COLOR_OVERRIDES: Record<string, string> = {
@@ -196,6 +197,63 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
 
+/**
+ * Injects a <style> element into the LIVE document that overrides CSS custom
+ * properties and forces any `oklch(...)` / `oklab(...)` inline colors to
+ * fallback hex. This is required because html2canvas reads computed styles
+ * from the live document (via getComputedStyle) — modifying only the cloned
+ * document is not enough.
+ *
+ * Returns a cleanup function that removes the override.
+ */
+function installLiveOverride(): () => void {
+  const styleEl = document.createElement("style");
+  styleEl.setAttribute("data-pdf-live-override", "true");
+  // Force custom properties and, as a safety net, override any element that
+  // currently has an oklch/oklab color via attribute selectors is impossible,
+  // so we rely on the token override to cascade through var(--x) references.
+  const overrides = Object.entries(COLOR_OVERRIDES)
+    .map(([k, v]) => `${k}: ${v} !important;`)
+    .join("\n  ");
+  styleEl.textContent = `:root, .dark, [data-theme], html, body {\n  ${overrides}\n}\n`;
+  document.head.appendChild(styleEl);
+  return () => {
+    styleEl.remove();
+  };
+}
+
+/**
+ * Walk the element subtree and replace any inline style / SVG attribute
+ * containing oklch/oklab with a hex fallback. Returns a cleanup fn that
+ * restores original values.
+ */
+function sanitizeLiveInlineColors(root: HTMLElement): () => void {
+  const restores: Array<() => void> = [];
+  const all = root.querySelectorAll<HTMLElement>("*");
+  const check = (val: string | null) => val && (val.includes("oklch(") || val.includes("oklab("));
+  all.forEach((el) => {
+    const inline = el.getAttribute("style");
+    if (check(inline)) {
+      const orig = inline!;
+      el.setAttribute("style", stripModern(orig));
+      restores.push(() => el.setAttribute("style", orig));
+    }
+    const fill = el.getAttribute("fill");
+    if (check(fill)) {
+      const orig = fill!;
+      el.setAttribute("fill", stripModern(orig));
+      restores.push(() => el.setAttribute("fill", orig));
+    }
+    const stroke = el.getAttribute("stroke");
+    if (check(stroke)) {
+      const orig = stroke!;
+      el.setAttribute("stroke", stripModern(orig));
+      restores.push(() => el.setAttribute("stroke", orig));
+    }
+  });
+  return () => restores.forEach((fn) => fn());
+}
+
 export async function exportVisualPdf(
   element: HTMLElement,
   filename: string,
@@ -210,24 +268,22 @@ export async function exportVisualPdf(
   const contentY = margin + 16;
   const availH = pageH - contentY - margin - 4;
 
-  if (typeof html2canvas !== "function" && typeof (html2canvas as any)?.default === "function") {
-    throw new Error("html2canvas não está disponível");
-  }
-
-  const patchedCss = getPatchedCss();
-
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
+  const dataUrl = await toPng(element, {
+    pixelRatio: 2,
     backgroundColor: "#ffffff",
-    onclone: makeOncloneInject(patchedCss),
+    cacheBust: true,
+    style: {
+      // Neutralize any dark theme so the export renders on white paper.
+      color: "#0f172a",
+    },
   });
-  return processCanvas(canvas, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
+  return await processDataUrl(dataUrl, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
 }
 
-async function processCanvas(
-  canvas: HTMLCanvasElement,
+
+
+async function processDataUrl(
+  imgData: string,
   pdf: jsPDF,
   filename: string,
   title: string,
@@ -239,23 +295,44 @@ async function processCanvas(
   contentY: number,
   availH: number,
 ) {
-  let imgData: string;
-  try {
-    imgData = canvas.toDataURL("image/png");
-  } catch {
-    throw new Error("Falha ao gerar imagem — possível conteúdo cross-origin no canvas");
-  }
+  // Determine natural dimensions from the data URL.
+  const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
+    img.src = imgData;
+  });
 
   const imgW = contentW;
-  const imgH = (canvas.height / canvas.width) * imgW;
+  const imgH = (dims.h / dims.w) * imgW;
 
   drawHeader(pdf, title, subtitle, margin);
 
   if (imgH <= availH) {
     pdf.addImage(imgData, "PNG", margin, contentY, imgW, imgH);
   } else {
-    const scale = availH / imgH;
-    pdf.addImage(imgData, "PNG", margin, contentY, imgW * scale, availH);
+    // Paginate: slice the tall image across multiple pages.
+    const pageImgH = availH;
+    const totalPages = Math.ceil(imgH / pageImgH);
+    for (let i = 0; i < totalPages; i++) {
+      if (i > 0) {
+        pdf.addPage();
+        drawHeader(pdf, title, subtitle, margin);
+      }
+      // Offset the image upward so only the current slice shows within the clip.
+      const yOffset = contentY - i * pageImgH;
+      // Use a clipping rect via saveGraphicsState.
+      pdf.saveGraphicsState();
+      (pdf as unknown as { rect: (x: number, y: number, w: number, h: number) => void }).rect(margin, contentY, imgW, pageImgH);
+      (pdf as unknown as { clip: () => void }).clip();
+      (pdf as unknown as { discardPath: () => void }).discardPath();
+      pdf.addImage(imgData, "PNG", margin, yOffset, imgW, imgH);
+      pdf.restoreGraphicsState();
+      drawFooter(pdf, 0, margin);
+    }
+    const stampFile = new Date().toISOString().slice(0, 10);
+    pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
+    return;
   }
 
   drawFooter(pdf, 0, margin);
@@ -263,6 +340,7 @@ async function processCanvas(
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
+
 
 export async function exportExecutiveSummary(
   element: HTMLElement,
@@ -348,18 +426,20 @@ export async function exportExecutiveSummary(
 
   // Try to capture a screenshot of charts if available
   try {
-    const execPatchedCss = getPatchedCss();
-    const chartsCanvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
+    const imgData = await toPng(element, {
+      pixelRatio: 2,
       backgroundColor: "#ffffff",
-      onclone: makeOncloneInject(execPatchedCss),
+      cacheBust: true,
     });
-    const imgData = chartsCanvas.toDataURL("image/png");
+    const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
+      img.src = imgData;
+    });
     const contentW = pageW - margin * 2;
     const imgW = contentW;
-    const imgH = (chartsCanvas.height / chartsCanvas.width) * imgW;
+    const imgH = (dims.h / dims.w) * imgW;
 
     if (y + imgH + 10 < pageH) {
       pdf.addImage(imgData, "PNG", margin, y, imgW, imgH);
@@ -372,6 +452,7 @@ export async function exportExecutiveSummary(
   } catch {
     // Chart capture failed — just export text
   }
+
 
   // Footer
   const pageCount = pdf.getNumberOfPages();
