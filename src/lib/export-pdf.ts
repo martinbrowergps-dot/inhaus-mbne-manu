@@ -60,29 +60,6 @@ function buildOverrideCss(): string {
 
 
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Falha ao carregar snapshot"));
-    img.src = src;
-  });
-}
-
-function cropImage(
-  img: HTMLImageElement,
-  srcY: number,
-  sliceH: number,
-): string {
-  const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth;
-  canvas.height = sliceH;
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, 0, srcY, img.naturalWidth, sliceH, 0, 0, img.naturalWidth, sliceH);
-  return canvas.toDataURL("image/png");
-}
-
-
 interface ExportTableOpts<T> {
   filename: string;
   title: string;
@@ -252,72 +229,57 @@ export async function exportVisualPdf(
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
 
-  const dataUrl = await toPng(element, {
-    pixelRatio: 2,
-    backgroundColor: "#ffffff",
-    cacheBust: true,
-    style: {
-      color: "#0f172a",
-    },
-  });
+  // Capture each page as a separate DOM render with overflow hidden
+  // so charts/panels are never sliced mid-element.
+  const elW = element.offsetWidth;
+  const naturalH = element.scrollHeight;
+  const pxPerMm = elW / contentW;
+  const pageCssH = Math.floor(availH * pxPerMm);
+  const totalPages = Math.ceil(naturalH / pageCssH);
+
+  for (let i = 0; i < totalPages; i++) {
+    if (i > 0) {
+      pdf.addPage();
+    }
+
+    drawHeader(pdf, title, subtitle, margin);
+
+    const offsetY = i * pageCssH;
+    const dataUrl = await toPng(element, {
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+      width: elW,
+      height: pageCssH,
+      style: {
+        maxHeight: `${pageCssH}px`,
+        overflow: "hidden",
+        transform: `translateY(-${offsetY}px)`,
+        color: "#0f172a",
+      },
+    });
+
+    pdf.addImage(dataUrl, "PNG", margin, contentY, contentW, availH);
+  }
 
   cleanLiveOverride();
   cleanLiveInline();
 
-  return await processDataUrl(dataUrl, pdf, filename, title, subtitle, margin, pageW, pageH, contentW, contentY, availH);
-}
-
-
-
-async function processDataUrl(
-  imgData: string,
-  pdf: jsPDF,
-  filename: string,
-  title: string,
-  subtitle: string | undefined,
-  margin: number,
-  pageW: number,
-  pageH: number,
-  contentW: number,
-  contentY: number,
-  availH: number,
-) {
-  const img = await loadImage(imgData);
-
-  // Image dimensions in mm (scaled to fit content width)
-  const imgW_mm = contentW;
-  const imgH_mm = (img.naturalHeight / img.naturalWidth) * imgW_mm;
-
-  drawHeader(pdf, title, subtitle, margin);
-
-  if (imgH_mm <= availH) {
-    pdf.addImage(imgData, "PNG", margin, contentY, imgW_mm, imgH_mm);
-    drawFooter(pdf, 0, margin);
-  } else {
-    // Pixel‑exact page slicing via canvas — no jsPDF clipping, no cut charts.
-    const pxPerMm = img.naturalWidth / contentW;
-    const pagePx = Math.floor(availH * pxPerMm);
-    const totalPages = Math.ceil(img.naturalHeight / pagePx);
-
-    for (let i = 0; i < totalPages; i++) {
-      if (i > 0) {
-        pdf.addPage();
-        drawHeader(pdf, title, subtitle, margin);
-      }
-
-      const srcY = i * pagePx;
-      const sliceH = Math.min(pagePx, img.naturalHeight - srcY);
-      const sliceDataUrl = cropImage(img, srcY, sliceH);
-
-      const sliceMmH = (sliceH / img.naturalWidth) * imgW_mm;
-      pdf.addImage(sliceDataUrl, "PNG", margin, contentY, imgW_mm, sliceMmH);
-      drawFooter(pdf, 0, margin);
-    }
+  // Footer overlay on all pages with final page count
+  const pageCount = pdf.getNumberOfPages();
+  pdf.setFontSize(7);
+  pdf.setTextColor(148, 163, 184);
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    const curH = pdf.internal.pageSize.getHeight();
+    pdf.text("Martin Brower CDNE", margin, curH - 4);
+    pdf.text(`Página ${i} de ${pageCount}`, pageW - margin, curH - 4, { align: "right" });
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
+
 
 
 export async function exportExecutiveSummary(
@@ -406,38 +368,51 @@ export async function exportExecutiveSummary(
   try {
     const cleanLiveOverride2 = installLiveOverride();
     const cleanLiveInline2 = sanitizeLiveInlineColors(element);
-    const imgData = await toPng(element, {
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      cacheBust: true,
-    });
-    cleanLiveOverride2();
-    cleanLiveInline2();
-    const chartImg = await loadImage(imgData);
+    const elW = element.offsetWidth;
+    const naturalH = element.scrollHeight;
     const contentW = pageW - margin * 2;
-    const imgW_mm = contentW;
-    const imgH_mm = (chartImg.naturalHeight / chartImg.naturalWidth) * imgW_mm;
+    const freshY = margin + 16;
+    const freshH = pageH - freshY - margin - 4;
+    const pxPerMm = elW / contentW;
+    const pageCssH = Math.floor(freshH * pxPerMm);
+    const totalPages = Math.ceil(naturalH / pageCssH);
 
-    if (y + imgH_mm + 10 < pageH) {
-      pdf.addImage(imgData, "PNG", margin, y, imgW_mm, imgH_mm);
+    if (y + (naturalH / pxPerMm) + 10 < pageH) {
+      // Capture fits on remaining space of current page
+      const dataUrl = await toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        cacheBust: true,
+        width: elW,
+        height: naturalH,
+        style: { color: "#0f172a" },
+      });
+      pdf.addImage(dataUrl, "PNG", margin, y, contentW, naturalH / pxPerMm);
     } else {
-      // Put chart on a fresh page with same canvas‑crop approach
-      const freshY = margin + 16;
-      const freshH = pageH - freshY - margin - 4;
-      const pxPerMm = chartImg.naturalWidth / contentW;
-      const pagePx = Math.floor(freshH * pxPerMm);
-      const totalPages = Math.ceil(chartImg.naturalHeight / pagePx);
-
+      // Per-page DOM capture on fresh pages
       for (let i = 0; i < totalPages; i++) {
         pdf.addPage();
         drawHeader(pdf, data.title, undefined, margin);
-        const srcY = i * pagePx;
-        const sliceH = Math.min(pagePx, chartImg.naturalHeight - srcY);
-        const sliceDataUrl = cropImage(chartImg, srcY, sliceH);
-        const sliceMmH = (sliceH / chartImg.naturalWidth) * imgW_mm;
-        pdf.addImage(sliceDataUrl, "PNG", margin, freshY, imgW_mm, sliceMmH);
+        const offsetY = i * pageCssH;
+        const dataUrl = await toPng(element, {
+          pixelRatio: 2,
+          backgroundColor: "#ffffff",
+          cacheBust: true,
+          width: elW,
+          height: pageCssH,
+          style: {
+            maxHeight: `${pageCssH}px`,
+            overflow: "hidden",
+            transform: `translateY(-${offsetY}px)`,
+            color: "#0f172a",
+          },
+        });
+        pdf.addImage(dataUrl, "PNG", margin, freshY, contentW, freshH);
       }
     }
+
+    cleanLiveOverride2();
+    cleanLiveInline2();
   } catch {
     // Chart capture failed — just export text
   }
