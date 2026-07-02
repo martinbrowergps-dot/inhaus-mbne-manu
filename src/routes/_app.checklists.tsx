@@ -15,6 +15,12 @@ import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import { formatBRNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/checklists")({
   component: ChecklistsPage,
@@ -107,6 +113,19 @@ function ChecklistsPage() {
 
   const allRows = [...docas, ...geral, ...portas];
 
+  const parseHH = (v: string) => {
+    const n = parseFloat(v.replace(",", "."));
+    return isNaN(n) ? 0 : n;
+  };
+  const hhDocas = docas.reduce((s, r) => s + parseHH(r._hh), 0);
+  const hhGeral = geral.reduce((s, r) => s + parseHH(r._hh), 0);
+  const hhPortas = portas.reduce((s, r) => s + parseHH(r._hh), 0);
+  const distTipo = [
+    { name: "Docas", count: docas.length, hh: Number(hhDocas.toFixed(1)) },
+    { name: "Geral", count: geral.length, hh: Number(hhGeral.toFixed(1)) },
+    { name: "Portas", count: portas.length, hh: Number(hhPortas.toFixed(1)) },
+  ];
+
   return (
     <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -137,7 +156,39 @@ function ChecklistsPage() {
         />
       </div>
 
-      <SectionHeader label="Planos por Tipo" insight={`${docas.length} itens em docas · ${geral.length} em áreas gerais · ${portas.length} em portas`}>
+      <SectionHeader label="Distribuição por Tipo" insight={`${allRows.length} itens no total · ${formatBRNumber(hhDocas + hhGeral + hhPortas, 1)}h HH estimado`}>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Panel title="ITENS POR TIPO">
+            <div className="h-56">
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={distTipo} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={(e) => `${e.name}: ${e.value}`} labelLine={false}>
+                    {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
+          <Panel title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
+            <div className="h-56">
+              <ResponsiveContainer>
+                <BarChart data={distTipo}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]} />
+                  <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
+                    {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
+        </div>
+      </SectionHeader>
+
+      <SectionHeader label="Planos por Tipo" insight={`Navegue pelos planos de docas, áreas gerais e portas`}>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="docas">Docas ({docas.length})</TabsTrigger>
