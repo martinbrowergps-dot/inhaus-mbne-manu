@@ -32,7 +32,7 @@ export function TempCard({ summary }: { summary: LocalSummary }) {
   const StatusIcon = statusConfig.Icon;
 
   return (
-    <div className={cn("panel fade-up rounded-xl border p-4 transition-all", statusConfig.bg)}>
+    <div className={cn("fade-up rounded-xl border p-4 transition-all hover:-translate-y-0.5", statusConfig.bg, isCritico ? "panel-glass neon-glow-pulse" : "panel")}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <Thermometer className={cn("h-4 w-4", statusConfig.color)} />

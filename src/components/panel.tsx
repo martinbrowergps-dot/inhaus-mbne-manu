@@ -8,6 +8,7 @@ export function Panel({
   children,
   className,
   glow,
+  glass,
 }: {
   title?: string;
   subtitle?: string;
@@ -15,9 +16,17 @@ export function Panel({
   children: ReactNode;
   className?: string;
   glow?: boolean;
+  glass?: boolean;
 }) {
   return (
-    <section className={cn("panel fade-up rounded-xl p-5", glow && "panel-glow", className)}>
+    <section
+      className={cn(
+        "fade-up rounded-xl p-5",
+        glass ? "panel-glass" : "panel",
+        glow && "panel-glow",
+        className,
+      )}
+    >
       {(title || action) && (
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>

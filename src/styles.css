@@ -104,12 +104,22 @@
 
   /* Gradients & glow */
   --gradient-card: linear-gradient(135deg, #0A203D 0%, #071633 100%);
+  --gradient-card-glass: linear-gradient(135deg, rgba(10, 32, 61, 0.65) 0%, rgba(7, 22, 51, 0.55) 100%);
   --gradient-primary: linear-gradient(135deg, #0EA5FF 0%, #2563EB 100%);
   --gradient-bg: radial-gradient(ellipse at top, #041936 0%, #02152D 60%);
   --shadow-elevated: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 30px rgba(14, 165, 255, 0.35);
+  --shadow-glow-critical: 0 0 24px rgba(239, 68, 68, 0.3);
+  --shadow-glow-warning: 0 0 24px rgba(234, 179, 8, 0.25);
+  --shadow-glow-success: 0 0 24px rgba(34, 197, 94, 0.2);
   --clay-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
   --clay-shadow-hover: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  --glass-border: rgba(14, 165, 255, 0.12);
+  --glass-blur: 10px;
+  --neon-critical: 0 0 6px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.15);
+  --neon-warning: 0 0 6px rgba(234, 179, 8, 0.4), 0 0 16px rgba(234, 179, 8, 0.12);
+  --neon-primary: 0 0 6px rgba(14, 165, 255, 0.4), 0 0 16px rgba(14, 165, 255, 0.12);
+  --neon-success: 0 0 6px rgba(34, 197, 94, 0.35), 0 0 14px rgba(34, 197, 94, 0.1);
 }
 
 .dark {
@@ -142,27 +152,90 @@
 }
 
 @layer utilities {
+  /* ── Glassmorphism base ── */
   .glass {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(14, 165, 255, 0.18);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
   }
+
+  /* ── Panel (card container) ── */
   .panel {
     background: var(--gradient-card);
     border: 1px solid rgba(14, 165, 255, 0.15);
     box-shadow: var(--clay-shadow);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    position: relative;
+    isolation: isolate;
+  }
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(135deg, rgba(14, 165, 255, 0.03) 0%, transparent 60%);
   }
   .panel:hover {
     box-shadow: var(--clay-shadow-hover);
+    border-color: rgba(14, 165, 255, 0.25);
   }
+  .panel:hover::before {
+    opacity: 1;
+  }
+
+  /* ── Glass variant ── */
+  .panel-glass {
+    background: var(--gradient-card-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .panel-glass:hover {
+    background: linear-gradient(135deg, rgba(10, 32, 61, 0.75) 0%, rgba(7, 22, 51, 0.65) 100%);
+    border-color: rgba(14, 165, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 20px rgba(14, 165, 255, 0.05);
+  }
+
+  /* ── Glow modifiers ── */
   .panel-glow {
     box-shadow: var(--clay-shadow), var(--shadow-glow);
-    border-color: rgba(14, 165, 255, 0.45);
+    border-color: rgba(14, 165, 255, 0.35);
   }
   .panel-glow:hover {
     box-shadow: var(--clay-shadow-hover), var(--shadow-glow);
   }
+
+  /* ── Neon glow utilities ── */
+  .neon-critical {
+    box-shadow: var(--neon-critical);
+    border-color: rgba(239, 68, 68, 0.4) !important;
+  }
+  .neon-warning {
+    box-shadow: var(--neon-warning);
+    border-color: rgba(234, 179, 8, 0.35) !important;
+  }
+  .neon-primary {
+    box-shadow: var(--neon-primary);
+    border-color: rgba(14, 165, 255, 0.35) !important;
+  }
+  .neon-success {
+    box-shadow: var(--neon-success);
+    border-color: rgba(34, 197, 94, 0.35) !important;
+  }
+
+  /* ── Critical row highlight (tables) ── */
+  .table-row-critical {
+    background: rgba(239, 68, 68, 0.06) !important;
+    border-left: 2px solid rgba(239, 68, 68, 0.5);
+  }
+  .table-row-critical:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+  }
+
+  /* ── Typography utilities ── */
   .text-gradient {
     background: linear-gradient(135deg, #E0F2FE, #0EA5FF);
     -webkit-background-clip: text;
@@ -174,6 +247,14 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
   }
+  .id {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    font-size: 0.75rem;
+  }
+
+  /* ── Shadow utilities ── */
   .clay {
     box-shadow: var(--clay-shadow);
   }
@@ -190,14 +271,33 @@
   .clay-btn:active {
     box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.2);
   }
+
+  /* ── Mobile drag/swipe hint ── */
+  .drag-hint {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .swipeable {
+    touch-action: pan-x;
+    cursor: grab;
+  }
 }
 
 @keyframes pulse-critical {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6), inset 0 0 12px rgba(239, 68, 68, 0.05); }
+  50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0), inset 0 0 20px rgba(239, 68, 68, 0.1); }
 }
 .pulse-critical {
   animation: pulse-critical 1.6s ease-out infinite;
+}
+
+@keyframes neon-glow-critical {
+  0%, 100% { box-shadow: var(--neon-critical); }
+  50% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.7), 0 0 30px rgba(239, 68, 68, 0.25); }
+}
+.neon-glow-pulse {
+  animation: neon-glow-critical 2s ease-in-out infinite;
 }
 
 @keyframes fade-up {
@@ -206,4 +306,17 @@
 }
 .fade-up {
   animation: fade-up 0.4s ease-out both;
+}
+
+@media (max-width: 767px) {
+  .mobile-card-expandable {
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .mobile-card-expandable .mobile-card-details {
+    display: none;
+  }
+  .mobile-card-expandable.expanded .mobile-card-details {
+    display: block;
+  }
 }

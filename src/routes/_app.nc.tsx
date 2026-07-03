@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_app/nc")({
 });
 
 const columns: ColumnDef<NcRow>[] = [
-  { accessorKey: "Codigo", header: "Código" },
+  { accessorKey: "Codigo", header: "Código", cell: ({ getValue }) => <span className="id">{getValue() as string}</span> },
   { accessorKey: "Data", header: "Data" },
   { accessorKey: "Processo", header: "Processo" },
   {
@@ -122,7 +122,7 @@ function NcPage() {
       <SectionHeader label="Análise" insight="NCs distribuídas por processo e status de fechamento">
         <div className="grid gap-4 lg:grid-cols-2">
           {byProcesso.length > 0 && (
-            <Panel title="NC POR PROCESSO">
+            <Panel title="NC POR PROCESSO" glass>
               <div className="flex flex-wrap gap-2">
                 {byProcesso.map(({ name, value }) => (
                   <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
@@ -134,7 +134,7 @@ function NcPage() {
           )}
 
           {byStatus.length > 0 && (
-            <Panel title="NC POR STATUS">
+            <Panel title="NC POR STATUS" glass>
               <div className="flex flex-wrap gap-2">
                 {byStatus.map(({ name, value }) => (
                   <span key={name} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"

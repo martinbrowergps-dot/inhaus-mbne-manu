@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_app/preditivas")({
 });
 
 const columns: ColumnDef<PreditivaRow>[] = [
-  { accessorKey: "CodigoReferencia", header: "Código" },
+  { accessorKey: "CodigoReferencia", header: "Código", cell: ({ getValue }) => <span className="id">{getValue() as string}</span> },
   { accessorKey: "Tipo", header: "Tipo" },
   { accessorKey: "Categoria", header: "Categoria" },
   {
@@ -98,7 +98,7 @@ function PreditivasPage() {
 
       {byTipo.length > 0 && (
         <SectionHeader label="Distribuição" insight={`${byTipo.length} tipos de manutenção preditiva`}>
-          <Panel title="AÇÕES POR TIPO">
+          <Panel title="AÇÕES POR TIPO" glass>
             <div className="flex flex-wrap gap-2">
               {byTipo.map(({ name, value }) => (
                 <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">

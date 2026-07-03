@@ -188,11 +188,11 @@ function VisaoGeral() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel title="PLANEJADO vs NÃO PLANEJADO">
+          <Panel title="PLANEJADO vs NÃO PLANEJADO" glass>
             <ChartPie data={byPlanejamento} />
           </Panel>
 
-          <Panel title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2">
+          <Panel title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2" glass>
             {byPlanejamentoDia.length === 0 ? (
               <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
                 Sem registros no período
@@ -254,10 +254,10 @@ function VisaoGeral() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="STATUS DAS OS">
+          <Panel title="STATUS DAS OS" glass>
             <ChartPie data={byStatus} />
           </Panel>
-          <Panel title="OS POR SISTEMA">
+          <Panel title="OS POR SISTEMA" glass>
             <ChartPie data={bySistema} />
           </Panel>
         </div>
@@ -275,7 +275,7 @@ function VisaoGeral() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="OS POR CRITICIDADE">
+          <Panel title="OS POR CRITICIDADE" glass>
             <ChartDonut data={byCriticidade} />
           </Panel>
           <Panel
@@ -318,6 +318,7 @@ function VisaoGeral() {
       {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}
       <Panel
         title="Navegação Rápida"
+        glass
         action={
           <Link to="/alertas">
             <Button size="sm" variant="ghost" className="text-primary">

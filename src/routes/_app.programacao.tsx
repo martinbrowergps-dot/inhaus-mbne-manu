@@ -41,7 +41,7 @@ type EnrichedRow = ProgramacaoRow & {
 };
 
 const fullCols: ColumnDef<EnrichedRow>[] = [
-  { accessorKey: "NumeroOS", header: "Nº OS" },
+  { accessorKey: "NumeroOS", header: "Nº OS", cell: ({ getValue }) => <span className="id">{getValue() as string}</span> },
   { accessorKey: "DataProgramada", header: "Data" },
   { accessorKey: "Sistema", header: "Sistema" },
   {
@@ -779,12 +779,21 @@ function OsGroupedByExecutante({ rows, emptyLabel }: { rows: EnrichedRow[]; empt
 
 function OsCard({ row: r }: { row: EnrichedRow }) {
   const isAtrasada = r._status === "Atrasada" && r._diasAtraso !== null;
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <li className="rounded-lg border border-border/50 bg-card/40 p-2.5 transition-colors hover:border-primary/40 hover:bg-primary/5">
+    <li
+      className={cn(
+        "rounded-lg border border-border/50 bg-card/40 p-2.5 transition-all",
+        isAtrasada ? "neon-glow-pulse border-destructive/40" : "hover:border-primary/40 hover:bg-primary/5",
+        "md:cursor-default cursor-pointer",
+      )}
+      onClick={() => setExpanded((v) => !v)}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="num text-[11px] font-bold text-primary">{r.NumeroOS}</span>
+            <span className="id text-[11px] font-bold text-primary">{r.NumeroOS}</span>
             <span className="text-[10px] text-muted-foreground">{r.Sistema}</span>
             {isAtrasada && (
               <span className="inline-flex items-center gap-0.5 rounded-full border border-destructive/50 bg-destructive/15 px-1.5 py-0.5 text-[9px] font-bold text-destructive">
@@ -818,6 +827,29 @@ function OsCard({ row: r }: { row: EnrichedRow }) {
           </span>
         )}
       </div>
+
+      {expanded && (
+        <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2 text-[10px] text-muted-foreground md:hidden">
+          {r.LocalMacro && (
+            <p><span className="font-semibold text-foreground">Local:</span> {r.LocalMacro}</p>
+          )}
+          {r.Tipo && (
+            <p><span className="font-semibold text-foreground">Tipo:</span> {r.Tipo}</p>
+          )}
+          {r.Cargo && (
+            <p><span className="font-semibold text-foreground">Cargo:</span> {r.Cargo}</p>
+          )}
+          {r.DataProgramada && (
+            <p><span className="font-semibold text-foreground">Data Prog.:</span> <span className="num">{r.DataProgramada}</span></p>
+          )}
+          {r.Criticidade && (
+            <p><span className="font-semibold text-foreground">Criticidade:</span> {r.Criticidade}</p>
+          )}
+          {r.ObservacoesExecucao && (
+            <p className="line-clamp-3"><span className="font-semibold text-foreground">Obs.:</span> {r.ObservacoesExecucao}</p>
+          )}
+        </div>
+      )}
     </li>
   );
 }

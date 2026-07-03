@@ -37,18 +37,21 @@ export function KpiCard({
   hint,
   icon: Icon,
   variant = "primary",
+  glass,
 }: {
   label: string;
   value: string | number;
   hint?: string;
   icon: LucideIcon;
   variant?: Variant;
+  glass?: boolean;
 }) {
   const v = VARIANTS[variant];
   return (
     <div
       className={cn(
-        "panel fade-up rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+        "fade-up rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+        glass ? "panel-glass" : "panel",
         v.ring,
         v.glow,
       )}

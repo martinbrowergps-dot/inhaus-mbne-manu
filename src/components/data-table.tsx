@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 export function DataTable<T>({
   data,
@@ -27,12 +28,16 @@ export function DataTable<T>({
   searchPlaceholder = "Pesquisar…",
   searchKeys,
   pageSize = 12,
+  rowCriticalKey,
+  rowCriticalValue,
 }: {
   data: T[];
   columns: ColumnDef<T, unknown>[];
   searchPlaceholder?: string;
   searchKeys?: (keyof T)[];
   pageSize?: number;
+  rowCriticalKey?: keyof T;
+  rowCriticalValue?: unknown;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [q, setQ] = useState("");
@@ -62,6 +67,11 @@ export function DataTable<T>({
     initialState: { pagination: { pageSize } },
   });
 
+  const isRowCritical = (row: T) => {
+    if (!rowCriticalKey || rowCriticalValue === undefined) return false;
+    return (row as Record<string, unknown>)[rowCriticalKey as string] === rowCriticalValue;
+  };
+
   return (
     <div className="space-y-3">
       <div className="relative max-w-sm">
@@ -70,15 +80,15 @@ export function DataTable<T>({
           placeholder={searchPlaceholder}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="h-9 border-border/60 bg-card/50 pl-8 text-xs"
+          className="h-9 border-border/40 bg-card/40 pl-8 text-xs backdrop-blur-sm"
         />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border/60 bg-card/30">
+      <div className="overflow-hidden rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id} className="border-border/60 hover:bg-transparent">
+              <TableRow key={hg.id} className="border-border/30 hover:bg-transparent">
                 {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -112,9 +122,17 @@ export function DataTable<T>({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-border/40 text-xs hover:bg-primary/5">
+                <TableRow
+                  key={row.id}
+                  className={cn(
+                    "border-border/30 text-xs transition-colors",
+                    isRowCritical(row.original)
+                      ? "table-row-critical neon-glow-pulse"
+                      : "hover:bg-primary/[0.04]",
+                  )}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2.5">
+                    <TableCell key={cell.id} className="py-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -134,7 +152,7 @@ export function DataTable<T>({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/60 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-7 border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -143,7 +161,7 @@ export function DataTable<T>({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/60 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="h-7 border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
