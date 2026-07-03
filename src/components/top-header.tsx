@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { RefreshCw, Circle } from "lucide-react";
+import { RefreshCw, Circle, Activity } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
@@ -26,7 +27,7 @@ export function TopHeader() {
   const lastUpdate = data ? new Date(data.fetchedAt) : null;
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl relative">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl">
       <SidebarTrigger className="text-primary" />
       <div className="flex-1">
         <h1 className="text-sm font-bold tracking-[0.22em] text-gradient sm:text-base">
@@ -37,33 +38,51 @@ export function TopHeader() {
         </p>
       </div>
 
-      <div className="hidden items-center gap-2 rounded-md border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-medium text-success md:flex">
-        <Circle className="h-2 w-2 animate-pulse fill-current" />
-        ONLINE
-      </div>
-
-      <div className="hidden flex-col text-right text-[10px] text-muted-foreground lg:flex">
-        <span className="tracking-wider">ÚLTIMA ATUALIZAÇÃO</span>
-        <span className="num text-foreground">{formatBRDateTime(lastUpdate)}</span>
-      </div>
-
-      <div className="hidden flex-col text-right text-[10px] text-muted-foreground sm:flex">
-        <span className="tracking-wider">HORA ATUAL</span>
-        <span className="num text-foreground">
-          {now ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
-        </span>
-      </div>
-
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={handleRefresh}
-        disabled={isFetching}
-        className="clay-sm border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
-      >
-        <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-        <span className="hidden sm:inline">Atualizar</span>
-      </Button>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            size="sm"
+            variant="outline"
+            className="clay-sm gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+          >
+            <Circle className="h-2 w-2 animate-pulse fill-success text-success" />
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-64 border-border/40 bg-card/95 backdrop-blur-xl">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs">
+              <Circle className="h-2 w-2 fill-success text-success" />
+              <span className="font-medium text-success">Online</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Última atualização
+              </p>
+              <p className="num text-xs text-foreground">
+                {formatBRDateTime(lastUpdate)}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Hora atual
+              </p>
+              <p className="num text-xs text-foreground">
+                {now ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
+              </p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="clay-sm flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              Atualizar dados
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </header>
   );
 }

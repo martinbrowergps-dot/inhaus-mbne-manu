@@ -5,7 +5,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
-import { formatBRNumber, getWeekStart, parseBRDate } from "@/lib/format";
+import { formatBRNumber, getWeekStart, parseBRDate, formatDateBR } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/hooks/use-date-filter";
@@ -111,6 +111,11 @@ function HHPage() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="HH Semanal · Centro de Controle"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+              : undefined
+          }
         />
       </div>
 

@@ -18,7 +18,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { formatBRNumber, parseBRDate, getWeekStart } from "@/lib/format";
+import { formatBRNumber, parseBRDate, getWeekStart, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { cn } from "@/lib/utils";
@@ -290,7 +290,11 @@ function ProgramacaoPage() {
             { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
           ]}
           pdfTitle="Programação · Centro de Controle"
-          pdfSubtitle={`${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`}
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
+              : `${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
+          }
         />
       </div>
 

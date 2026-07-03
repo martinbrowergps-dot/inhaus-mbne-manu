@@ -69,7 +69,7 @@
   --secondary-foreground: #FFFFFF;
 
   --muted: #0B2B4A;
-  --muted-foreground: #94A3B8;
+  --muted-foreground: #A8B8CC;
 
   --accent: #163A5E;
   --accent-foreground: #FFFFFF;
@@ -149,6 +149,12 @@
   ::-webkit-scrollbar-track { background: var(--background); }
   ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+  /* Global focus-visible ring for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
@@ -282,6 +288,15 @@
     touch-action: pan-x;
     cursor: grab;
   }
+
+  /* ── Hide scrollbar for carousel ── */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes pulse-critical {
@@ -306,6 +321,19 @@
 }
 .fade-up {
   animation: fade-up 0.4s ease-out both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 0.2s ease-out;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @media (max-width: 767px) {

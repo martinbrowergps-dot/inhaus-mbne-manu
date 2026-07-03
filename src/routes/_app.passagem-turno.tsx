@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { Badge } from "@/components/ui/badge";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { formatDateBR } from "@/lib/format";
 import { SectionHeader } from "@/components/section-header";
 
 export const Route = createFileRoute("/_app/passagem-turno")({
@@ -128,6 +129,11 @@ function PassagemPage() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Passagem de Turno · Centro de Controle"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+              : undefined
+          }
         />
       </div>
       <SectionHeader label="Registro" insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}>

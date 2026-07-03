@@ -84,8 +84,8 @@ export function DataTable<T>({
         />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm">
-        <Table>
+      <div className="overflow-x-auto rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm">
+        <Table className="min-w-[640px]">
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id} className="border-border/30 hover:bg-transparent">

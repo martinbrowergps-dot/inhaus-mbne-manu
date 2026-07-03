@@ -14,7 +14,7 @@ import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
-import { formatBRNumber, parseBRDate } from "@/lib/format";
+import { formatBRNumber, parseBRDate, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
@@ -204,6 +204,11 @@ function AlertasPage() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Central de Alertas · Centro de Controle"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+              : undefined
+          }
         />
       </div>
 

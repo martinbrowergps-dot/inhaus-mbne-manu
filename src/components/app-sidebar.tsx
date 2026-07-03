@@ -16,6 +16,9 @@ import {
   Calendar,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { formatDateBR } from "@/lib/format";
 import {
   Sidebar,
   SidebarContent,
@@ -48,7 +51,21 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
     useDateFilter();
-  const [openCalendar, setOpenCalendar] = useState(false);
+  const [openStartCalendar, setOpenStartCalendar] = useState(false);
+  const [openEndCalendar, setOpenEndCalendar] = useState(false);
+
+  const parseISO = (iso: string): Date | undefined => {
+    if (!iso) return undefined;
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  const toISO = (date: Date): string => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -86,7 +103,7 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-2 data-[active=true]:border-primary"
+                      className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
                     >
                       <Link to={item.url} className="flex items-center gap-3" aria-current={active ? "page" : undefined}>
                         <item.icon className="h-4 w-4" />
@@ -116,7 +133,7 @@ export function AppSidebar() {
             <div className="flex gap-1">
               <button
                 onClick={() => setPreset("week")}
-                className={`clay-sm flex-1 rounded text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded-lg text-[10px] py-1 font-semibold ${
                   isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
                 } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
               >
@@ -124,31 +141,59 @@ export function AppSidebar() {
               </button>
               <button
                 onClick={() => setPreset("month")}
-                className={`clay-sm flex-1 rounded text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded-lg text-[10px] py-1 font-semibold ${
                   isActive ? "bg-primary/15 text-primary" : "bg-sidebar-accent text-sidebar-accent-foreground"
                 } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
               >
                 Mês
               </button>
             </div>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              aria-label="Data inicial"
-              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-            />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              aria-label="Data final"
-              className="w-full rounded border border-sidebar-border bg-sidebar px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-            />
+            <Popover open={openStartCalendar} onOpenChange={setOpenStartCalendar}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full rounded-lg border border-sidebar-border bg-sidebar px-2 py-1.5 text-left text-[11px] text-sidebar-foreground hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="text-muted-foreground">Início:</span>{" "}
+                  {startDate ? formatDateBR(startDate) : "Selecionar"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0 border-sidebar-border bg-sidebar">
+                <CalendarPicker
+                  mode="single"
+                  selected={parseISO(startDate)}
+                  onSelect={(date) => {
+                    if (date) setStartDate(toISO(date));
+                    setOpenStartCalendar(false);
+                  }}
+                  className="scale-90 origin-top-left"
+                />
+              </PopoverContent>
+            </Popover>
+            <Popover open={openEndCalendar} onOpenChange={setOpenEndCalendar}>
+              <PopoverTrigger asChild>
+                <button
+                  className="w-full rounded-lg border border-sidebar-border bg-sidebar px-2 py-1.5 text-left text-[11px] text-sidebar-foreground hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="text-muted-foreground">Fim:</span>{" "}
+                  {endDate ? formatDateBR(endDate) : "Selecionar"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0 border-sidebar-border bg-sidebar">
+                <CalendarPicker
+                  mode="single"
+                  selected={parseISO(endDate)}
+                  onSelect={(date) => {
+                    if (date) setEndDate(toISO(date));
+                    setOpenEndCalendar(false);
+                  }}
+                  className="scale-90 origin-top-left"
+                />
+              </PopoverContent>
+            </Popover>
             {isActive && (
               <button
                 onClick={clearFilter}
-                className="clay-sm w-full rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
               >
                 Limpar
               </button>
@@ -157,55 +202,62 @@ export function AppSidebar() {
         </div>
         {/* Ícone do calendário quando sidebar está recolhida */}
         <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-2">
-          <button
-            onClick={() => setOpenCalendar(!openCalendar)}
-            className={`clay-sm flex h-8 w-8 items-center justify-center rounded-lg ${
-              isActive ? "bg-primary/20 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent"
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
-            title="Filtrar por data"
-          >
-            <Calendar className="h-4 w-4" />
-          </button>
-          {openCalendar && (
-            <div className="clay fixed bottom-16 left-4 z-50 flex w-64 flex-col gap-1.5 rounded-xl border border-sidebar-border bg-sidebar p-3">
-              <div className="flex gap-1">
-                <button
-                  onClick={() => { setPreset("week"); setOpenCalendar(false); }}
-                  className="clay-sm flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
-                >
-                  Semana
-                </button>
-                <button
-                  onClick={() => { setPreset("month"); setOpenCalendar(false); }}
-                  className="clay-sm flex-1 rounded bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
-                >
-                  Mês
-                </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={`clay-sm flex h-8 w-8 items-center justify-center rounded-lg ${
+                  isActive ? "bg-primary/20 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent"
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar`}
+                title="Filtrar por data"
+              >
+                <Calendar className="h-4 w-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" side="right" className="w-64 border-sidebar-border bg-sidebar p-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setPreset("week")}
+                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                  >
+                    Semana
+                  </button>
+                  <button
+                    onClick={() => setPreset("month")}
+                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                  >
+                    Mês
+                  </button>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground">Início</p>
+                  <CalendarPicker
+                    mode="single"
+                    selected={parseISO(startDate)}
+                    onSelect={(date) => { if (date) setStartDate(toISO(date)); }}
+                    className="scale-90 origin-top-left"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground">Fim</p>
+                  <CalendarPicker
+                    mode="single"
+                    selected={parseISO(endDate)}
+                    onSelect={(date) => { if (date) setEndDate(toISO(date)); }}
+                    className="scale-90 origin-top-left"
+                  />
+                </div>
+                {isActive && (
+                  <button
+                    onClick={clearFilter}
+                    className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                  >
+                    Limpar
+                  </button>
+                )}
               </div>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                aria-label="Data inicial"
-                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-              />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                aria-label="Data final"
-                className="w-full rounded border border-sidebar-border bg-sidebar-accent px-2 py-1 text-[11px] text-sidebar-foreground [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-              />
-              {isActive && (
-                <button
-                  onClick={() => { clearFilter(); setOpenCalendar(false); }}
-                  className="clay-sm rounded bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
-                >
-                  Limpar
-                </button>
-              )}
-            </div>
-          )}
+            </PopoverContent>
+          </Popover>
         </div>
       </SidebarFooter>
     </Sidebar>

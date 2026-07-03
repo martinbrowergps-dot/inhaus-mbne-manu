@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
 import { filterByRange, summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { formatDateBR } from "@/lib/format";
 import { SectionHeader } from "@/components/section-header";
 
 const searchSchema = z.object({
@@ -84,6 +85,11 @@ function TemperaturasPage() {
             ]}
             pdfTargetRef={pdfRef}
             pdfTitle="Temperaturas · Centro de Controle"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                : undefined
+            }
           />
         </div>
       </div>

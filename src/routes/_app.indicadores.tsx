@@ -19,7 +19,7 @@ import {
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { parseBRDate, formatBRNumber } from "@/lib/format";
+import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
@@ -218,6 +218,11 @@ function IndicadoresPage() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Indicadores Operacionais"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+              : undefined
+          }
         />
       </div>
 

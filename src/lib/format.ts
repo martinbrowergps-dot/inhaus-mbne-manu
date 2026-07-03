@@ -65,3 +65,9 @@ export function getWeekStart(date: Date): Date {
 export function isSameWeek(a: Date, b: Date): boolean {
   return getWeekStart(a).getTime() === getWeekStart(b).getTime();
 }
+
+export function formatDateBR(isoDate: string): string {
+  if (!isoDate) return "";
+  const [y, m, d] = isoDate.split("-");
+  return `${d}/${m}/${y}`;
+}

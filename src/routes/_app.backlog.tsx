@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
-import { parseBRDate, formatBRNumber } from "@/lib/format";
+import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
 
@@ -282,6 +282,11 @@ function BacklogPage() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Backlog · Centro de Controle"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} registros`
+              : `${filtered.length} registros`
+          }
         />
       </div>
 

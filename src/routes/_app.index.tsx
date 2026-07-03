@@ -26,17 +26,19 @@ import {
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE } from "@/lib/chart-utils";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
-import { formatBRNumber, formatInt, parseBRDate } from "@/lib/format";
+import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { deriveExecStatus, EXECUTADO_STATUSES } from "@/lib/status";
 import { exportExecutiveSummary } from "@/lib/export-pdf";
+import { EmptyState } from "@/components/empty-state";
+import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
@@ -172,6 +174,11 @@ function VisaoGeral() {
           ]}
           pdfTargetRef={pdfRef}
           pdfTitle="Visão Geral · Centro de Controle"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+              : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+          }
           onExecutiveSummary={handleExecutiveSummary}
         />
       </div>
@@ -180,12 +187,22 @@ function VisaoGeral() {
       <Section
         label="O Plano"
         insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
+        icon={ClipboardList}
+        colorIndex={0}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Total de OS" value={formatInt(total)} icon={ClipboardList} variant="primary" />
-          <KpiCard label="OS Programadas" value={formatInt(programadas)} icon={Calendar} variant="neutral" />
-          <KpiCard label="HH Programado" value={formatBRNumber(totalHH, 1)} hint="horas-homem" icon={Clock} variant="primary" />
-        </div>
+        {(() => {
+          const planoKpis: KpiItem[] = [
+            { label: "Total de OS", value: formatInt(total), icon: ClipboardList, variant: "primary" },
+            { label: "OS Programadas", value: formatInt(programadas), icon: Calendar, variant: "neutral" },
+            { label: "HH Programado", value: formatBRNumber(totalHH, 1), hint: "horas-homem", icon: Clock, variant: "primary" },
+          ];
+          return (
+            <>
+              <KpiCarousel items={planoKpis} />
+              <KpiGrid items={planoKpis} />
+            </>
+          );
+        })()}
 
         <div className="grid gap-4 lg:grid-cols-3">
           <Panel title="PLANEJADO vs NÃO PLANEJADO" glass>
@@ -204,8 +221,8 @@ function VisaoGeral() {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                     <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                    <Legend wrapperStyle={{ fontSize: 11 }}
+                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                    <Legend wrapperStyle={CHART_LEGEND_STYLE}
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                     />
                     <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
@@ -224,7 +241,7 @@ function VisaoGeral() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                 <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                 <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -236,6 +253,8 @@ function VisaoGeral() {
       <Section
         label="A Execução"
         insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
+        icon={CheckCircle2}
+        colorIndex={1}
       >
         <div className="grid gap-4 lg:grid-cols-3">
           <AderenciaCard
@@ -247,10 +266,18 @@ function VisaoGeral() {
             totalProgramadas={aderencia.totalProgramadas}
             className="lg:col-span-1"
           />
-          <div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
-            <KpiCard label="Em Andamento" value={formatInt(emAndamento)} icon={Play} variant="warning" />
-            <KpiCard label="Finalizadas" value={formatInt(finalizadas)} icon={CheckCircle2} variant="success" />
-          </div>
+          {(() => {
+            const execKpis: KpiItem[] = [
+              { label: "Em Andamento", value: formatInt(emAndamento), icon: Play, variant: "warning" },
+              { label: "Finalizadas", value: formatInt(finalizadas), icon: CheckCircle2, variant: "success" },
+            ];
+            return (
+              <>
+                <KpiCarousel items={execKpis} />
+                <KpiGrid items={execKpis} className="lg:col-span-2" />
+              </>
+            );
+          })()}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -267,12 +294,22 @@ function VisaoGeral() {
       <Section
         label="Os Problemas"
         insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
+        icon={AlertOctagon}
+        colorIndex={3}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Criticidade AA" value={formatInt(aa)} icon={AlertOctagon} variant="danger" />
-          <KpiCard label="Temperaturas em Alerta" value={formatInt(tempAlerta)} hint={`${locais.length} locais monitorados`} icon={Thermometer} variant={tempAlerta > 0 ? "danger" : "success"} />
-          <KpiCard label="Técnicos Ativos" value={formatInt(tecnicos.length)} icon={Users} variant="neutral" />
-        </div>
+        {(() => {
+          const probKpis: KpiItem[] = [
+            { label: "Criticidade AA", value: formatInt(aa), icon: AlertOctagon, variant: "danger" },
+            { label: "Temperaturas em Alerta", value: formatInt(tempAlerta), hint: `${locais.length} locais monitorados`, icon: Thermometer, variant: tempAlerta > 0 ? "danger" : "success" },
+            { label: "Técnicos Ativos", value: formatInt(tecnicos.length), icon: Users, variant: "neutral" },
+          ];
+          return (
+            <>
+              <KpiCarousel items={probKpis} />
+              <KpiGrid items={probKpis} />
+            </>
+          );
+        })()}
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="OS POR CRITICIDADE" glass>
@@ -293,7 +330,7 @@ function VisaoGeral() {
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
-                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -307,10 +344,12 @@ function VisaoGeral() {
       <Section
         label="Recursos"
         insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
+        icon={Users}
+        colorIndex={2}
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="HH POR CARGO">
-            <ChartBarHorizontal data={aggregateHH(programacao)} />
+            <ChartBarHorizontal data={aggregateHH(programacaoFiltrada)} />
           </Panel>
         </div>
       </Section>
@@ -348,16 +387,25 @@ function VisaoGeral() {
   );
 }
 
-function Section({ label, insight, children }: { label: string; insight: string; children: React.ReactNode }) {
+function Section({ label, insight, icon: Icon, colorIndex = 0, children }: { label: string; insight: string; icon?: React.ElementType; colorIndex?: number; children: React.ReactNode }) {
+  const SECTION_COLORS = ["text-primary", "text-success", "text-warning", "text-destructive"] as const;
+  const colorClass = SECTION_COLORS[colorIndex % SECTION_COLORS.length];
   return (
     <section className="space-y-4">
-      <div className="flex items-baseline gap-3 border-b border-border/30 pb-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
-          {label}
-        </span>
-        <p className="text-xs text-muted-foreground/70 leading-relaxed">
-          {insight}
-        </p>
+      <div className="flex items-center gap-3 border-b border-border/30 pb-2">
+        {Icon && (
+          <div className={`flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 ${colorClass}`}>
+            <Icon className="h-3.5 w-3.5" />
+          </div>
+        )}
+        <div className="flex min-w-0 flex-1 items-baseline gap-3">
+          <span className={`text-[10px] font-bold uppercase tracking-[0.15em] ${colorClass}`}>
+            {label}
+          </span>
+          <p className="truncate text-xs text-muted-foreground/70 leading-relaxed">
+            {insight}
+          </p>
+        </div>
       </div>
       {children}
     </section>
@@ -527,9 +575,5 @@ function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] 
 }
 
 function Empty() {
-  return (
-    <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-      Sem registros
-    </div>
-  );
+  return <EmptyState />;
 }

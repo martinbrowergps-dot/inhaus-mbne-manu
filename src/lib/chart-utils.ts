@@ -5,7 +5,15 @@ export const CHART_TOOLTIP_STYLE: CSSProperties = {
   border: "1px solid #0EA5FF55",
   borderRadius: 8,
   fontSize: 12,
+  color: "#FFFFFF",
 };
+
+export const CHART_LEGEND_STYLE: CSSProperties = {
+  fontSize: 11,
+  color: "#A8B8CC",
+};
+
+export const CHART_CURSOR_STYLE = { stroke: "rgba(14,165,255,0.2)" };
 
 export function priorityColor(priority: string): string {
   const p = (priority || "").toLowerCase();

@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopHeader } from "@/components/top-header";
@@ -7,13 +8,39 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 
 export const Route = createFileRoute("/_app")({
   loader: ({ context }) => {
-    // Prime the cache; do not block on errors so empty/error UI still renders
     context.queryClient.prefetchQuery(sheetsQueryOptions);
   },
   component: AppLayout,
 });
 
+const NAV_SHORTCUTS: Record<string, string> = {
+  "1": "/",
+  "2": "/programacao",
+  "3": "/backlog",
+  "4": "/equipe",
+  "5": "/hh-semanal",
+  "6": "/temperaturas",
+  "7": "/checklists",
+  "8": "/passagem-turno",
+  "9": "/alertas",
+};
+
 function AppLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.altKey && NAV_SHORTCUTS[e.key]) {
+        e.preventDefault();
+        navigate({ to: NAV_SHORTCUTS[e.key] });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [navigate]);
+
   return (
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full">
@@ -21,7 +48,9 @@ function AppLayout() {
         <SidebarInset className="flex min-w-0 flex-1 flex-col">
           <TopHeader />
           <main className="flex-1 p-4 md:p-6">
-            <Outlet />
+            <div key={pathname} className="page-enter">
+              <Outlet />
+            </div>
           </main>
         </SidebarInset>
       </div>
