@@ -170,9 +170,11 @@ function RelatoriosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
         <KpiCard label="Total de OS" value={formatInt(totalOS)} icon={ClipboardList} variant="primary" />
         <KpiCard label="HH Total" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="primary" />
+        <KpiCard label="Planejadas" value={formatInt(periods.reduce((s, p) => s + p.planejadas, 0))} icon={CheckCircle2} variant="success" />
+        <KpiCard label="Não Planejadas" value={formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0))} icon={AlertOctagon} variant="danger" />
         <KpiCard label="Finalizadas" value={formatInt(totalFinalizadas)} icon={CheckCircle2} variant="success" />
         <KpiCard label="Canceladas" value={formatInt(totalCanceladas)} icon={AlertOctagon} variant="neutral" />
         <KpiCard label="Períodos" value={formatInt(periods.length)} icon={Calendar} variant="neutral" />
@@ -218,21 +220,22 @@ function RelatoriosPage() {
       </SectionHeader>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={`OS POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
+        <Panel title={`PLANEJADO vs NÃO PLANEJADO POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={periods}>
+                <BarChart data={periods} barCategoryGap="20%">
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                  <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                  <Bar dataKey="totalOS" name="Total OS" fill="#0EA5FF" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="finalizadas" name="Finalizadas" fill="#22C55E" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="canceladas" name="Canceladas" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                  <Legend wrapperStyle={CHART_LEGEND_STYLE}
+                    formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
+                  />
+                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
