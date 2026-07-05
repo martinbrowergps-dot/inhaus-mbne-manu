@@ -56,7 +56,7 @@ function RelatoriosPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
-  const [visao, setVisao] = useState<"semanal" | "mensal">("semanal");
+  const [visao, setVisao] = useState<"semanal" | "mensal" | "dia">("dia");
 
   if (isLoading) {
     return (
@@ -77,7 +77,9 @@ function RelatoriosPage() {
 
   const periods = visao === "semanal"
     ? aggregateByWeek(filtered)
-    : aggregateByMonth(filtered);
+    : visao === "mensal"
+      ? aggregateByMonth(filtered)
+      : aggregateByDay(filtered);
 
   const totalOS = periods.reduce((s, p) => s + p.totalOS, 0);
   const totalHH = periods.reduce((s, p) => s + p.totalHH, 0);
@@ -103,7 +105,7 @@ function RelatoriosPage() {
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Relatório de Programação</h1>
           <p className="text-xs text-muted-foreground">
-            {visao === "semanal" ? "Agrupado por semana" : "Agrupado por mês"}
+            {visao === "semanal" ? "Agrupado por semana" : visao === "mensal" ? "Agrupado por mês" : "Agrupado por dia"}
             {dateFilter.isActive && (
               <> · {formatDateBR(dateFilter.startDate)} a {formatDateBR(dateFilter.endDate)}</>
             )}
@@ -112,6 +114,16 @@ function RelatoriosPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-lg border border-border overflow-hidden">
             <button
+              onClick={() => setVisao("dia")}
+              className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                visao === "dia"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              Dia
+            </button>
+            <button
               onClick={() => setVisao("semanal")}
               className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                 visao === "semanal"
@@ -119,7 +131,7 @@ function RelatoriosPage() {
                   : "bg-card text-muted-foreground hover:bg-accent"
               }`}
             >
-              Semanal
+              Semana
             </button>
             <button
               onClick={() => setVisao("mensal")}
@@ -129,7 +141,7 @@ function RelatoriosPage() {
                   : "bg-card text-muted-foreground hover:bg-accent"
               }`}
             >
-              Mensal
+              Mês
             </button>
           </div>
           <ExportButton
@@ -148,7 +160,7 @@ function RelatoriosPage() {
               { header: "Quebras", value: (r) => r.quebras },
             ]}
             pdfTargetRef={pdfRef}
-            pdfTitle={`Relatório de Programação · ${visao === "semanal" ? "Semanal" : "Mensal"}`}
+            pdfTitle={`Relatório de Programação · ${visao === "semanal" ? "Semanal" : visao === "mensal" ? "Mensal" : "Diário"}`}
             pdfSubtitle={
               dateFilter.isActive
                 ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(totalOS)} OS`
@@ -167,7 +179,7 @@ function RelatoriosPage() {
       </div>
 
       <SectionHeader label="Dados Agregados" insight={`${formatInt(periods.length)} períodos`}>
-        <Panel title={`${visao === "semanal" ? "SEMANAS" : "MESES"}`}>
+        <Panel title={`${visao === "semanal" ? "SEMANAS" : visao === "mensal" ? "MESES" : "DIAS"}`}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -206,7 +218,7 @@ function RelatoriosPage() {
       </SectionHeader>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={`OS POR ${visao === "semanal" ? "SEMANA" : "MÊS"}`}>
+        <Panel title={`OS POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
@@ -227,7 +239,7 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel title={`HH POR ${visao === "semanal" ? "SEMANA" : "MÊS"}`}>
+        <Panel title={`HH POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
@@ -326,6 +338,25 @@ function aggregateByMonth(rows: import("@/lib/sheets-types").ProgramacaoRow[]): 
   }
   return Array.from(map.entries())
     .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, entry]) => summarize(entry.label, entry.rows));
+}
+
+function aggregateByDay(rows: import("@/lib/sheets-types").ProgramacaoRow[]): PeriodRow[] {
+  const map = new Map<string, { label: string; rows: typeof rows }>();
+  for (const r of rows) {
+    const d = parseDate(r.DataReprogramada || r.DataProgramada);
+    if (!d) continue;
+    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const entry = map.get(key) ?? { label: key, rows: [] };
+    entry.rows.push(r);
+    map.set(key, entry);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => {
+      const [da, ma] = a.split("/").map(Number);
+      const [db, mb] = b.split("/").map(Number);
+      return ma - mb || da - db;
+    })
     .map(([, entry]) => summarize(entry.label, entry.rows));
 }
 
