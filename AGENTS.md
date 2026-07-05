@@ -58,6 +58,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 
 ## Critical Context
 - Build and TypeScript compile cleanly (`npx tsc --noEmit`, `npm run build` both pass)
+- **installLiveOverride fix**: CSS variables are now set as inline styles on `document.documentElement` (not via a `<style>` element with `:root`). Reason: `html-to-image` clones the element into an SVG foreignObject for `toPng`. In that context, `:root` selectors do NOT match the clone's root, causing CSS variable overrides to be ignored. By setting variables as inline styles on `<html>` in the live DOM, `getComputedStyle` resolves them to hex, and `html-to-image` inlines those hex values on the clone. This fixes both "black text on dark cards" (CSS variables not overridden) and "charts cut off" (Recharts oklch fill not parsed by html2canvas).
 - Backlog: 48 valid rows after PapaParse filtering (estados: "Em Espera" e "Aberto") — page shows data correctly
 - NC sheet headers: Código, Tipo, Categoria, Prioridade, Título, Objetivo, Descrição da Atividade, Procedimento, Critério de Aceitação, Evidências, HH Estimado, Responsável, Status
 - PREDITIVA sheet headers: Código Referência, Tipo, Categoria, Prioridade, Título, Objetivo, Descrição da Atividade, HH
