@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
 import type { CsvColumn } from "./export-csv";
 
 const COLOR_OVERRIDES: Record<string, string> = {
@@ -225,8 +225,8 @@ function drawImagePageHeader(pdf: jsPDF, title: string, subtitle: string | undef
 }
 
 /**
- * Capture the full element as a single PNG image (no DOM manipulation),
- * then slice the image into page-sized chunks using canvas.
+ * Capture the full element as a single canvas using html2canvas,
+ * then slice the image into page-sized chunks.
  * Header is drawn in reserved top area, image starts below it.
  */
 export async function exportVisualPdf(
@@ -241,37 +241,35 @@ export async function exportVisualPdf(
   const pageH = pdf.internal.pageSize.getHeight();
   const contentW = pageW - margin * 2;
   const contentH = pageH - margin - HEADER_HEIGHT - margin - 4;
-  const pixelRatio = 2;
+  const scale = 2;
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
 
-  const dataUrl = await toPng(element, {
-    pixelRatio,
+  const fullCanvas = await html2canvas(element, {
+    scale,
     backgroundColor: "#ffffff",
-    cacheBust: true,
-    style: { color: "#0f172a" },
+    useCORS: true,
+    logging: false,
   });
 
   cleanLiveOverride();
   cleanLiveInline();
 
-  const img = new Image();
-  img.src = dataUrl;
-  await img.decode();
+  const imgW = fullCanvas.width;
+  const imgH = fullCanvas.height;
 
-  const imgW = img.naturalWidth;
-  const imgH = img.naturalHeight;
-
-  const cssW = imgW / pixelRatio;
-  const cssH = imgH / pixelRatio;
+  const cssW = imgW / scale;
+  const cssH = imgH / scale;
   const pxPerMm = cssW / contentW;
   const pageCssH = Math.floor(contentH * pxPerMm);
-  const pageImgH = pageCssH * pixelRatio;
+  if (pageCssH < 1) throw new Error("Page content height too small");
+  const pageImgH = pageCssH * scale;
   const totalPages = Math.ceil(cssH / pageCssH);
+  if (!isFinite(totalPages) || totalPages < 1) throw new Error("Invalid page count");
 
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d")!;
+  const sliceCanvas = document.createElement("canvas");
+  const ctx = sliceCanvas.getContext("2d")!;
   const imgStartY = margin + HEADER_HEIGHT;
 
   for (let i = 0; i < totalPages; i++) {
@@ -281,18 +279,19 @@ export async function exportVisualPdf(
 
     const sy = Math.round(i * pageImgH);
     const sh = Math.round(Math.min(pageImgH, imgH - sy));
+    if (sh <= 0) continue;
 
-    canvas.width = imgW;
-    canvas.height = sh;
-    ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
+    sliceCanvas.width = imgW;
+    sliceCanvas.height = sh;
+    ctx.drawImage(fullCanvas, 0, sy, imgW, sh, 0, 0, imgW, sh);
 
-    const pageDataUrl = canvas.toDataURL("image/png");
-    const imgMmH = sh / (pxPerMm * pixelRatio);
+    const pageDataUrl = sliceCanvas.toDataURL("image/png");
+    const imgMmH = sh / (pxPerMm * scale);
     pdf.addImage(pageDataUrl, "PNG", margin, imgStartY, contentW, imgMmH);
   }
 
-  canvas.width = 0;
-  canvas.height = 0;
+  sliceCanvas.width = 0;
+  sliceCanvas.height = 0;
 
   // Footer on all pages
   const pageCount = pdf.getNumberOfPages();
@@ -402,36 +401,31 @@ export async function exportExecutiveSummary(
   y += barH + 6;
 
   // Charts — capture dedicated chartElement (if provided) and render on separate pages
-  const textPageCount = pdf.getNumberOfPages();
   if (chartElement) {
     try {
       const cleanLiveOverride2 = installLiveOverride();
       const cleanLiveInline2 = sanitizeLiveInlineColors(chartElement);
 
-      const dataUrl = await toPng(chartElement, {
-        pixelRatio: 2,
+      const fullCanvas = await html2canvas(chartElement, {
+        scale: 2,
         backgroundColor: "#ffffff",
-        cacheBust: true,
-        style: { color: "#0f172a" },
+        useCORS: true,
+        logging: false,
       });
 
       cleanLiveOverride2();
       cleanLiveInline2();
 
-      const img = new Image();
-      img.src = dataUrl;
-      await img.decode();
-
-      const imgW = img.naturalWidth;
-      const imgH = img.naturalHeight;
+      const imgW = fullCanvas.width;
+      const imgH = fullCanvas.height;
       const pr = imgW / chartElement.offsetWidth;
 
       const contentW = pageW - margin * 2;
       const pxPerMm = (imgW / pr) / contentW;
       const pagePxH = Math.floor(availH * pxPerMm * pr);
       const totalPages = Math.ceil(imgH / pagePxH);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d")!;
+      const sliceCanvas = document.createElement("canvas");
+      const ctx = sliceCanvas.getContext("2d")!;
       const imgStartY = margin + HEADER_HEIGHT;
 
       for (let i = 0; i < totalPages; i++) {
@@ -439,16 +433,17 @@ export async function exportExecutiveSummary(
         drawImagePageHeader(pdf, data.title, "Gráficos", margin, pageW);
         const sy = Math.round(i * pagePxH);
         const sh = Math.round(Math.min(pagePxH, imgH - sy));
-        canvas.width = imgW;
-        canvas.height = sh;
-        ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
-        const pageDataUrl = canvas.toDataURL("image/png");
+        if (sh <= 0) continue;
+        sliceCanvas.width = imgW;
+        sliceCanvas.height = sh;
+        ctx.drawImage(fullCanvas, 0, sy, imgW, sh, 0, 0, imgW, sh);
+        const pageDataUrl = sliceCanvas.toDataURL("image/png");
         const imgMmH = sh / (pxPerMm * pr);
         pdf.addImage(pageDataUrl, "PNG", margin, imgStartY, contentW, imgMmH);
       }
 
-      canvas.width = 0;
-      canvas.height = 0;
+      sliceCanvas.width = 0;
+      sliceCanvas.height = 0;
     } catch {
       // Chart capture failed — text-only export is still valid
     }
