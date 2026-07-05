@@ -66,7 +66,7 @@ export function ExportButton<T>({
       console.error("Erro ao exportar PDF visual:", err);
       // Fallback para PDF tabular se possível
       if (rows.length > 0) {
-        toast.warning("PDF visual falhou. Gerando PDF tabular…");
+        toast.warning(`PDF visual falhou: ${msg}. Gerando PDF tabular…`);
         try {
           exportTableToPdf({
             filename,
