@@ -3,8 +3,6 @@ import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
 import type { CsvColumn } from "./export-csv";
 
-
-// Fallback palette used to replace oklch/oklab colors that html2canvas cannot parse.
 const COLOR_OVERRIDES: Record<string, string> = {
   "--background": "#ffffff",
   "--foreground": "#0f172a",
@@ -52,124 +50,9 @@ function stripModern(str: string): string {
   return str.replace(OKLCH_RE, OKLCH_FALLBACK).replace(OKLAB_RE, OKLCH_FALLBACK);
 }
 
-function buildOverrideCss(): string {
-  const lines = Object.entries(COLOR_OVERRIDES).map(([k, v]) => `${k}: ${v} !important;`);
-  const block = lines.join("\n  ");
-  return `:root, .dark, [data-theme] {\n  ${block}\n}\n`;
-}
-
-
-
-interface ExportTableOpts<T> {
-  filename: string;
-  title: string;
-  subtitle?: string;
-  rows: T[];
-  columns: CsvColumn<T>[];
-  orientation?: "landscape" | "portrait";
-}
-
-function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margin: number) {
-  pdf.setFontSize(9);
-  pdf.setTextColor(14, 78, 138);
-  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, margin);
-  const stamp = new Date().toLocaleString("pt-BR");
-  pdf.setFontSize(7);
-  pdf.setTextColor(100, 116, 139);
-  pdf.text(stamp, pdf.internal.pageSize.getWidth() - margin, margin, { align: "right" });
-
-  // Separator line
-  pdf.setDrawColor(14, 78, 138);
-  pdf.setLineWidth(0.3);
-  pdf.line(margin, margin + 2, pdf.internal.pageSize.getWidth() - margin, margin + 2);
-
-  pdf.setFontSize(13);
-  pdf.setTextColor(2, 21, 45);
-  pdf.text(title, margin, margin + 7);
-
-  if (subtitle) {
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 116, 139);
-    pdf.text(subtitle, margin, margin + 12);
-  }
-}
-
-function drawFooter(pdf: jsPDF, rowsCount: number, margin: number) {
-  const pageH = pdf.internal.pageSize.getHeight();
-  const pageCount = pdf.getNumberOfPages();
-  const pageNum = pdf.getCurrentPageInfo().pageNumber;
-  pdf.setFontSize(7);
-  pdf.setTextColor(148, 163, 184);
-  pdf.text(`Martin Brower CDNE · ${rowsCount} registros`, margin, pageH - 4);
-  pdf.text(`Página ${pageNum} de ${pageCount}`, pdf.internal.pageSize.getWidth() - margin, pageH - 4, { align: "right" });
-}
-
-export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
-  const { filename, title, subtitle, rows, columns, orientation = "landscape" } = opts;
-  const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 10;
-
-  const head = [columns.map((c) => c.header)];
-  const body = rows.map((r) =>
-    columns.map((c) => {
-      const v = c.value(r);
-      return v === null || v === undefined ? "" : String(v);
-    }),
-  );
-
-  const rowsCount = rows.length;
-
-  autoTable(pdf, {
-    head,
-    body,
-    startY: margin + 16,
-    margin: { left: margin, right: margin, bottom: margin + 8 },
-    tableLineColor: [203, 213, 225],
-    tableLineWidth: 0.1,
-    styles: {
-      font: "helvetica",
-      fontSize: rowsCount > 100 ? 6.5 : 7.5,
-      cellPadding: 1.5,
-      overflow: "linebreak",
-      textColor: [30, 41, 59],
-      lineColor: [203, 213, 225],
-      lineWidth: 0.1,
-    },
-    headStyles: {
-      fillColor: [14, 78, 138],
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-      fontSize: rowsCount > 100 ? 6.5 : 7.5,
-      halign: "left",
-    },
-    alternateRowStyles: { fillColor: [241, 245, 249] },
-    didDrawPage: (data) => {
-      drawHeader(pdf, title, subtitle, margin);
-      drawFooter(pdf, rowsCount, margin);
-    },
-  });
-
-  const stampFile = new Date().toISOString().slice(0, 10);
-  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
-}
-
-/**
- * Injects a <style> element into the LIVE document that overrides CSS custom
- * properties and forces any `oklch(...)` / `oklab(...)` inline colors to
- * fallback hex. This is required because html2canvas reads computed styles
- * from the live document (via getComputedStyle) — modifying only the cloned
- * document is not enough.
- *
- * Returns a cleanup function that removes the override.
- */
 function installLiveOverride(): () => void {
   const styleEl = document.createElement("style");
   styleEl.setAttribute("data-pdf-live-override", "true");
-  // Force custom properties and, as a safety net, override any element that
-  // currently has an oklch/oklab color via attribute selectors is impossible,
-  // so we rely on the token override to cascade through var(--x) references.
   const overrides = Object.entries(COLOR_OVERRIDES)
     .map(([k, v]) => `${k}: ${v} !important;`)
     .join("\n  ");
@@ -180,11 +63,6 @@ function installLiveOverride(): () => void {
   };
 }
 
-/**
- * Walk the element subtree and replace any inline style / SVG attribute
- * containing oklch/oklab with a hex fallback. Returns a cleanup fn that
- * restores original values.
- */
 function sanitizeLiveInlineColors(root: HTMLElement): () => void {
   const restores: Array<() => void> = [];
   const all = root.querySelectorAll<HTMLElement>("*");
@@ -212,6 +90,191 @@ function sanitizeLiveInlineColors(root: HTMLElement): () => void {
   return () => restores.forEach((fn) => fn());
 }
 
+interface ExportTableOpts<T> {
+  filename: string;
+  title: string;
+  subtitle?: string;
+  rows: T[];
+  columns: CsvColumn<T>[];
+  orientation?: "landscape" | "portrait";
+}
+
+const MARGIN = 10;
+
+function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margin: number): number {
+  let y = margin;
+  pdf.setFontSize(9);
+  pdf.setTextColor(14, 78, 138);
+  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, y);
+  const stamp = new Date().toLocaleString("pt-BR");
+  pdf.setFontSize(7);
+  pdf.setTextColor(100, 116, 139);
+  pdf.text(stamp, pdf.internal.pageSize.getWidth() - margin, y, { align: "right" });
+  y += 2.5;
+  pdf.setDrawColor(14, 78, 138);
+  pdf.setLineWidth(0.3);
+  pdf.line(margin, y, pdf.internal.pageSize.getWidth() - margin, y);
+  y += 2;
+  pdf.setFontSize(13);
+  pdf.setTextColor(2, 21, 45);
+  pdf.text(title, margin, y + 3);
+  y += 7;
+  if (subtitle) {
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text(subtitle, margin, y);
+    y += 4;
+  }
+  return y;
+}
+
+function drawFooter(pdf: jsPDF, rowsCount: number, margin: number) {
+  const pageH = pdf.internal.pageSize.getHeight();
+  const pageCount = pdf.getNumberOfPages();
+  pdf.setFontSize(7);
+  pdf.setTextColor(148, 163, 184);
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.text("Martin Brower CDNE · " + rowsCount + " registros", margin, pageH - 4);
+    pdf.text("Página " + i + " de " + pageCount, pdf.internal.pageSize.getWidth() - margin, pageH - 4, { align: "right" });
+  }
+}
+
+export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
+  const { filename, title, subtitle, rows, columns, orientation = "landscape" } = opts;
+  const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+  const margin = MARGIN;
+  const rowsCount = rows.length;
+
+  const head = [columns.map((c) => c.header)];
+  const body = rows.map((r) =>
+    columns.map((c) => {
+      const v = c.value(r);
+      return v === null || v === undefined ? "" : String(v);
+    }),
+  );
+
+  autoTable(pdf, {
+    head,
+    body,
+    startY: margin + 16,
+    margin: { left: margin, right: margin, bottom: margin + 8 },
+    tableLineColor: [203, 213, 225],
+    tableLineWidth: 0.1,
+    styles: {
+      font: "helvetica",
+      fontSize: rowsCount > 100 ? 6.5 : 7.5,
+      cellPadding: 1.5,
+      overflow: "linebreak",
+      textColor: [30, 41, 59],
+      lineColor: [203, 213, 225],
+      lineWidth: 0.1,
+    },
+    headStyles: {
+      fillColor: [14, 78, 138],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: rowsCount > 100 ? 6.5 : 7.5,
+      halign: "left",
+    },
+    alternateRowStyles: { fillColor: [241, 245, 249] },
+    didDrawPage: () => {
+      drawHeader(pdf, title, subtitle, margin);
+    },
+  });
+
+  // Fix page numbers after all pages are rendered
+  const finalPageCount = pdf.getNumberOfPages();
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  pdf.setFontSize(7);
+  pdf.setTextColor(148, 163, 184);
+  for (let i = 1; i <= finalPageCount; i++) {
+    pdf.setPage(i);
+    pdf.text("Martin Brower CDNE · " + rowsCount + " registros", margin, pageH - 4);
+    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pageH - 4, { align: "right" });
+  }
+
+  const stampFile = new Date().toISOString().slice(0, 10);
+  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
+}
+
+/**
+ * Capture the full element as one PNG, then tile the image across PDF pages.
+ * No DOM slicing — ensures no element is ever cut between pages.
+ * @param cssSkip CSS pixels to skip from the top of the element (to avoid duplicating the DOM header)
+ */
+async function captureFullAndTile(
+  pdf: jsPDF,
+  element: HTMLElement,
+  margin: number,
+  contentStartY: number,
+  cssSkip = 0,
+) {
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const contentW = pageW - margin * 2;
+  const availH = pageH - contentStartY - margin - 2;
+  const pixelRatio = 2;
+
+  const elW = element.offsetWidth;
+  const naturalH = element.scrollHeight;
+  const captureH = Math.max(naturalH - cssSkip, 1);
+
+  const dataUrl = await toPng(element, {
+    pixelRatio,
+    backgroundColor: "#ffffff",
+    cacheBust: true,
+    width: elW,
+    height: naturalH,
+    style: {
+      color: "#0f172a",
+      marginTop: `-${cssSkip}px`,
+      marginBottom: "0px",
+      paddingTop: "0px",
+      overflow: "visible",
+    },
+  });
+
+  const img = new Image();
+  img.src = dataUrl;
+  await img.decode();
+
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
+
+  const skipPx = Math.round(cssSkip * pixelRatio);
+  const remImgH = imgH - skipPx;
+  if (remImgH <= 0) return;
+
+  const pxPerMm = elW / contentW;
+  const pageCssH = Math.floor(availH * pxPerMm);
+  const pagePxH = pageCssH * pixelRatio;
+  const totalPages = Math.ceil(captureH / pageCssH);
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+
+  for (let i = 0; i < totalPages; i++) {
+    if (i > 0) pdf.addPage();
+
+    const sy = Math.round(skipPx + i * pagePxH);
+    const sh = Math.round(Math.min(pagePxH, imgH - sy));
+
+    canvas.width = imgW;
+    canvas.height = sh;
+    ctx.clearRect(0, 0, imgW, sh);
+    ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
+
+    const pageDataUrl = canvas.toDataURL("image/png");
+    const imgMmH = sh / (pxPerMm * pixelRatio);
+    pdf.addImage(pageDataUrl, "PNG", margin, contentStartY, contentW, imgMmH);
+  }
+
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
 export async function exportVisualPdf(
   element: HTMLElement,
   filename: string,
@@ -219,68 +282,40 @@ export async function exportVisualPdf(
   subtitle?: string,
 ) {
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 10;
-  const contentW = pageW - margin * 2;
-  const contentY = margin + 16;
-  const availH = pageH - contentY - margin - 4;
+  const margin = MARGIN;
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
 
-  // Capture each page as a separate DOM render with overflow hidden
-  // so charts/panels are never sliced mid-element.
-  const elW = element.offsetWidth;
-  const naturalH = element.scrollHeight;
-  const pxPerMm = elW / contentW;
-  const pageCssH = Math.floor(availH * pxPerMm);
-  const totalPages = Math.ceil(naturalH / pageCssH);
+  // Estimate DOM header height: first child (h1 + subtitle + buttons)
+  const firstChild = element.firstElementChild as HTMLElement | null;
+  const cssSkip = firstChild
+    ? firstChild.offsetTop + firstChild.offsetHeight + 16
+    : 80;
 
-  for (let i = 0; i < totalPages; i++) {
-    if (i > 0) {
-      pdf.addPage();
-    }
+  const headerEndY = drawHeader(pdf, title, subtitle, margin);
+  const contentStartY = headerEndY + 1;
 
-    drawHeader(pdf, title, subtitle, margin);
-
-    const offsetY = i * pageCssH;
-    const dataUrl = await toPng(element, {
-      pixelRatio: 2,
-      backgroundColor: "#ffffff",
-      cacheBust: true,
-      width: elW,
-      height: pageCssH,
-      style: {
-        maxHeight: `${pageCssH}px`,
-        overflow: "hidden",
-        transform: `translateY(-${offsetY}px)`,
-        color: "#0f172a",
-      },
-    });
-
-    pdf.addImage(dataUrl, "PNG", margin, contentY, contentW, availH);
-  }
+  await captureFullAndTile(pdf, element, margin, contentStartY, cssSkip);
 
   cleanLiveOverride();
   cleanLiveInline();
 
-  // Footer overlay on all pages with final page count
+  // Footer overlay on all pages
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
   const pageCount = pdf.getNumberOfPages();
   pdf.setFontSize(7);
   pdf.setTextColor(148, 163, 184);
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
-    const curH = pdf.internal.pageSize.getHeight();
-    pdf.text("Martin Brower CDNE", margin, curH - 4);
-    pdf.text(`Página ${i} de ${pageCount}`, pageW - margin, curH - 4, { align: "right" });
+    pdf.text("Martin Brower CDNE", margin, pageH - 4);
+    pdf.text("Página " + i + " de " + pageCount, pageW - margin, pageH - 4, { align: "right" });
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
-
-
 
 export async function exportExecutiveSummary(
   element: HTMLElement,
@@ -298,8 +333,8 @@ export async function exportExecutiveSummary(
   let y = margin;
 
   // Header
-  drawHeader(pdf, data.title, undefined, margin);
-  y = margin + 16;
+  y = drawHeader(pdf, data.title, undefined, margin);
+  y += 2;
 
   // Section: KPIs
   pdf.setFontSize(10);
@@ -311,10 +346,18 @@ export async function exportExecutiveSummary(
   pdf.line(margin, y, pageW - margin, y);
   y += 4;
 
-  // KPI boxes
   const cols = 3;
   const boxW = (pageW - margin * 2 - 8 * (cols - 1)) / cols;
   const boxH = 18;
+
+  // Check if KPIs need a new page
+  const kpiRows = Math.ceil(data.kpis.length / cols);
+  const kpiTotalH = kpiRows * (boxH + 4);
+  if (y + kpiTotalH > pageH - margin - 4) {
+    pdf.addPage();
+    y = margin + 4;
+  }
+
   data.kpis.forEach((kpi, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
@@ -332,10 +375,15 @@ export async function exportExecutiveSummary(
     pdf.text(kpi.value, x + 3, by + boxH - 4);
   });
 
-  y += Math.ceil(data.kpis.length / cols) * (boxH + 4);
+  y += kpiTotalH;
 
   // Section: Aderência
   y += 4;
+  if (y + 30 > pageH - margin - 4) {
+    pdf.addPage();
+    y = margin + 4;
+  }
+
   pdf.setFontSize(10);
   pdf.setTextColor(14, 78, 138);
   pdf.text("ADERÊNCIA À PROGRAMAÇÃO", margin, y);
@@ -346,14 +394,15 @@ export async function exportExecutiveSummary(
   const ap = data.aderencia;
   pdf.setFontSize(9);
   pdf.setTextColor(30, 41, 59);
-  pdf.text(`Percentual: ${ap.pct.toFixed(1)}%`, margin + 2, y);
+  pdf.text("Percentual: " + ap.pct.toFixed(1) + "%", margin + 2, y);
   y += 4;
-  pdf.text(`Finalizadas no prazo: ${ap.finalizadasNoPrazo} de ${ap.totalProgramadas} programadas`, margin + 2, y);
+  pdf.text("Finalizadas no prazo: " + ap.finalizadasNoPrazo + " de " + ap.totalProgramadas + " programadas", margin + 2, y);
   y += 3;
-  pdf.text(`Meta: ≥ 95%`, margin + 2, y);
-  y += 4;
+  pdf.setTextColor(100, 116, 139);
+  pdf.text("Meta: ≥ 95%", margin + 2, y);
+  y += 5;
 
-  // Aderência bar
+  // Aderência progress bar
   const barW = pageW - margin * 2 - 4;
   const barH = 10;
   const fillW = Math.min(ap.pct, 100) / 100 * barW;
@@ -364,69 +413,80 @@ export async function exportExecutiveSummary(
   pdf.roundedRect(margin + 2, y, fillW, barH, 3, 3, "F");
   y += barH + 6;
 
-  // Try to capture a screenshot of charts if available
+  // Charts section — capture remaining DOM content on fresh pages
   try {
     const cleanLiveOverride2 = installLiveOverride();
     const cleanLiveInline2 = sanitizeLiveInlineColors(element);
+
     const elW = element.offsetWidth;
     const naturalH = element.scrollHeight;
-    const contentW = pageW - margin * 2;
-    const freshY = margin + 16;
-    const freshH = pageH - freshY - margin - 4;
-    const pxPerMm = elW / contentW;
-    const pageCssH = Math.floor(freshH * pxPerMm);
-    const totalPages = Math.ceil(naturalH / pageCssH);
+    // Estimate header portion already drawn: skip top 40% of the element
+    const skipCssPx = Math.floor(naturalH * 0.35);
 
-    if (y + (naturalH / pxPerMm) + 10 < pageH) {
-      // Capture fits on remaining space of current page
-      const dataUrl = await toPng(element, {
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-        cacheBust: true,
-        width: elW,
-        height: naturalH,
-        style: { color: "#0f172a" },
-      });
-      pdf.addImage(dataUrl, "PNG", margin, y, contentW, naturalH / pxPerMm);
-    } else {
-      // Per-page DOM capture on fresh pages
-      for (let i = 0; i < totalPages; i++) {
-        pdf.addPage();
-        drawHeader(pdf, data.title, undefined, margin);
-        const offsetY = i * pageCssH;
-        const dataUrl = await toPng(element, {
-          pixelRatio: 2,
-          backgroundColor: "#ffffff",
-          cacheBust: true,
-          width: elW,
-          height: pageCssH,
-          style: {
-            maxHeight: `${pageCssH}px`,
-            overflow: "hidden",
-            transform: `translateY(-${offsetY}px)`,
-            color: "#0f172a",
-          },
-        });
-        pdf.addImage(dataUrl, "PNG", margin, freshY, contentW, freshH);
-      }
-    }
+    const dataUrl = await toPng(element, {
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+      width: elW,
+      height: naturalH,
+      style: { color: "#0f172a" },
+    });
 
     cleanLiveOverride2();
     cleanLiveInline2();
+
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+
+    const imgW = img.naturalWidth;
+    const imgH = img.naturalHeight;
+    const contentW = pageW - margin * 2;
+    const availH = pageH - margin * 2 - 4;
+    const pxPerMm = elW / contentW;
+    const pixelRatio = imgW / elW;
+
+    const skipPx = Math.round(skipCssPx * pixelRatio);
+    const remainingImgH = imgH - skipPx;
+    if (remainingImgH <= 0) return;
+
+    const pageCssH = Math.floor(availH * pxPerMm);
+    const pagePxH = pageCssH * pixelRatio;
+    const totalPages = Math.ceil((naturalH - skipCssPx) / pageCssH);
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
+
+    for (let i = 0; i < totalPages; i++) {
+      pdf.addPage();
+
+      const sy = Math.round(skipPx + i * pagePxH);
+      const sh = Math.round(Math.min(pagePxH, imgH - sy));
+
+      canvas.width = imgW;
+      canvas.height = sh;
+      ctx.clearRect(0, 0, imgW, sh);
+      ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
+
+      const pageDataUrl = canvas.toDataURL("image/png");
+      const imgMmH = sh / (pxPerMm * pixelRatio);
+      pdf.addImage(pageDataUrl, "PNG", margin, margin, contentW, imgMmH);
+    }
+
+    canvas.width = 0;
+    canvas.height = 0;
   } catch {
-    // Chart capture failed — just export text
+    // Chart capture failed — text-only export is still valid
   }
 
-
   // Footer
-  const pageCount = pdf.getNumberOfPages();
+  const finalPageCount = pdf.getNumberOfPages();
   pdf.setFontSize(7);
   pdf.setTextColor(148, 163, 184);
-  for (let i = 1; i <= pageCount; i++) {
+  for (let i = 1; i <= finalPageCount; i++) {
     pdf.setPage(i);
-    const curPageH = pdf.internal.pageSize.getHeight();
-    pdf.text(`Martin Brower CDNE · ${data.kpis.length} indicadores`, margin, curPageH - 4);
-    pdf.text(`Página ${i} de ${pageCount}`, pageW - margin, curPageH - 4, { align: "right" });
+    pdf.text("Martin Brower CDNE · " + data.kpis.length + " indicadores", margin, pdf.internal.pageSize.getHeight() - 4);
+    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pdf.internal.pageSize.getHeight() - 4, { align: "right" });
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
