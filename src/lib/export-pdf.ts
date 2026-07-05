@@ -51,18 +51,26 @@ function stripModern(str: string): string {
 }
 
 function installLiveOverride(): () => void {
+  const root = document.documentElement;
+  const restored: Array<() => void> = [];
+  for (const [key, value] of Object.entries(COLOR_OVERRIDES)) {
+    const prev = root.style.getPropertyValue(key);
+    const priority = root.style.getPropertyPriority(key);
+    root.style.setProperty(key, value, "important");
+    restored.push(() => {
+      if (prev) root.style.setProperty(key, prev, priority);
+      else root.style.removeProperty(key);
+    });
+  }
   const styleEl = document.createElement("style");
   styleEl.setAttribute("data-pdf-live-override", "true");
-  const overrides = Object.entries(COLOR_OVERRIDES)
-    .map(([k, v]) => `${k}: ${v} !important;`)
-    .join("\n  ");
   styleEl.textContent = [
-    `:root, .dark, [data-theme], html, body { ${overrides} }`,
     `.glass, .panel-glass { backdrop-filter: none !important; background: #ffffff !important; }`,
     `.panel { isolation: auto !important; }`,
   ].join("\n");
   document.head.appendChild(styleEl);
-  return () => { styleEl.remove(); };
+  restored.push(() => { styleEl.remove(); });
+  return () => { restored.forEach((fn) => fn()); };
 }
 
 function sanitizeLiveInlineColors(root: HTMLElement): () => void {
