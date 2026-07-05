@@ -49,6 +49,7 @@ const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa"
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
 
   if (isLoading) {
@@ -124,9 +125,8 @@ function VisaoGeral() {
     .sort((a, b) => b.value - a.value);
 
   const handleExecutiveSummary = async () => {
-    if (!pdfRef.current) return;
     try {
-      await exportExecutiveSummary(pdfRef.current, {
+      await exportExecutiveSummary(chartRef.current, {
         title: "Visão Geral · Centro de Controle",
         aderencia: {
           pct: aderencia.pct,
@@ -183,6 +183,7 @@ function VisaoGeral() {
         />
       </div>
 
+      <div ref={chartRef} className="space-y-8">
       {/* ═══════════ ① O PLANO ═══════════ */}
       <Section
         label="O Plano"
@@ -353,6 +354,7 @@ function VisaoGeral() {
           </Panel>
         </div>
       </Section>
+      </div>
 
       {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}
       <Panel
