@@ -58,9 +58,7 @@ function installLiveOverride(): () => void {
     .join("\n  ");
   styleEl.textContent = `:root, .dark, [data-theme], html, body {\n  ${overrides}\n}\n`;
   document.head.appendChild(styleEl);
-  return () => {
-    styleEl.remove();
-  };
+  return () => { styleEl.remove(); };
 }
 
 function sanitizeLiveInlineColors(root: HTMLElement): () => void {
@@ -128,18 +126,6 @@ function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, mar
   return y;
 }
 
-function drawFooter(pdf: jsPDF, rowsCount: number, margin: number) {
-  const pageH = pdf.internal.pageSize.getHeight();
-  const pageCount = pdf.getNumberOfPages();
-  pdf.setFontSize(7);
-  pdf.setTextColor(148, 163, 184);
-  for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i);
-    pdf.text("Martin Brower CDNE · " + rowsCount + " registros", margin, pageH - 4);
-    pdf.text("Página " + i + " de " + pageCount, pdf.internal.pageSize.getWidth() - margin, pageH - 4, { align: "right" });
-  }
-}
-
 export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
   const { filename, title, subtitle, rows, columns, orientation = "landscape" } = opts;
   const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
@@ -183,7 +169,7 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
     },
   });
 
-  // Fix page numbers after all pages are rendered
+  // Post-process: fix page numbers on all pages
   const finalPageCount = pdf.getNumberOfPages();
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -200,41 +186,37 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
 }
 
 /**
- * Capture the full element as one PNG, then tile the image across PDF pages.
- * No DOM slicing — ensures no element is ever cut between pages.
- * @param cssSkip CSS pixels to skip from the top of the element (to avoid duplicating the DOM header)
+ * Capture the full element as a single PNG image (no DOM manipulation),
+ * then slice the image into page-sized chunks using canvas.
+ * No margin/transform/overflow CSS is applied — the element is captured as-is.
  */
-async function captureFullAndTile(
-  pdf: jsPDF,
+export async function exportVisualPdf(
   element: HTMLElement,
-  margin: number,
-  contentStartY: number,
-  cssSkip = 0,
+  filename: string,
+  _title: string,
+  _subtitle?: string,
 ) {
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const margin = MARGIN;
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const contentW = pageW - margin * 2;
-  const availH = pageH - contentStartY - margin - 2;
+  const contentH = pageH - margin * 2 - 4;
   const pixelRatio = 2;
 
-  const elW = element.offsetWidth;
-  const naturalH = element.scrollHeight;
-  const captureH = Math.max(naturalH - cssSkip, 1);
+  const cleanLiveOverride = installLiveOverride();
+  const cleanLiveInline = sanitizeLiveInlineColors(element);
 
+  // Capture the element as-is, at its natural rendered size
   const dataUrl = await toPng(element, {
     pixelRatio,
     backgroundColor: "#ffffff",
     cacheBust: true,
-    width: elW,
-    height: naturalH,
-    style: {
-      color: "#0f172a",
-      marginTop: `-${cssSkip}px`,
-      marginBottom: "0px",
-      paddingTop: "0px",
-      overflow: "visible",
-    },
+    style: { color: "#0f172a" },
   });
+
+  cleanLiveOverride();
+  cleanLiveInline();
 
   const img = new Image();
   img.src = dataUrl;
@@ -243,74 +225,56 @@ async function captureFullAndTile(
   const imgW = img.naturalWidth;
   const imgH = img.naturalHeight;
 
-  const skipPx = Math.round(cssSkip * pixelRatio);
-  const remImgH = imgH - skipPx;
-  if (remImgH <= 0) return;
-
-  const pxPerMm = elW / contentW;
-  const pageCssH = Math.floor(availH * pxPerMm);
-  const pagePxH = pageCssH * pixelRatio;
-  const totalPages = Math.ceil(captureH / pageCssH);
+  const cssW = imgW / pixelRatio;
+  const cssH = imgH / pixelRatio;
+  const pxPerMm = cssW / contentW;
+  const pageCssH = Math.floor(contentH * pxPerMm);
+  const pageImgH = pageCssH * pixelRatio;
+  const totalPages = Math.ceil(cssH / pageCssH);
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
+  // Header overlay values
+  const brandY = margin + 3;
+
   for (let i = 0; i < totalPages; i++) {
     if (i > 0) pdf.addPage();
 
-    const sy = Math.round(skipPx + i * pagePxH);
-    const sh = Math.round(Math.min(pagePxH, imgH - sy));
+    const sy = Math.round(i * pageImgH);
+    const sh = Math.round(Math.min(pageImgH, imgH - sy));
 
     canvas.width = imgW;
     canvas.height = sh;
-    ctx.clearRect(0, 0, imgW, sh);
     ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
 
     const pageDataUrl = canvas.toDataURL("image/png");
     const imgMmH = sh / (pxPerMm * pixelRatio);
-    pdf.addImage(pageDataUrl, "PNG", margin, contentStartY, contentW, imgMmH);
+    pdf.addImage(pageDataUrl, "PNG", margin, margin, contentW, imgMmH);
   }
 
   canvas.width = 0;
   canvas.height = 0;
-}
 
-export async function exportVisualPdf(
-  element: HTMLElement,
-  filename: string,
-  title: string,
-  subtitle?: string,
-) {
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const margin = MARGIN;
-
-  const cleanLiveOverride = installLiveOverride();
-  const cleanLiveInline = sanitizeLiveInlineColors(element);
-
-  // Estimate DOM header height: first child (h1 + subtitle + buttons)
-  const firstChild = element.firstElementChild as HTMLElement | null;
-  const cssSkip = firstChild
-    ? firstChild.offsetTop + firstChild.offsetHeight + 16
-    : 80;
-
-  const headerEndY = drawHeader(pdf, title, subtitle, margin);
-  const contentStartY = headerEndY + 1;
-
-  await captureFullAndTile(pdf, element, margin, contentStartY, cssSkip);
-
-  cleanLiveOverride();
-  cleanLiveInline();
-
-  // Footer overlay on all pages
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
+  // Branding header + footer overlay on all pages
   const pageCount = pdf.getNumberOfPages();
+  const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(7);
   pdf.setTextColor(148, 163, 184);
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
-    pdf.text("Martin Brower CDNE", margin, pageH - 4);
-    pdf.text("Página " + i + " de " + pageCount, pageW - margin, pageH - 4, { align: "right" });
+    // Branding header (tiny overlay at the very top)
+    pdf.setFontSize(7);
+    pdf.setTextColor(14, 78, 138);
+    pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, brandY);
+    pdf.setFontSize(6);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text(stamp, pageW - margin, brandY, { align: "right" });
+    // Footer
+    pdf.setFontSize(6);
+    pdf.setTextColor(148, 163, 184);
+    pdf.text("Martin Brower CDNE", margin, pageH - 3);
+    pdf.text("Página " + i + " de " + pageCount, pageW - margin, pageH - 3, { align: "right" });
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
@@ -332,9 +296,7 @@ export async function exportExecutiveSummary(
   const margin = 12;
   let y = margin;
 
-  // Header
-  y = drawHeader(pdf, data.title, undefined, margin);
-  y += 2;
+  y = drawHeader(pdf, data.title, undefined, margin) + 2;
 
   // Section: KPIs
   pdf.setFontSize(10);
@@ -349,10 +311,9 @@ export async function exportExecutiveSummary(
   const cols = 3;
   const boxW = (pageW - margin * 2 - 8 * (cols - 1)) / cols;
   const boxH = 18;
-
-  // Check if KPIs need a new page
   const kpiRows = Math.ceil(data.kpis.length / cols);
   const kpiTotalH = kpiRows * (boxH + 4);
+
   if (y + kpiTotalH > pageH - margin - 4) {
     pdf.addPage();
     y = margin + 4;
@@ -363,7 +324,6 @@ export async function exportExecutiveSummary(
     const row = Math.floor(i / cols);
     const x = margin + col * (boxW + 8);
     const by = y + row * (boxH + 4);
-
     pdf.setFillColor(241, 245, 249);
     pdf.setDrawColor(203, 213, 225);
     pdf.roundedRect(x, by, boxW, boxH, 2, 2, "FD");
@@ -413,22 +373,16 @@ export async function exportExecutiveSummary(
   pdf.roundedRect(margin + 2, y, fillW, barH, 3, 3, "F");
   y += barH + 6;
 
-  // Charts section — capture remaining DOM content on fresh pages
+  // Charts — capture FULL element and render remaining portion on new pages
+  const chartStartPage = pdf.getNumberOfPages();
   try {
     const cleanLiveOverride2 = installLiveOverride();
     const cleanLiveInline2 = sanitizeLiveInlineColors(element);
-
-    const elW = element.offsetWidth;
-    const naturalH = element.scrollHeight;
-    // Estimate header portion already drawn: skip top 40% of the element
-    const skipCssPx = Math.floor(naturalH * 0.35);
 
     const dataUrl = await toPng(element, {
       pixelRatio: 2,
       backgroundColor: "#ffffff",
       cacheBust: true,
-      width: elW,
-      height: naturalH,
       style: { color: "#0f172a" },
     });
 
@@ -441,33 +395,29 @@ export async function exportExecutiveSummary(
 
     const imgW = img.naturalWidth;
     const imgH = img.naturalHeight;
+    const pixelRatio = imgW / element.offsetWidth;
+
     const contentW = pageW - margin * 2;
     const availH = pageH - margin * 2 - 4;
-    const pxPerMm = elW / contentW;
-    const pixelRatio = imgW / elW;
+    const pxPerMm = (imgW / pixelRatio) / contentW;
+    const pagePxH = Math.floor(availH * pxPerMm * pixelRatio);
 
-    const skipPx = Math.round(skipCssPx * pixelRatio);
-    const remainingImgH = imgH - skipPx;
-    if (remainingImgH <= 0) return;
+    // Skip the portion already rendered as text (top ~40% of the image)
+    const skipPx = Math.round(imgH * 0.35);
+    const remPx = imgH - skipPx;
+    if (remPx <= 0) throw new Error("Nothing left after skip");
 
-    const pageCssH = Math.floor(availH * pxPerMm);
-    const pagePxH = pageCssH * pixelRatio;
-    const totalPages = Math.ceil((naturalH - skipCssPx) / pageCssH);
-
+    const totalPages = Math.ceil(remPx / pagePxH);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
 
     for (let i = 0; i < totalPages; i++) {
       pdf.addPage();
-
       const sy = Math.round(skipPx + i * pagePxH);
       const sh = Math.round(Math.min(pagePxH, imgH - sy));
-
       canvas.width = imgW;
       canvas.height = sh;
-      ctx.clearRect(0, 0, imgW, sh);
       ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
-
       const pageDataUrl = canvas.toDataURL("image/png");
       const imgMmH = sh / (pxPerMm * pixelRatio);
       pdf.addImage(pageDataUrl, "PNG", margin, margin, contentW, imgMmH);
@@ -479,14 +429,28 @@ export async function exportExecutiveSummary(
     // Chart capture failed — text-only export is still valid
   }
 
-  // Footer
+  // Footer overlay on all pages
   const finalPageCount = pdf.getNumberOfPages();
-  pdf.setFontSize(7);
+  pdf.setFontSize(6);
   pdf.setTextColor(148, 163, 184);
+  const stamp = new Date().toLocaleString("pt-BR");
   for (let i = 1; i <= finalPageCount; i++) {
     pdf.setPage(i);
-    pdf.text("Martin Brower CDNE · " + data.kpis.length + " indicadores", margin, pdf.internal.pageSize.getHeight() - 4);
-    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pdf.internal.pageSize.getHeight() - 4, { align: "right" });
+    // Branding header
+    if (i <= chartStartPage) {
+      // Text pages already have drawHeader
+    } else {
+      pdf.setFontSize(7);
+      pdf.setTextColor(14, 78, 138);
+      pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, margin + 3);
+      pdf.setFontSize(6);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(stamp, pageW - margin, margin + 3, { align: "right" });
+    }
+    pdf.setFontSize(6);
+    pdf.setTextColor(148, 163, 184);
+    pdf.text("Martin Brower CDNE · " + data.kpis.length + " indicadores", margin, pdf.internal.pageSize.getHeight() - 3);
+    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pdf.internal.pageSize.getHeight() - 3, { align: "right" });
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
