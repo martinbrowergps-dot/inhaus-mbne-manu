@@ -14,6 +14,7 @@ import {
   FileWarning,
   TrendingUp,
   Calendar,
+  FileText,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,6 +39,7 @@ const items = [
   { title: "Backlog", url: "/backlog", icon: Inbox },
   { title: "Equipe", url: "/equipe", icon: Users },
   { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
+  { title: "Relatórios", url: "/relatorios", icon: FileText },
   { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
   { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
   { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },

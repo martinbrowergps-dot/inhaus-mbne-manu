@@ -41,6 +41,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - Enhanced PDF export: exportVisualPdf (html2canvas DOM capture), exportExecutiveSummary (KPI dashboard PDF), ExportButton now offers CSV / PDF Tabela / PDF Visual + Resumo Executivo on Visão Geral
 - PDF branding: header "MARTIN BROWER · IN HAUS INDUSTRIAL" + timestamp + footer with page numbers
 - Fixed oklch/oklab color parsing in html2canvas by using `onclone` callback: reads all CSS rules, patches oklch/oklab to hex, injects into cloned document, removes external stylesheets — applied to both exportVisualPdf and exportExecutiveSummary
+- Created RELATÓRIOS page (`/relatorios`) with visão semanal/mensal: KPIs, tabela agregada (OS, HH, planejadas, finalizadas, etc.), gráficos de OS/HH por período, status pie chart, quebras por solicitante; respeita filtro de data global; export CSV + PDF Visual + PDF Tabela
 
 ### In Progress
 - (none)
@@ -76,4 +77,5 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - `src/components/export-button.tsx`: CSV / PDF Tabela / PDF Visual + optional Resumo Executivo
 - `src/lib/export-pdf.ts`: exportTableToPdf, exportVisualPdf (html2canvas), exportExecutiveSummary — both html2canvas calls use `onclone` for oklch/oklab patching
 - `src/lib/export-csv.ts`: CSV builder with BOM for Excel BR
-- `src/components/app-sidebar.tsx`: navigation links (Planos de Manutenção, NC, Preditivas)
+- `src/components/app-sidebar.tsx`: navigation links (Planos de Manutenção, NC, Preditivas, Relatórios)
+- `src/routes/_app.relatorios.tsx`: Relatórios page with weekly/monthly aggregation, KPIs, charts, and export

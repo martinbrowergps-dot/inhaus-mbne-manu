@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppTemperaturasRouteImport } from './routes/_app.temperaturas'
+import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
 import { Route as AppPreditivasRouteImport } from './routes/_app.preditivas'
 import { Route as AppPassagemTurnoRouteImport } from './routes/_app.passagem-turno'
@@ -35,6 +36,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppTemperaturasRoute = AppTemperaturasRouteImport.update({
   id: '/temperaturas',
   path: '/temperaturas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProgramacaoRoute = AppProgramacaoRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/passagem-turno': typeof AppPassagemTurnoRoute
   '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
+  '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
 }
 export interface FileRoutesByTo {
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/passagem-turno': typeof AppPassagemTurnoRoute
   '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
+  '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
   '/': typeof AppIndexRoute
 }
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_app/passagem-turno': typeof AppPassagemTurnoRoute
   '/_app/preditivas': typeof AppPreditivasRoute
   '/_app/programacao': typeof AppProgramacaoRoute
+  '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/temperaturas': typeof AppTemperaturasRoute
   '/_app/': typeof AppIndexRoute
 }
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/passagem-turno'
     | '/preditivas'
     | '/programacao'
+    | '/relatorios'
     | '/temperaturas'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/passagem-turno'
     | '/preditivas'
     | '/programacao'
+    | '/relatorios'
     | '/temperaturas'
     | '/'
   id:
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_app/passagem-turno'
     | '/_app/preditivas'
     | '/_app/programacao'
+    | '/_app/relatorios'
     | '/_app/temperaturas'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -203,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/temperaturas'
       fullPath: '/temperaturas'
       preLoaderRoute: typeof AppTemperaturasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/relatorios': {
+      id: '/_app/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AppRelatoriosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/programacao': {
@@ -289,6 +308,7 @@ interface AppRouteChildren {
   AppPassagemTurnoRoute: typeof AppPassagemTurnoRoute
   AppPreditivasRoute: typeof AppPreditivasRoute
   AppProgramacaoRoute: typeof AppProgramacaoRoute
+  AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppTemperaturasRoute: typeof AppTemperaturasRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -304,6 +324,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPassagemTurnoRoute: AppPassagemTurnoRoute,
   AppPreditivasRoute: AppPreditivasRoute,
   AppProgramacaoRoute: AppProgramacaoRoute,
+  AppRelatoriosRoute: AppRelatoriosRoute,
   AppTemperaturasRoute: AppTemperaturasRoute,
   AppIndexRoute: AppIndexRoute,
 }
