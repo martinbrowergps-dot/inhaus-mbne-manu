@@ -193,20 +193,20 @@ function drawPageHeader(pdf: jsPDF, title: string, subtitle: string | undefined)
   pdf.setFontSize(7);
   pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
   pdf.text(stamp, pageW - MARGIN, y, { align: "right" });
-  y += 4;
+  y += 5;
   pdf.setDrawColor(C.primary[0], C.primary[1], C.primary[2]);
   pdf.setLineWidth(0.3);
   pdf.line(MARGIN, y, pageW - MARGIN, y);
-  y += 3;
+  y += 4;
   pdf.setFontSize(13);
   pdf.setTextColor(C.text[0], C.text[1], C.text[2]);
   pdf.text(title, MARGIN, y + 4);
-  y += 8;
+  y += 9;
   if (subtitle) {
     pdf.setFontSize(8);
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
     pdf.text(subtitle, MARGIN, y);
-    y += 4;
+    y += 5;
   }
   return y;
 }
@@ -411,9 +411,9 @@ export async function renderReportPdf(
 
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
-    // drawPageHeader with subtitle "Gráficos" consumes:
-    // brand(10) + gap(2.5) + line(2) + title(7) + subtitle(4) = 25.5mm total from MARGIN
-    const chartHeaderEndY = MARGIN + 4 + 3 + 8 + 4;
+    // drawPageHeader with subtitle "Gráficos" now consumes:
+    // brand(10) + gap(5) + line(4) + title(9) + subtitle(5) = 33mm from MARGIN
+    const chartHeaderEndY = MARGIN + 5 + 4 + 9 + 5;
     const imgStartY = chartHeaderEndY + 2;
     const imgAvailH = pageH - imgStartY - MARGIN - 4;
 

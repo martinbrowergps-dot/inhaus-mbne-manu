@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, LabelList,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
@@ -224,6 +224,7 @@ function ChecklistsPage() {
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]} />
                   <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
                     {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
+                    <LabelList position="top" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

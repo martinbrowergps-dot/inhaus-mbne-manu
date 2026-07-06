@@ -12,6 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
@@ -492,6 +493,7 @@ function ChartBars({
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
+          <LabelList position={horizontal ? "right" : "top"} fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>
