@@ -109,10 +109,21 @@ export function ExportButton<T>({
           Exportar PDF (Tabela)
         </DropdownMenuItem>
         {pdfTargetRef && (
-          <DropdownMenuItem onClick={handlePdfVisual} className="gap-2 text-xs">
-            <Image className="h-3.5 w-3.5 text-primary" />
-            Exportar PDF (Visual)
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handlePdfVisual("high")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Alta qualidade
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePdfVisual("medium")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Média (recomendado)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePdfVisual("low")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Baixa (arquivo menor)
+            </DropdownMenuItem>
+          </>
         )}
         {onExecutiveSummary && (
           <>
