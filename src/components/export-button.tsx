@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
-import { exportTableToPdf, exportVisualPdf } from "@/lib/export-pdf";
+import { exportTableToPdf, exportVisualPdf, type VisualPdfQuality } from "@/lib/export-pdf";
 
 interface Props<T> {
   filename: string;
@@ -52,19 +52,18 @@ export function ExportButton<T>({
     });
   };
 
-  const handlePdfVisual = async () => {
+  const handlePdfVisual = async (quality: VisualPdfQuality = "medium") => {
     const el = pdfTargetRef?.current;
     if (!el) {
       toast.error("Nada para exportar");
       return;
     }
     try {
-      await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle);
-      toast.success("PDF visual exportado com sucesso");
+      await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle, { quality });
+      toast.success(`PDF visual (${quality}) exportado com sucesso`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Erro ao exportar PDF visual:", err);
-      // Fallback para PDF tabular se possível
       if (rows.length > 0) {
         toast.warning(`PDF visual falhou: ${msg}. Gerando PDF tabular…`);
         try {
@@ -110,10 +109,21 @@ export function ExportButton<T>({
           Exportar PDF (Tabela)
         </DropdownMenuItem>
         {pdfTargetRef && (
-          <DropdownMenuItem onClick={handlePdfVisual} className="gap-2 text-xs">
-            <Image className="h-3.5 w-3.5 text-primary" />
-            Exportar PDF (Visual)
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handlePdfVisual("high")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Alta qualidade
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePdfVisual("medium")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Média (recomendado)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePdfVisual("low")} className="gap-2 text-xs">
+              <Image className="h-3.5 w-3.5 text-primary" />
+              PDF Visual · Baixa (arquivo menor)
+            </DropdownMenuItem>
+          </>
         )}
         {onExecutiveSummary && (
           <>
