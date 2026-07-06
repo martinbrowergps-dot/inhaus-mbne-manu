@@ -156,7 +156,7 @@ function VisaoGeral() {
     try {
       await renderReportPdf(reportData, charts, {
         filename: "resumo-executivo",
-        orientation: "portrait",
+        orientation: "landscape",
         layout,
       });
     } catch (err) {
