@@ -126,7 +126,7 @@ function VisaoGeral() {
     }, [])
     .sort((a, b) => b.value - a.value);
 
-  const handleExecutiveSummary = async () => {
+  const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
 
@@ -157,6 +157,7 @@ function VisaoGeral() {
       await renderReportPdf(reportData, charts, {
         filename: "resumo-executivo",
         orientation: "portrait",
+        layout,
       });
     } catch (err) {
       console.error("Erro ao exportar resumo executivo:", err);

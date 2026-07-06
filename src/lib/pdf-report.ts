@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
 import type { CsvColumn } from "./export-csv";
+import type { PdfMargins, PdfLayoutOptions } from "./export-pdf";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ export interface ReportData {
 export interface ReportOpts {
   filename: string;
   orientation?: "portrait" | "landscape";
+  layout?: PdfLayoutOptions;
 }
 
 type Rgb = readonly [number, number, number];
@@ -42,7 +44,6 @@ type Rgb = readonly [number, number, number];
 // ─── Branding constants ────────────────────────────────────────────
 
 const BRAND = "MARTIN BROWER · IN HAUS INDUSTRIAL";
-const MARGIN = 10;
 
 const C: Record<string, Rgb> = {
   primary: [14, 78, 138],
@@ -66,6 +67,19 @@ const VARIANT_MAP: Record<string, Rgb> = {
   danger: C.danger,
   neutral: C.neutral,
 };
+
+// ─── Default margins (mm) ──────────────────────────────────────────
+
+const DEFAULT_MARGINS: PdfMargins = { top: 10, bottom: 12, left: 10, right: 10 };
+
+function resolveMargins(m?: Partial<PdfMargins>): PdfMargins {
+  return {
+    top: Math.max(5, Math.min(40, m?.top ?? DEFAULT_MARGINS.top)),
+    bottom: Math.max(5, Math.min(40, m?.bottom ?? DEFAULT_MARGINS.bottom)),
+    left: Math.max(5, Math.min(40, m?.left ?? DEFAULT_MARGINS.left)),
+    right: Math.max(5, Math.min(40, m?.right ?? DEFAULT_MARGINS.right)),
+  };
+}
 
 // ─── CSS patching (oklch/oklab → hex) ────────────────────────────
 
@@ -183,130 +197,144 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
 
 // ─── PDF building ──────────────────────────────────────────────────
 
-function drawPageHeader(pdf: jsPDF, title: string, subtitle: string | undefined) {
-  let y = MARGIN;
+function drawPageHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margins: PdfMargins): number {
   const pageW = pdf.internal.pageSize.getWidth();
+  const m = margins;
+  let y = m.top;
   pdf.setFontSize(9);
   pdf.setTextColor(C.primary[0], C.primary[1], C.primary[2]);
-  pdf.text(BRAND, MARGIN, y);
+  pdf.text(BRAND, m.left, y);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(7);
   pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-  pdf.text(stamp, pageW - MARGIN, y, { align: "right" });
+  pdf.text(stamp, pageW - m.right, y, { align: "right" });
   y += 5;
   pdf.setDrawColor(C.primary[0], C.primary[1], C.primary[2]);
   pdf.setLineWidth(0.3);
-  pdf.line(MARGIN, y, pageW - MARGIN, y);
+  pdf.line(m.left, y, pageW - m.right, y);
   y += 4;
   pdf.setFontSize(13);
   pdf.setTextColor(C.text[0], C.text[1], C.text[2]);
-  pdf.text(title, MARGIN, y + 4);
+  pdf.text(title, m.left, y + 4);
   y += 9;
   if (subtitle) {
     pdf.setFontSize(8);
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    pdf.text(subtitle, MARGIN, y);
+    pdf.text(subtitle, m.left, y);
     y += 5;
   }
   return y;
 }
 
-function drawFooter(pdf: jsPDF, pageNum: number, totalPages: number, extraText?: string) {
+function drawFooter(
+  pdf: jsPDF,
+  pageNum: number,
+  totalPages: number,
+  margins: PdfMargins,
+  opts: { showPageNumbers: boolean; extraText?: string },
+) {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const m = margins;
+  const y = pageH - Math.max(4, m.bottom / 2);
   pdf.setFontSize(6);
   pdf.setTextColor(C.footer[0], C.footer[1], C.footer[2]);
-  const left = BRAND + (extraText ? ` · ${extraText}` : "");
-  pdf.text(left, MARGIN, pageH - 3);
-  pdf.text(`Página ${pageNum} de ${totalPages}`, pageW - MARGIN, pageH - 3, { align: "right" });
+  const left = BRAND + (opts.extraText ? ` · ${opts.extraText}` : "");
+  pdf.text(left, m.left, y);
+  if (opts.showPageNumbers) {
+    pdf.text(`Página ${pageNum} de ${totalPages}`, pageW - m.right, y, { align: "right" });
+  }
 }
 
-function drawMetrics(pdf: jsPDF, y: number, metrics: ReportMetric[]): number {
+function drawMetrics(pdf: jsPDF, y: number, metrics: ReportMetric[], margins: PdfMargins): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const m = margins;
   const cols = 4;
   const gap = 3;
-  const boxW = (pageW - MARGIN * 2 - gap * (cols - 1)) / cols;
+  const boxW = (pageW - m.left - m.right - gap * (cols - 1)) / cols;
   const boxH = 16;
   const rows = Math.ceil(metrics.length / cols);
   const totalH = rows * (boxH + gap);
 
-  if (y + totalH > pageH - MARGIN - 4) {
+  if (y + totalH > pageH - m.bottom - 4) {
     pdf.addPage();
-    y = MARGIN + 4;
+    y = m.top + 4;
   }
 
-  metrics.forEach((m, i) => {
+  metrics.forEach((metric, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const x = MARGIN + col * (boxW + gap);
+    const x = m.left + col * (boxW + gap);
     const by = y + row * (boxH + gap);
     pdf.setFillColor(C.light[0], C.light[1], C.light[2]);
     pdf.setDrawColor(C.border[0], C.border[1], C.border[2]);
     pdf.roundedRect(x, by, boxW, boxH, 2, 2, "FD");
     pdf.setFontSize(6.5);
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    pdf.text(m.label, x + 2.5, by + 4.5);
+    pdf.text(metric.label, x + 2.5, by + 4.5);
     pdf.setFontSize(13);
-    const vc = m.variant ? VARIANT_MAP[m.variant] ?? C.text : C.text;
+    const vc = metric.variant ? VARIANT_MAP[metric.variant] ?? C.text : C.text;
     pdf.setTextColor(vc[0], vc[1], vc[2]);
-    pdf.text(m.value, x + 2.5, by + boxH - 3);
+    pdf.text(metric.value, x + 2.5, by + boxH - 3);
   });
 
   return y + totalH + 2;
 }
 
-function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia): number {
+function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia, margins: PdfMargins): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const m = margins;
 
-  if (y + 30 > pageH - MARGIN - 4) {
+  if (y + 30 > pageH - m.bottom - 4) {
     pdf.addPage();
-    y = MARGIN + 4;
+    y = m.top + 4;
   }
 
   pdf.setFontSize(9);
   pdf.setTextColor(C.primary[0], C.primary[1], C.primary[2]);
-  pdf.text("ADERÊNCIA À PROGRAMAÇÃO", MARGIN, y);
+  pdf.text("ADERÊNCIA À PROGRAMAÇÃO", m.left, y);
   y += 3.5;
   pdf.setDrawColor(C.primary[0], C.primary[1], C.primary[2]);
   pdf.setLineWidth(0.15);
-  pdf.line(MARGIN, y, pageW - MARGIN, y);
+  pdf.line(m.left, y, pageW - m.right, y);
   y += 3.5;
 
   pdf.setFontSize(8);
   pdf.setTextColor(C.text[0], C.text[1], C.text[2]);
-  pdf.text(`Percentual: ${ad.pct.toFixed(1)}%`, MARGIN + 2, y);
+  pdf.text(`Percentual: ${ad.pct.toFixed(1)}%`, m.left + 2, y);
   y += 3.5;
   pdf.text(
     `Finalizadas no prazo: ${ad.finalizadasNoPrazo} de ${ad.totalProgramadas} programadas`,
-    MARGIN + 2,
+    m.left + 2,
     y,
   );
   y += 3;
   pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-  pdf.text("Meta: ≥ 95%", MARGIN + 2, y);
+  pdf.text("Meta: ≥ 95%", m.left + 2, y);
   y += 4;
 
-  const barW = pageW - MARGIN * 2 - 4;
+  const barW = pageW - m.left - m.right - 4;
   const barH = 8;
   const fillW = (Math.min(ad.pct, 100) / 100) * barW;
   pdf.setFillColor(C.light[0], C.light[1], C.light[2]);
-  pdf.roundedRect(MARGIN + 2, y, barW, barH, 2, 2, "F");
+  pdf.roundedRect(m.left + 2, y, barW, barH, 2, 2, "F");
   const barColor = ad.pct >= 95 ? C.success : ad.pct >= 85 ? C.warning : C.danger;
   pdf.setFillColor(barColor[0], barColor[1], barColor[2]);
-  pdf.roundedRect(MARGIN + 2, y, fillW, barH, 2, 2, "F");
+  pdf.roundedRect(m.left + 2, y, fillW, barH, 2, 2, "F");
   return y + barH + 5;
 }
 
-function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
+function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMargins): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const m = margins;
 
   for (const table of tables) {
     if (table.rows.length === 0) continue;
 
-    const availH = pageH - y - MARGIN - 4;
+    const availH = pageH - y - m.bottom - 4;
     const head = [table.columns.map((c) => c.header)];
     const body = table.rows.map((r) =>
       table.columns.map((c) => {
@@ -317,18 +345,18 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
 
     if (availH < 20) {
       pdf.addPage();
-      y = MARGIN + 4;
+      y = m.top + 4;
     }
 
     // Section title
     pdf.setFontSize(9);
     pdf.setTextColor(C.primary[0], C.primary[1], C.primary[2]);
-    pdf.text(table.title, MARGIN, y);
+    pdf.text(table.title, m.left, y);
     y += 2.5;
     if (table.subtitle) {
       pdf.setFontSize(7);
       pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-      pdf.text(table.subtitle, MARGIN, y);
+      pdf.text(table.subtitle, m.left, y);
       y += 2;
     }
 
@@ -336,7 +364,7 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
       head,
       body,
       startY: y + 2,
-      margin: { top: MARGIN + 19, left: MARGIN, right: MARGIN, bottom: MARGIN + 6 },
+      margin: { top: m.top + 19, left: m.left, right: m.right, bottom: m.bottom + 6 },
       tableLineColor: [C.border[0], C.border[1], C.border[2]],
       tableLineWidth: 0.1,
       styles: {
@@ -357,7 +385,7 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
       },
       alternateRowStyles: { fillColor: [C.light[0], C.light[1], C.light[2]] },
       didDrawPage: () => {
-        drawPageHeader(pdf, table.title, table.subtitle);
+        drawPageHeader(pdf, table.title, table.subtitle, margins);
       },
     });
 
@@ -369,20 +397,16 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
 
 // ─── Public API ────────────────────────────────────────────────────
 
-/**
- * Generate a PDF report using structured data + individual chart PNG captures.
- *
- * - Metrics, aderência, and tables are rendered as vector text (jsPDF + autoTable).
- * - Charts are captured individually as JPEG images (avoiding large canvas slices).
- * - CSS patches (oklch → hex, backdrop-filter removal) are applied once
- *   before capturing all chart elements, then restored.
- */
 export async function renderReportPdf(
   data: ReportData,
   chartElements: HTMLElement[],
   opts: ReportOpts,
 ): Promise<void> {
-  const { filename, orientation = "portrait" } = opts;
+  const { filename, orientation = "portrait", layout = {} } = opts;
+  const margins = resolveMargins(layout.margins);
+  const showHeader = layout.showHeader !== false;
+  const showFooter = layout.showFooter !== false;
+  const showPageNumbers = layout.showPageNumbers !== false;
 
   // ── Capture charts (with CSS overrides active) ──
   const cleanGlobal = installLiveOverride();
@@ -399,27 +423,28 @@ export async function renderReportPdf(
   const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const contentW = pageW - MARGIN * 2;
+  const contentW = pageW - margins.left - margins.right;
 
   // Page 1: header + metrics + aderência + tables
-  let y = drawPageHeader(pdf, data.title, data.subtitle);
-  y = drawMetrics(pdf, y, data.metrics);
+  let y = showHeader ? drawPageHeader(pdf, data.title, data.subtitle, margins) : margins.top;
+  y = drawMetrics(pdf, y, data.metrics, margins);
   if (data.aderencia) {
-    y = drawAderencia(pdf, y, data.aderencia);
+    y = drawAderencia(pdf, y, data.aderencia, margins);
   }
-  y = drawTables(pdf, y, data.tables);
+  y = drawTables(pdf, y, data.tables, margins);
 
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
-    // drawPageHeader with subtitle "Gráficos" now consumes:
-    // brand(10) + gap(5) + line(4) + title(9) + subtitle(5) = 33mm from MARGIN
-    const chartHeaderEndY = MARGIN + 5 + 4 + 9 + 5;
+    // drawPageHeader with subtitle "Gráficos" consumes ~33mm from margins.top
+    const chartHeaderEndY = showHeader
+      ? margins.top + 5 + 4 + 9 + 5
+      : margins.top;
     const imgStartY = chartHeaderEndY + 2;
-    const imgAvailH = pageH - imgStartY - MARGIN - 4;
+    const imgAvailH = pageH - imgStartY - margins.bottom - (showFooter ? 6 : 0);
 
     for (let i = 0; i < chartDataUrls.length; i++) {
       pdf.addPage();
-      drawPageHeader(pdf, data.title, "Gráficos");
+      if (showHeader) drawPageHeader(pdf, data.title, "Gráficos", margins);
 
       const img = new Image();
       img.src = chartDataUrls[i];
@@ -440,21 +465,23 @@ export async function renderReportPdf(
         renderW = maxH * ratio;
       }
 
-      const cx = MARGIN + (contentW - renderW) / 2;
+      const cx = margins.left + (contentW - renderW) / 2;
       pdf.addImage(chartDataUrls[i], "PNG", cx, imgStartY, renderW, renderH);
     }
   }
 
   // ── Footers on all pages ──
-  const totalPages = pdf.getNumberOfPages();
-  const extraText =
-    `${data.metrics.length} indicadores` +
-    (data.aderencia ? ` · ${data.aderencia.pct.toFixed(1)}% aderência` : "") +
-    ` · ${data.tables.reduce((s, t) => s + t.rows.length, 0)} registros`;
+  if (showFooter) {
+    const totalPages = pdf.getNumberOfPages();
+    const extraText =
+      `${data.metrics.length} indicadores` +
+      (data.aderencia ? ` · ${data.aderencia.pct.toFixed(1)}% aderência` : "") +
+      ` · ${data.tables.reduce((s, t) => s + t.rows.length, 0)} registros`;
 
-  for (let i = 1; i <= totalPages; i++) {
-    pdf.setPage(i);
-    drawFooter(pdf, i, totalPages, extraText);
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      drawFooter(pdf, i, totalPages, margins, { showPageNumbers, extraText });
+    }
   }
 
   // ── Save ──

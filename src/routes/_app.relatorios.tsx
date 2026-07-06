@@ -102,7 +102,7 @@ function RelatoriosPage() {
     }, [])
     .sort((a, b) => b.value - a.value);
 
-  const handleExportReport = async () => {
+  const handleExportReport = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = pdfRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
     const rowsCount = periods.length;
@@ -145,6 +145,7 @@ function RelatoriosPage() {
       await renderReportPdf(reportData, charts, {
         filename: `relatorio-programacao-${visao}`,
         orientation: "landscape",
+        layout,
       });
     } catch (err) {
       console.error("Erro ao exportar relatório:", err);

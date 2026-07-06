@@ -127,7 +127,7 @@ function ChecklistsPage() {
     { name: "Portas", count: portas.length, hh: Number(hhPortas.toFixed(1)) },
   ];
 
-  const handleExportReport = async () => {
+  const handleExportReport = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = document.querySelector<HTMLElement>('[data-page="checklists"]')?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
 
@@ -165,6 +165,7 @@ function ChecklistsPage() {
       await renderReportPdf(reportData, charts, {
         filename: "planos-manutencao",
         orientation: "landscape",
+        layout,
       });
     } catch (err) {
       console.error("Erro ao exportar planos:", err);

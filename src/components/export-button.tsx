@@ -33,6 +33,7 @@ import {
   DEFAULT_MARGINS,
   type VisualPdfQuality,
   type PdfMargins,
+  type PdfLayoutOptions,
 } from "@/lib/export-pdf";
 
 interface Props<T> {
@@ -42,7 +43,7 @@ interface Props<T> {
   pdfTitle?: string;
   pdfSubtitle?: string;
   pdfTargetRef?: React.RefObject<HTMLElement | null>;
-  onExecutiveSummary?: () => void;
+  onExecutiveSummary?: (layout?: PdfLayoutOptions) => void;
   disabled?: boolean;
 }
 
@@ -207,7 +208,7 @@ export function ExportButton<T>({
           {onExecutiveSummary && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onExecutiveSummary} className="gap-2 text-xs">
+              <DropdownMenuItem onClick={() => onExecutiveSummary({ margins, showHeader, showFooter, showPageNumbers })} className="gap-2 text-xs">
                 <FileText className="h-3.5 w-3.5 text-warning" />
                 Exportar Resumo Executivo
               </DropdownMenuItem>

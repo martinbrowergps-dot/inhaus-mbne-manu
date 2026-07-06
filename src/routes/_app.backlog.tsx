@@ -239,7 +239,7 @@ function BacklogPage() {
     [enriched],
   );
 
-  const handleExportReport = async () => {
+  const handleExportReport = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = document.querySelector<HTMLElement>('[data-page="backlog"]')?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
 
@@ -282,6 +282,7 @@ function BacklogPage() {
       await renderReportPdf(reportData, charts, {
         filename: "backlog",
         orientation: "landscape",
+        layout,
       });
     } catch (err) {
       console.error("Erro ao exportar backlog:", err);
