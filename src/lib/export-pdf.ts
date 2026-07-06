@@ -100,6 +100,33 @@ function sanitizeLiveInlineColors(root: HTMLElement): () => void {
   return () => restores.forEach((fn) => fn());
 }
 
+export interface PdfMargins {
+  top: number;    // mm
+  bottom: number; // mm
+  left: number;   // mm
+  right: number;  // mm
+}
+
+export interface PdfLayoutOptions {
+  margins?: Partial<PdfMargins>;
+  showHeader?: boolean;
+  showFooter?: boolean;
+  showPageNumbers?: boolean;
+  /** Texto pequeno impresso à esquerda do rodapé. */
+  footerLeft?: string;
+}
+
+export const DEFAULT_MARGINS: PdfMargins = { top: 10, bottom: 12, left: 10, right: 10 };
+
+function resolveMargins(m?: Partial<PdfMargins>): PdfMargins {
+  return {
+    top: Math.max(5, Math.min(40, m?.top ?? DEFAULT_MARGINS.top)),
+    bottom: Math.max(5, Math.min(40, m?.bottom ?? DEFAULT_MARGINS.bottom)),
+    left: Math.max(5, Math.min(40, m?.left ?? DEFAULT_MARGINS.left)),
+    right: Math.max(5, Math.min(40, m?.right ?? DEFAULT_MARGINS.right)),
+  };
+}
+
 interface ExportTableOpts<T> {
   filename: string;
   title: string;
@@ -107,41 +134,71 @@ interface ExportTableOpts<T> {
   rows: T[];
   columns: CsvColumn<T>[];
   orientation?: "landscape" | "portrait";
+  layout?: PdfLayoutOptions;
 }
 
-const MARGIN = 10;
-
-function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margin: number): number {
-  let y = margin;
+/**
+ * Desenha o cabeçalho no topo da página respeitando `margins.top`.
+ * Retorna o Y (mm) onde o conteúdo pode começar.
+ */
+function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margins: PdfMargins): number {
+  const pageW = pdf.internal.pageSize.getWidth();
+  let y = margins.top;
   pdf.setFontSize(9);
   pdf.setTextColor(14, 78, 138);
-  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, y);
+  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margins.left, y);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(7);
   pdf.setTextColor(100, 116, 139);
-  pdf.text(stamp, pdf.internal.pageSize.getWidth() - margin, y, { align: "right" });
+  pdf.text(stamp, pageW - margins.right, y, { align: "right" });
   y += 2.5;
   pdf.setDrawColor(14, 78, 138);
   pdf.setLineWidth(0.3);
-  pdf.line(margin, y, pdf.internal.pageSize.getWidth() - margin, y);
+  pdf.line(margins.left, y, pageW - margins.right, y);
   y += 2;
   pdf.setFontSize(13);
   pdf.setTextColor(2, 21, 45);
-  pdf.text(title, margin, y + 3);
+  pdf.text(title, margins.left, y + 3);
   y += 7;
   if (subtitle) {
     pdf.setFontSize(8);
     pdf.setTextColor(100, 116, 139);
-    pdf.text(subtitle, margin, y);
+    pdf.text(subtitle, margins.left, y);
     y += 4;
   }
-  return y;
+  return y + 2;
+}
+
+/** Altura reservada (em mm) para o cabeçalho, com ou sem subtítulo. */
+function headerReserve(subtitle: string | undefined): number {
+  return subtitle ? 18 : 14;
+}
+
+function drawFooter(
+  pdf: jsPDF,
+  pageIndex: number,
+  pageCount: number,
+  margins: PdfMargins,
+  opts: { showPageNumbers: boolean; footerLeft?: string },
+) {
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const y = pageH - Math.max(4, margins.bottom / 2);
+  pdf.setFontSize(7);
+  pdf.setTextColor(148, 163, 184);
+  if (opts.footerLeft) pdf.text(opts.footerLeft, margins.left, y);
+  if (opts.showPageNumbers) {
+    pdf.text(`Página ${pageIndex} de ${pageCount}`, pageW - margins.right, y, { align: "right" });
+  }
 }
 
 export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
-  const { filename, title, subtitle, rows, columns, orientation = "landscape" } = opts;
+  const { filename, title, subtitle, rows, columns, orientation = "landscape", layout = {} } = opts;
   const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
-  const margin = MARGIN;
+  const margins = resolveMargins(layout.margins);
+  const showHeader = layout.showHeader !== false;
+  const showFooter = layout.showFooter !== false;
+  const showPageNumbers = layout.showPageNumbers !== false;
   const rowsCount = rows.length;
 
   const head = [columns.map((c) => c.header)];
@@ -152,11 +209,14 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
     }),
   );
 
+  const topReserve = showHeader ? margins.top + headerReserve(subtitle) : margins.top;
+  const bottomReserve = showFooter ? margins.bottom + 4 : margins.bottom;
+
   autoTable(pdf, {
     head,
     body,
-    startY: margin + 16,
-    margin: { left: margin, right: margin, bottom: margin + 8 },
+    startY: topReserve,
+    margin: { left: margins.left, right: margins.right, top: topReserve, bottom: bottomReserve },
     tableLineColor: [203, 213, 225],
     tableLineWidth: 0.1,
     styles: {
@@ -177,20 +237,19 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
     },
     alternateRowStyles: { fillColor: [241, 245, 249] },
     didDrawPage: () => {
-      drawHeader(pdf, title, subtitle, margin);
+      if (showHeader) drawHeader(pdf, title, subtitle, margins);
     },
   });
 
-  // Post-process: fix page numbers on all pages
   const finalPageCount = pdf.getNumberOfPages();
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  pdf.setFontSize(7);
-  pdf.setTextColor(148, 163, 184);
-  for (let i = 1; i <= finalPageCount; i++) {
-    pdf.setPage(i);
-    pdf.text("Martin Brower CDNE · " + rowsCount + " registros", margin, pageH - 4);
-    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pageH - 4, { align: "right" });
+  if (showFooter) {
+    for (let i = 1; i <= finalPageCount; i++) {
+      pdf.setPage(i);
+      drawFooter(pdf, i, finalPageCount, margins, {
+        showPageNumbers,
+        footerLeft: layout.footerLeft ?? `Martin Brower CDNE · ${rowsCount} registros`,
+      });
+    }
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
