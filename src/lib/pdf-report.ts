@@ -336,7 +336,7 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
       head,
       body,
       startY: y + 2,
-      margin: { left: MARGIN, right: MARGIN, bottom: MARGIN + 6 },
+      margin: { top: MARGIN + 16, left: MARGIN, right: MARGIN, bottom: MARGIN + 6 },
       tableLineColor: [C.border[0], C.border[1], C.border[2]],
       tableLineWidth: 0.1,
       styles: {
@@ -411,13 +411,15 @@ export async function renderReportPdf(
 
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
-    const imgStartY = MARGIN + 10; // space for header on each page
+    // drawPageHeader with subtitle "Gráficos" consumes:
+    // brand(10) + gap(2.5) + line(2) + title(7) + subtitle(4) = 25.5mm total from MARGIN
+    const chartHeaderEndY = MARGIN + 2.5 + 2 + 7 + 4;
+    const imgStartY = chartHeaderEndY + 2;
     const imgAvailH = pageH - imgStartY - MARGIN - 4;
 
     for (let i = 0; i < chartDataUrls.length; i++) {
       pdf.addPage();
       drawPageHeader(pdf, data.title, "Gráficos");
-      drawFooter(pdf, pdf.getNumberOfPages(), 1); // placeholder, updated below
 
       const img = new Image();
       img.src = chartDataUrls[i];
