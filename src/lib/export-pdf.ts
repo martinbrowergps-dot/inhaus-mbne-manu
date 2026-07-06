@@ -224,27 +224,99 @@ function drawImagePageHeader(pdf: jsPDF, title: string, subtitle: string | undef
   pdf.line(margin, y + 0.5, pageW - margin, y + 0.5);
 }
 
+export type VisualPdfQuality = "low" | "medium" | "high";
+
+export interface VisualPdfOptions {
+  /** Escala do PNG (pixelRatio). Alta = mais nitidez, arquivo maior. */
+  quality?: VisualPdfQuality;
+  /** Override manual da escala (1–3). Sobrepõe `quality`. */
+  scale?: number;
+  /** Qualidade JPEG das páginas (0.5–1). Sobrepõe `quality`. */
+  jpegQuality?: number;
+  /** Habilita quebras inteligentes evitando cortar tabelas/gráficos. Default: true. */
+  smartBreaks?: boolean;
+}
+
+const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }> = {
+  low:    { scale: 1.0, jpeg: 0.72 },
+  medium: { scale: 1.5, jpeg: 0.85 },
+  high:   { scale: 2.2, jpeg: 0.92 },
+};
+
 /**
- * Capture the full element as a single canvas using html2canvas,
- * then slice the image into page-sized chunks.
- * Header is drawn in reserved top area, image starts below it.
+ * Coleta as coordenadas Y (em CSS px, relativo ao topo do container)
+ * das bordas superior/inferior de elementos que NÃO devem ser cortados
+ * (tabelas, gráficos, painéis, cards de KPI). Serve como grade de
+ * "pontos seguros" para o algoritmo de paginação inteligente.
+ */
+function collectBreakCandidates(root: HTMLElement): number[] {
+  const rootRect = root.getBoundingClientRect();
+  const sel = [
+    "table",
+    ".recharts-wrapper",
+    ".recharts-responsive-container",
+    "[data-pdf-block]",
+    ".panel",
+    ".kpi-card",
+    "svg",
+  ].join(",");
+  const set = new Set<number>();
+  set.add(0);
+  root.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+    const r = el.getBoundingClientRect();
+    if (r.height <= 0) return;
+    set.add(Math.max(0, r.top - rootRect.top));
+    set.add(Math.max(0, r.bottom - rootRect.top));
+  });
+  set.add(root.scrollHeight);
+  return Array.from(set).sort((a, b) => a - b);
+}
+
+/**
+ * Dado o cursor atual (Y em CSS px) e a altura máxima de página em CSS px,
+ * escolhe o melhor ponto de corte que caia dentro da janela e não
+ * quebre elementos protegidos. Se nenhum candidato couber acima de 55%
+ * do limite, corta no limite máximo (evita páginas quase vazias).
+ */
+function pickSplit(cursor: number, maxHeight: number, total: number, candidates: number[]): number {
+  const hardStop = Math.min(cursor + maxHeight, total);
+  if (hardStop >= total) return total;
+  const minStop = cursor + maxHeight * 0.55;
+  let best = hardStop;
+  for (const c of candidates) {
+    if (c > cursor && c <= hardStop && c >= minStop) best = c;
+  }
+  return best;
+}
+
+/**
+ * Capture the full element as a single PNG via html-to-image and pagina
+ * evitando cortes em tabelas/gráficos. Suporta controle de escala/qualidade.
  */
 export async function exportVisualPdf(
   element: HTMLElement,
   filename: string,
   title: string,
   subtitle?: string,
+  options: VisualPdfOptions = {},
 ) {
+  const preset = QUALITY_PRESETS[options.quality ?? "medium"];
+  const scale = Math.max(0.8, Math.min(3, options.scale ?? preset.scale));
+  const jpegQuality = Math.max(0.5, Math.min(1, options.jpegQuality ?? preset.jpeg));
+  const smartBreaks = options.smartBreaks !== false;
+
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const margin = MARGIN;
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const contentW = pageW - margin * 2;
   const contentH = pageH - margin - HEADER_HEIGHT - margin - 4;
-  const scale = 1.5;
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
+
+  // Colher candidatos ANTES do capture (layout ainda vivo).
+  const candidatesCss = smartBreaks ? collectBreakCandidates(element) : [];
 
   const dataUrl = await toPng(element, {
     pixelRatio: scale,
@@ -261,34 +333,44 @@ export async function exportVisualPdf(
 
   const imgW = img.naturalWidth;
   const imgH = img.naturalHeight;
-
   const cssW = imgW / scale;
   const cssH = imgH / scale;
   const pxPerMm = cssW / contentW;
   const pageCssH = Math.floor(contentH * pxPerMm);
   if (pageCssH < 1) throw new Error("Page content height too small");
-  const pageImgH = pageCssH * scale;
-  const totalPages = Math.ceil(cssH / pageCssH);
-  if (!isFinite(totalPages) || totalPages < 1) throw new Error("Invalid page count");
+
+  // Monta lista de cortes (em CSS px) usando candidatos ou fatiamento fixo.
+  const cuts: number[] = [0];
+  let cursor = 0;
+  const guard = 500;
+  let iter = 0;
+  while (cursor < cssH && iter++ < guard) {
+    const next = smartBreaks
+      ? pickSplit(cursor, pageCssH, cssH, candidatesCss)
+      : Math.min(cursor + pageCssH, cssH);
+    if (next <= cursor) break;
+    cuts.push(next);
+    cursor = next;
+  }
+  if (cuts[cuts.length - 1] < cssH) cuts.push(cssH);
 
   const sliceCanvas = document.createElement("canvas");
   const ctx = sliceCanvas.getContext("2d")!;
   const imgStartY = margin + HEADER_HEIGHT;
 
-  for (let i = 0; i < totalPages; i++) {
+  for (let i = 0; i < cuts.length - 1; i++) {
     if (i > 0) pdf.addPage();
-
     drawImagePageHeader(pdf, title, subtitle, margin, pageW);
 
-    const sy = Math.round(i * pageImgH);
-    const sh = Math.round(Math.min(pageImgH, imgH - sy));
+    const sy = Math.round(cuts[i] * scale);
+    const sh = Math.round((cuts[i + 1] - cuts[i]) * scale);
     if (sh <= 0) continue;
 
     sliceCanvas.width = imgW;
     sliceCanvas.height = sh;
     ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
 
-    const pageDataUrl = sliceCanvas.toDataURL("image/jpeg", 0.85);
+    const pageDataUrl = sliceCanvas.toDataURL("image/jpeg", jpegQuality);
     const imgMmH = sh / (pxPerMm * scale);
     pdf.addImage(pageDataUrl, "JPEG", margin, imgStartY, contentW, imgMmH);
   }
@@ -296,7 +378,6 @@ export async function exportVisualPdf(
   sliceCanvas.width = 0;
   sliceCanvas.height = 0;
 
-  // Footer on all pages
   const pageCount = pdf.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
@@ -309,4 +390,5 @@ export async function exportVisualPdf(
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
+
 
