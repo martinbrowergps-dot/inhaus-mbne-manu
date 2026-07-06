@@ -52,19 +52,18 @@ export function ExportButton<T>({
     });
   };
 
-  const handlePdfVisual = async () => {
+  const handlePdfVisual = async (quality: VisualPdfQuality = "medium") => {
     const el = pdfTargetRef?.current;
     if (!el) {
       toast.error("Nada para exportar");
       return;
     }
     try {
-      await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle);
-      toast.success("PDF visual exportado com sucesso");
+      await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle, { quality });
+      toast.success(`PDF visual (${quality}) exportado com sucesso`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Erro ao exportar PDF visual:", err);
-      // Fallback para PDF tabular se possível
       if (rows.length > 0) {
         toast.warning(`PDF visual falhou: ${msg}. Gerando PDF tabular…`);
         try {
