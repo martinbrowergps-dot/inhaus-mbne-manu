@@ -256,36 +256,46 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
 
-const HEADER_HEIGHT = 10;
-
-function drawImagePageHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margin: number, pageW: number) {
-  let y = margin + 1.5;
+function drawImagePageHeader(
+  pdf: jsPDF,
+  title: string,
+  subtitle: string | undefined,
+  margins: PdfMargins,
+): number {
+  const pageW = pdf.internal.pageSize.getWidth();
+  let y = margins.top + 1.5;
   pdf.setFontSize(7);
   pdf.setTextColor(14, 78, 138);
-  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margin, y);
+  pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margins.left, y);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(5.5);
   pdf.setTextColor(100, 116, 139);
-  pdf.text(stamp, pageW - margin, y, { align: "right" });
+  pdf.text(stamp, pageW - margins.right, y, { align: "right" });
   y += 2;
   pdf.setFontSize(10);
   pdf.setTextColor(2, 21, 45);
-  pdf.text(title, margin, y + 1);
+  pdf.text(title, margins.left, y + 1);
   y += 3.5;
   if (subtitle) {
     pdf.setFontSize(6.5);
     pdf.setTextColor(100, 116, 139);
-    pdf.text(subtitle, margin, y);
+    pdf.text(subtitle, margins.left, y);
     y += 2.5;
   }
   pdf.setDrawColor(14, 78, 138);
   pdf.setLineWidth(0.25);
-  pdf.line(margin, y + 0.5, pageW - margin, y + 0.5);
+  pdf.line(margins.left, y + 0.5, pageW - margins.right, y + 0.5);
+  return y + 2.5;
+}
+
+/** Altura reservada (mm) para o cabeçalho visual — casa com drawImagePageHeader. */
+function visualHeaderReserve(subtitle: string | undefined): number {
+  return subtitle ? 11 : 8;
 }
 
 export type VisualPdfQuality = "low" | "medium" | "high";
 
-export interface VisualPdfOptions {
+export interface VisualPdfOptions extends PdfLayoutOptions {
   /** Escala do PNG (pixelRatio). Alta = mais nitidez, arquivo maior. */
   quality?: VisualPdfQuality;
   /** Override manual da escala (1–3). Sobrepõe `quality`. */
@@ -294,6 +304,8 @@ export interface VisualPdfOptions {
   jpegQuality?: number;
   /** Habilita quebras inteligentes evitando cortar tabelas/gráficos. Default: true. */
   smartBreaks?: boolean;
+  /** Orientação da página. Default: landscape. */
+  orientation?: "landscape" | "portrait";
 }
 
 const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }> = {
@@ -302,12 +314,6 @@ const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }>
   high:   { scale: 2.2, jpeg: 0.92 },
 };
 
-/**
- * Coleta as coordenadas Y (em CSS px, relativo ao topo do container)
- * das bordas superior/inferior de elementos que NÃO devem ser cortados
- * (tabelas, gráficos, painéis, cards de KPI). Serve como grade de
- * "pontos seguros" para o algoritmo de paginação inteligente.
- */
 function collectBreakCandidates(root: HTMLElement): number[] {
   const rootRect = root.getBoundingClientRect();
   const sel = [
@@ -331,12 +337,6 @@ function collectBreakCandidates(root: HTMLElement): number[] {
   return Array.from(set).sort((a, b) => a - b);
 }
 
-/**
- * Dado o cursor atual (Y em CSS px) e a altura máxima de página em CSS px,
- * escolhe o melhor ponto de corte que caia dentro da janela e não
- * quebre elementos protegidos. Se nenhum candidato couber acima de 55%
- * do limite, corta no limite máximo (evita páginas quase vazias).
- */
 function pickSplit(cursor: number, maxHeight: number, total: number, candidates: number[]): number {
   const hardStop = Math.min(cursor + maxHeight, total);
   if (hardStop >= total) return total;
@@ -349,8 +349,9 @@ function pickSplit(cursor: number, maxHeight: number, total: number, candidates:
 }
 
 /**
- * Capture the full element as a single PNG via html-to-image and pagina
- * evitando cortes em tabelas/gráficos. Suporta controle de escala/qualidade.
+ * Captura o elemento como PNG (html-to-image) e pagina evitando cortes
+ * em tabelas/gráficos. Suporta controle de margens, cabeçalho, rodapé,
+ * numeração e escala/qualidade.
  */
 export async function exportVisualPdf(
   element: HTMLElement,
@@ -363,18 +364,25 @@ export async function exportVisualPdf(
   const scale = Math.max(0.8, Math.min(3, options.scale ?? preset.scale));
   const jpegQuality = Math.max(0.5, Math.min(1, options.jpegQuality ?? preset.jpeg));
   const smartBreaks = options.smartBreaks !== false;
+  const showHeader = options.showHeader !== false;
+  const showFooter = options.showFooter !== false;
+  const showPageNumbers = options.showPageNumbers !== false;
+  const margins = resolveMargins(options.margins);
+  const orientation = options.orientation ?? "landscape";
 
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  const margin = MARGIN;
+  const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const contentW = pageW - margin * 2;
-  const contentH = pageH - margin - HEADER_HEIGHT - margin - 4;
+  const contentW = pageW - margins.left - margins.right;
+  const headerH = showHeader ? visualHeaderReserve(subtitle) : 0;
+  const footerH = showFooter ? 6 : 0;
+  const contentH = pageH - margins.top - margins.bottom - headerH - footerH;
+  if (contentH < 20 || contentW < 40) {
+    throw new Error("Margens muito grandes: reduza para caber conteúdo");
+  }
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
-
-  // Colher candidatos ANTES do capture (layout ainda vivo).
   const candidatesCss = smartBreaks ? collectBreakCandidates(element) : [];
 
   const dataUrl = await toPng(element, {
@@ -396,9 +404,8 @@ export async function exportVisualPdf(
   const cssH = imgH / scale;
   const pxPerMm = cssW / contentW;
   const pageCssH = Math.floor(contentH * pxPerMm);
-  if (pageCssH < 1) throw new Error("Page content height too small");
+  if (pageCssH < 1) throw new Error("Altura útil da página muito pequena");
 
-  // Monta lista de cortes (em CSS px) usando candidatos ou fatiamento fixo.
   const cuts: number[] = [0];
   let cursor = 0;
   const guard = 500;
@@ -415,11 +422,12 @@ export async function exportVisualPdf(
 
   const sliceCanvas = document.createElement("canvas");
   const ctx = sliceCanvas.getContext("2d")!;
-  const imgStartY = margin + HEADER_HEIGHT;
 
   for (let i = 0; i < cuts.length - 1; i++) {
     if (i > 0) pdf.addPage();
-    drawImagePageHeader(pdf, title, subtitle, margin, pageW);
+    const imgStartY = showHeader
+      ? drawImagePageHeader(pdf, title, subtitle, margins)
+      : margins.top;
 
     const sy = Math.round(cuts[i] * scale);
     const sh = Math.round((cuts[i + 1] - cuts[i]) * scale);
@@ -431,23 +439,29 @@ export async function exportVisualPdf(
 
     const pageDataUrl = sliceCanvas.toDataURL("image/jpeg", jpegQuality);
     const imgMmH = sh / (pxPerMm * scale);
-    pdf.addImage(pageDataUrl, "JPEG", margin, imgStartY, contentW, imgMmH);
+    // Trava a altura no espaço disponível para nunca invadir o rodapé.
+    const availH = pageH - imgStartY - margins.bottom - footerH;
+    const finalH = Math.min(imgMmH, availH);
+    pdf.addImage(pageDataUrl, "JPEG", margins.left, imgStartY, contentW, finalH);
   }
 
   sliceCanvas.width = 0;
   sliceCanvas.height = 0;
 
-  const pageCount = pdf.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i);
-    pdf.setFontSize(6);
-    pdf.setTextColor(148, 163, 184);
-    pdf.text("Martin Brower CDNE", margin, pageH - 3);
-    pdf.text("Página " + i + " de " + pageCount, pageW - margin, pageH - 3, { align: "right" });
+  if (showFooter) {
+    const pageCount = pdf.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      drawFooter(pdf, i, pageCount, margins, {
+        showPageNumbers,
+        footerLeft: options.footerLeft ?? "Martin Brower CDNE",
+      });
+    }
   }
 
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
+
 
 
