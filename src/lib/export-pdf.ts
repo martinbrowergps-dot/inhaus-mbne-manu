@@ -1,7 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
-import html2canvas from "html2canvas";
 import type { CsvColumn } from "./export-csv";
 
 const COLOR_OVERRIDES: Record<string, string> = {
@@ -242,7 +241,7 @@ export async function exportVisualPdf(
   const pageH = pdf.internal.pageSize.getHeight();
   const contentW = pageW - margin * 2;
   const contentH = pageH - margin - HEADER_HEIGHT - margin - 4;
-  const scale = 2;
+  const scale = 1.5;
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
@@ -289,9 +288,9 @@ export async function exportVisualPdf(
     sliceCanvas.height = sh;
     ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
 
-    const pageDataUrl = sliceCanvas.toDataURL("image/png");
+    const pageDataUrl = sliceCanvas.toDataURL("image/jpeg", 0.85);
     const imgMmH = sh / (pxPerMm * scale);
-    pdf.addImage(pageDataUrl, "PNG", margin, imgStartY, contentW, imgMmH);
+    pdf.addImage(pageDataUrl, "JPEG", margin, imgStartY, contentW, imgMmH);
   }
 
   sliceCanvas.width = 0;
@@ -311,158 +310,3 @@ export async function exportVisualPdf(
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
 
-export async function exportExecutiveSummary(
-  chartElement: HTMLElement | null,
-  data: {
-    title: string;
-    aderencia: { pct: number; finalizadasNoPrazo: number; totalProgramadas: number };
-    kpis: { label: string; value: string; variant?: string }[];
-  },
-  filename: string,
-) {
-  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const margin = 12;
-  const availH = pageH - margin - HEADER_HEIGHT - margin - 4;
-  let y = margin;
-
-  y = drawHeader(pdf, data.title, undefined, margin) + 2;
-
-  // Section: KPIs
-  pdf.setFontSize(10);
-  pdf.setTextColor(14, 78, 138);
-  pdf.text("INDICADORES", margin, y);
-  y += 4;
-  pdf.setDrawColor(14, 78, 138);
-  pdf.setLineWidth(0.15);
-  pdf.line(margin, y, pageW - margin, y);
-  y += 4;
-
-  const cols = 3;
-  const boxW = (pageW - margin * 2 - 8 * (cols - 1)) / cols;
-  const boxH = 18;
-  const kpiRows = Math.ceil(data.kpis.length / cols);
-  const kpiTotalH = kpiRows * (boxH + 4);
-
-  if (y + kpiTotalH > pageH - margin - 4) {
-    pdf.addPage();
-    y = margin + 4;
-  }
-
-  data.kpis.forEach((kpi, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = margin + col * (boxW + 8);
-    const by = y + row * (boxH + 4);
-    pdf.setFillColor(241, 245, 249);
-    pdf.setDrawColor(203, 213, 225);
-    pdf.roundedRect(x, by, boxW, boxH, 2, 2, "FD");
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 116, 139);
-    pdf.text(kpi.label, x + 3, by + 5);
-    pdf.setFontSize(14);
-    pdf.setTextColor(2, 21, 45);
-    pdf.text(kpi.value, x + 3, by + boxH - 4);
-  });
-
-  y += kpiTotalH;
-
-  // Section: Aderência
-  y += 4;
-  if (y + 30 > pageH - margin - 4) {
-    pdf.addPage();
-    y = margin + 4;
-  }
-
-  pdf.setFontSize(10);
-  pdf.setTextColor(14, 78, 138);
-  pdf.text("ADERÊNCIA À PROGRAMAÇÃO", margin, y);
-  y += 4;
-  pdf.line(margin, y, pageW - margin, y);
-  y += 4;
-
-  const ap = data.aderencia;
-  pdf.setFontSize(9);
-  pdf.setTextColor(30, 41, 59);
-  pdf.text("Percentual: " + ap.pct.toFixed(1) + "%", margin + 2, y);
-  y += 4;
-  pdf.text("Finalizadas no prazo: " + ap.finalizadasNoPrazo + " de " + ap.totalProgramadas + " programadas", margin + 2, y);
-  y += 3;
-  pdf.setTextColor(100, 116, 139);
-  pdf.text("Meta: ≥ 95%", margin + 2, y);
-  y += 5;
-
-  // Aderência progress bar
-  const barW = pageW - margin * 2 - 4;
-  const barH = 10;
-  const fillW = Math.min(ap.pct, 100) / 100 * barW;
-  pdf.setFillColor(241, 245, 249);
-  pdf.roundedRect(margin + 2, y, barW, barH, 3, 3, "F");
-  const barColor = ap.pct >= 95 ? [34, 197, 94] as const : ap.pct >= 85 ? [234, 179, 8] as const : [239, 68, 68] as const;
-  pdf.setFillColor(barColor[0], barColor[1], barColor[2]);
-  pdf.roundedRect(margin + 2, y, fillW, barH, 3, 3, "F");
-  y += barH + 6;
-
-  // Charts — capture dedicated chartElement (if provided) and render on separate pages
-  if (chartElement) {
-    try {
-      const cleanLiveOverride2 = installLiveOverride();
-      const cleanLiveInline2 = sanitizeLiveInlineColors(chartElement);
-
-      const fullCanvas = await html2canvas(chartElement, {
-        scale: 2,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        logging: false,
-      });
-
-      cleanLiveOverride2();
-      cleanLiveInline2();
-
-      const imgW = fullCanvas.width;
-      const imgH = fullCanvas.height;
-      const pr = imgW / chartElement.offsetWidth;
-
-      const contentW = pageW - margin * 2;
-      const pxPerMm = (imgW / pr) / contentW;
-      const pagePxH = Math.floor(availH * pxPerMm * pr);
-      const totalPages = Math.ceil(imgH / pagePxH);
-      const sliceCanvas = document.createElement("canvas");
-      const ctx = sliceCanvas.getContext("2d")!;
-      const imgStartY = margin + HEADER_HEIGHT;
-
-      for (let i = 0; i < totalPages; i++) {
-        pdf.addPage();
-        drawImagePageHeader(pdf, data.title, "Gráficos", margin, pageW);
-        const sy = Math.round(i * pagePxH);
-        const sh = Math.round(Math.min(pagePxH, imgH - sy));
-        if (sh <= 0) continue;
-        sliceCanvas.width = imgW;
-        sliceCanvas.height = sh;
-        ctx.drawImage(fullCanvas, 0, sy, imgW, sh, 0, 0, imgW, sh);
-        const pageDataUrl = sliceCanvas.toDataURL("image/png");
-        const imgMmH = sh / (pxPerMm * pr);
-        pdf.addImage(pageDataUrl, "PNG", margin, imgStartY, contentW, imgMmH);
-      }
-
-      sliceCanvas.width = 0;
-      sliceCanvas.height = 0;
-    } catch {
-      // Chart capture failed — text-only export is still valid
-    }
-  }
-
-  // Footer on all pages
-  const finalPageCount = pdf.getNumberOfPages();
-  for (let i = 1; i <= finalPageCount; i++) {
-    pdf.setPage(i);
-    pdf.setFontSize(6);
-    pdf.setTextColor(148, 163, 184);
-    pdf.text("Martin Brower CDNE · " + data.kpis.length + " indicadores", margin, pdf.internal.pageSize.getHeight() - 3);
-    pdf.text("Página " + i + " de " + finalPageCount, pageW - margin, pdf.internal.pageSize.getHeight() - 3, { align: "right" });
-  }
-
-  const stampFile = new Date().toISOString().slice(0, 10);
-  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
-}

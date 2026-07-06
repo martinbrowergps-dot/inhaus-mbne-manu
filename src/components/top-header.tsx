@@ -38,6 +38,13 @@ export function TopHeader() {
         </p>
       </div>
 
+      <div className="hidden items-center gap-2 sm:flex">
+        <span className="text-[10px] text-muted-foreground/60 tabular-nums">
+          {lastUpdate ? lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
+        </span>
+        <Circle className="h-1.5 w-1.5 animate-pulse fill-success text-success" />
+      </div>
+
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -45,7 +52,6 @@ export function TopHeader() {
             variant="outline"
             className="clay-sm gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
           >
-            <Circle className="h-2 w-2 animate-pulse fill-success text-success" />
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>

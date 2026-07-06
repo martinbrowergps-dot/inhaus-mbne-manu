@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Inbox, AlertTriangle, Clock, Users } from "lucide-react";
@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
+import { renderReportPdf } from "@/lib/pdf-report";
+import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
@@ -144,7 +146,6 @@ function BacklogPage() {
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string | null>(null);
-  const pdfRef = useRef<HTMLDivElement>(null);
 
   const enriched = useMemo(() => {
     const rows = (data?.backlog ?? []).filter((r) => dateFilter.filterByDateRange(r.DataCriacao));
@@ -237,6 +238,55 @@ function BacklogPage() {
     [enriched],
   );
 
+  const handleExportReport = async () => {
+    const chartEls = document.querySelector<HTMLElement>('[data-page="backlog"]')?.querySelectorAll<HTMLElement>("[data-chart]");
+    const charts = chartEls ? Array.from(chartEls) : [];
+
+    const table: ReportTable<BacklogRow & { _idade: number | null; _vencido: boolean }> = {
+      title: "Solicitações — Registro",
+      columns: [
+        { header: "Número", value: (r) => r.Numero },
+        { header: "Identificação", value: (r) => r.Identificacao },
+        { header: "Solicitante", value: (r) => r.Solicitante },
+        { header: "Data Criação", value: (r) => r.DataCriacao },
+        { header: "Idade (dias)", value: (r) => r._idade ?? "" },
+        { header: "Assunto", value: (r) => r.Assunto },
+        { header: "O que precisa", value: (r) => r.OQuePrecisa ?? "" },
+        { header: "Técnico", value: (r) => r.Tecnico },
+        { header: "Prioridade", value: (r) => r.Prioridade },
+        { header: "Vencimento", value: (r) => r.DataVencimento },
+        { header: "Vencido", value: (r) => (r._vencido ? "Sim" : "Não") },
+        { header: "Estado", value: (r) => r.Estado },
+        { header: "Grupo", value: (r) => r.Grupo },
+        { header: "HH Estimado", value: (r) => r.HHEstimado },
+      ],
+      rows: filtered,
+    };
+
+    const reportData: ReportData = {
+      title: "Backlog · Centro de Controle",
+      subtitle: dateFilter.isActive
+        ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} registros`
+        : `${filtered.length} registros`,
+      metrics: [
+        { label: "Total em aberto", value: String(total), variant: "primary" },
+        { label: "Vencidos", value: String(vencidos), variant: vencidos > 0 ? "danger" : "neutral" },
+        { label: "Prioridade alta", value: String(criticos), variant: criticos > 0 ? "warning" : "neutral" },
+        { label: "Técnicos envolvidos", value: String(tecnicos), variant: "neutral" },
+      ],
+      tables: [table],
+    };
+
+    try {
+      await renderReportPdf(reportData, charts, {
+        filename: "backlog",
+        orientation: "landscape",
+      });
+    } catch (err) {
+      console.error("Erro ao exportar backlog:", err);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -253,7 +303,7 @@ function BacklogPage() {
   }
 
   return (
-    <div ref={pdfRef} className="space-y-4">
+    <div data-page="backlog" className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
@@ -280,13 +330,7 @@ function BacklogPage() {
             { header: "Grupo", value: (r) => r.Grupo },
             { header: "HH Estimado", value: (r) => r.HHEstimado },
           ]}
-          pdfTargetRef={pdfRef}
-          pdfTitle="Backlog · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} registros`
-              : `${filtered.length} registros`
-          }
+          onExecutiveSummary={handleExportReport}
         />
       </div>
 
@@ -301,13 +345,13 @@ function BacklogPage() {
 
       <SectionHeader label="Distribuição" insight="Solicitações por prioridade, idade e técnico">
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel title="POR PRIORIDADE">
+          <Panel dataChart="prioridade" title="POR PRIORIDADE">
             <ChartBars data={porPrioridade} colorBy="priority" />
           </Panel>
-          <Panel title="POR IDADE">
+          <Panel dataChart="idade" title="POR IDADE">
             <ChartBars data={faixasIdade} colorBy="age" />
           </Panel>
-          <Panel title="TOP TÉCNICOS">
+          <Panel dataChart="tecnicos" title="TOP TÉCNICOS">
             <ChartBars data={porTecnico} colorBy="primary" horizontal />
           </Panel>
         </div>

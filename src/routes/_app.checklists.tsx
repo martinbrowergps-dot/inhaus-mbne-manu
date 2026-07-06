@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, DoorOpen, Activity, ArrowLeftRight, Search } from "lucide-react";
@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
+import { renderReportPdf } from "@/lib/pdf-report";
+import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
@@ -95,7 +97,6 @@ const detailCols: ColumnDef<ChecklistEnriched>[] = [
 function ChecklistsPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
-  const pdfRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState("docas");
 
   if (isLoading)
@@ -126,8 +127,52 @@ function ChecklistsPage() {
     { name: "Portas", count: portas.length, hh: Number(hhPortas.toFixed(1)) },
   ];
 
+  const handleExportReport = async () => {
+    const chartEls = document.querySelector<HTMLElement>('[data-page="checklists"]')?.querySelectorAll<HTMLElement>("[data-chart]");
+    const charts = chartEls ? Array.from(chartEls) : [];
+
+    const table: ReportTable<ChecklistEnriched> = {
+      title: "Planos — Registro",
+      columns: [
+        { header: "Tipo", value: (r) => r._tipo },
+        { header: "Item", value: (r) => r.raw["Item"] ?? "" },
+        { header: "Equipamento", value: (r) => r._equipamento },
+        { header: "Atividade", value: (r) => r._descricao },
+        { header: "Sistema", value: (r) => r._sistema },
+        { header: "TAG", value: (r) => r._tag },
+        { header: "Criticidade", value: (r) => r._criticidade },
+        { header: "Periodicidade", value: (r) => r._periodicidade },
+        { header: "Cargo", value: (r) => r._cargo },
+        { header: "HH Estimado", value: (r) => r._hh },
+      ],
+      rows: allRows,
+    };
+
+    const totalHH = hhDocas + hhGeral + hhPortas;
+    const reportData: ReportData = {
+      title: "Planos de Manutenção · Centro de Controle",
+      metrics: [
+        { label: "Total de itens", value: String(allRows.length), variant: "primary" },
+        { label: "HH Estimado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
+        { label: "Docas", value: String(docas.length), variant: "neutral" },
+        { label: "Geral", value: String(geral.length), variant: "neutral" },
+        { label: "Portas", value: String(portas.length), variant: "neutral" },
+      ],
+      tables: [table],
+    };
+
+    try {
+      await renderReportPdf(reportData, charts, {
+        filename: "planos-manutencao",
+        orientation: "landscape",
+      });
+    } catch (err) {
+      console.error("Erro ao exportar planos:", err);
+    }
+  };
+
   return (
-    <div ref={pdfRef} className="space-y-6">
+    <div data-page="checklists" className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Planos de Manutenção</h1>
@@ -151,14 +196,13 @@ function ChecklistsPage() {
             { header: "Cargo", value: (r) => r._cargo },
             { header: "HH Estimado", value: (r) => r._hh },
           ]}
-          pdfTargetRef={pdfRef}
-          pdfTitle="Checklists · Centro de Controle"
+          onExecutiveSummary={handleExportReport}
         />
       </div>
 
       <SectionHeader label="Distribuição por Tipo" insight={`${allRows.length} itens no total · ${formatBRNumber(hhDocas + hhGeral + hhPortas, 1)}h HH estimado`}>
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel title="ITENS POR TIPO">
+          <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
             <div className="h-56">
               <ResponsiveContainer>
                 <PieChart>
@@ -170,7 +214,7 @@ function ChecklistsPage() {
               </ResponsiveContainer>
             </div>
           </Panel>
-          <Panel title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
+          <Panel dataChart="hh-tipo" title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
             <div className="h-56">
               <ResponsiveContainer>
                 <BarChart data={distTipo}>
