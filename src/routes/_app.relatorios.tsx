@@ -32,6 +32,8 @@ import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/form
 import { deriveExecStatus } from "@/lib/status";
 import { EmptyState } from "@/components/empty-state";
 import { SectionHeader } from "@/components/section-header";
+import { renderReportPdf } from "@/lib/pdf-report";
+import type { ReportData, ReportTable } from "@/lib/pdf-report";
 
 export const Route = createFileRoute("/_app/relatorios")({
   component: RelatoriosPage,
@@ -98,6 +100,55 @@ function RelatoriosPage() {
       return acc;
     }, [])
     .sort((a, b) => b.value - a.value);
+
+  const handleExportReport = async () => {
+    const chartEls = pdfRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
+    const charts = chartEls ? Array.from(chartEls) : [];
+    const rowsCount = periods.length;
+
+    const table: ReportTable<PeriodRow> = {
+      title: `${visao === "semanal" ? "Semanas" : visao === "mensal" ? "Meses" : "Dias"} — Dados Agregados`,
+      columns: [
+        { header: "Período", value: (r: PeriodRow) => r.periodLabel },
+        { header: "Total OS", value: (r: PeriodRow) => r.totalOS },
+        { header: "HH", value: (r: PeriodRow) => r.totalHH },
+        { header: "Planejadas", value: (r: PeriodRow) => r.planejadas },
+        { header: "Ñ Planejadas", value: (r: PeriodRow) => r.naoPlanejadas },
+        { header: "Finalizadas", value: (r: PeriodRow) => r.finalizadas },
+        { header: "Canceladas", value: (r: PeriodRow) => r.canceladas },
+        { header: "Em Andamento", value: (r: PeriodRow) => r.emAndamento },
+        { header: "Atrasadas", value: (r: PeriodRow) => r.atrasadas },
+        { header: "Quebras", value: (r: PeriodRow) => r.quebras },
+      ],
+      rows: periods,
+    };
+
+    const reportData: ReportData = {
+      title: `Relatório de Programação · ${visao === "semanal" ? "Semanal" : visao === "mensal" ? "Mensal" : "Diário"}`,
+      subtitle: dateFilter.isActive
+        ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(totalOS)} OS`
+        : `${formatInt(totalOS)} OS no total`,
+      metrics: [
+        { label: "Total de OS", value: formatInt(totalOS), variant: "primary" },
+        { label: "HH Total", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
+        { label: "Planejadas", value: formatInt(periods.reduce((s, p) => s + p.planejadas, 0)), variant: "success" },
+        { label: "Não Planejadas", value: formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0)), variant: "danger" },
+        { label: "Finalizadas", value: formatInt(totalFinalizadas), variant: "success" },
+        { label: "Canceladas", value: formatInt(totalCanceladas), variant: "neutral" },
+        { label: "Períodos", value: formatInt(rowsCount), variant: "neutral" },
+      ],
+      tables: [table],
+    };
+
+    try {
+      await renderReportPdf(reportData, charts, {
+        filename: `relatorio-programacao-${visao}`,
+        orientation: "landscape",
+      });
+    } catch (err) {
+      console.error("Erro ao exportar relatório:", err);
+    }
+  };
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -166,6 +217,7 @@ function RelatoriosPage() {
                 ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(totalOS)} OS`
                 : `${formatInt(totalOS)} OS no total`
             }
+            onExecutiveSummary={handleExportReport}
           />
         </div>
       </div>
@@ -220,7 +272,7 @@ function RelatoriosPage() {
       </SectionHeader>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={`PLANEJADO vs NÃO PLANEJADO POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
+        <Panel dataChart="planejado" title={`PLANEJADO vs NÃO PLANEJADO POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
@@ -242,7 +294,7 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel title={`HH POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
+        <Panel dataChart="hh" title={`HH POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
@@ -261,7 +313,7 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel title="STATUS DAS OS">
+        <Panel dataChart="status" title="STATUS DAS OS">
           {byStatus.length === 0 ? (
             <EmptyState />
           ) : (
@@ -290,7 +342,7 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE" subtitle="OS do tipo quebra agrupadas por solicitante">
+        <Panel dataChart="quebras" title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE" subtitle="OS do tipo quebra agrupadas por solicitante">
           {quebras.length === 0 ? (
             <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
               Nenhuma quebra de programação no período

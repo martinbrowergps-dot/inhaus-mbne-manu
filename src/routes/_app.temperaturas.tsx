@@ -1,4 +1,4 @@
-import { useRef } from "react";
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -29,8 +29,6 @@ function TemperaturasPage() {
   const { range } = Route.useSearch();
   const navigate = useNavigate({ from: "/temperaturas" });
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const pdfRef = useRef<HTMLDivElement>(null);
-
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
 
@@ -54,7 +52,7 @@ function TemperaturasPage() {
   const allLocais = uniqueLocais(medicoes);
 
   return (
-    <div ref={pdfRef} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
@@ -83,7 +81,6 @@ function TemperaturasPage() {
               { header: "Temperatura 04", value: (r) => r.TEMPERATURA_04 ?? "" },
               { header: "Técnico", value: (r) => r.TECNICO },
             ]}
-            pdfTargetRef={pdfRef}
             pdfTitle="Temperaturas · Centro de Controle"
             pdfSubtitle={
               dateFilter.isActive

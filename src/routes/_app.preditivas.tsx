@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -39,8 +39,6 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const pdfRef = useRef<HTMLDivElement>(null);
-
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -64,7 +62,7 @@ function PreditivasPage() {
   }, [preditiva]);
 
   return (
-    <div ref={pdfRef} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
@@ -83,7 +81,6 @@ function PreditivasPage() {
             { header: "Título", value: (r) => r.Titulo },
             { header: "HH", value: (r) => r.HH },
           ]}
-          pdfTargetRef={pdfRef}
           pdfTitle="Manutenção Preditiva · Centro de Controle"
         />
       </div>

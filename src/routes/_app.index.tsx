@@ -36,7 +36,8 @@ import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/form
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { deriveExecStatus, EXECUTADO_STATUSES } from "@/lib/status";
-import { exportExecutiveSummary } from "@/lib/export-pdf";
+import { renderReportPdf } from "@/lib/pdf-report";
+import type { ReportData } from "@/lib/pdf-report";
 import { EmptyState } from "@/components/empty-state";
 import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
 
@@ -125,25 +126,37 @@ function VisaoGeral() {
     .sort((a, b) => b.value - a.value);
 
   const handleExecutiveSummary = async () => {
+    const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
+    const charts = chartEls ? Array.from(chartEls) : [];
+
+    const reportData: ReportData = {
+      title: "Visão Geral · Centro de Controle",
+      subtitle: dateFilter.isActive
+        ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+        : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`,
+      metrics: [
+        { label: "Total de OS", value: formatInt(total), variant: "primary" },
+        { label: "Em Andamento", value: formatInt(emAndamento), variant: "warning" },
+        { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
+        { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
+        { label: "OS Programadas", value: formatInt(programadas), variant: "neutral" },
+        { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
+        { label: "Técnicos Ativos", value: formatInt(tecnicos.length), variant: "neutral" },
+        { label: "Temp. em Alerta", value: formatInt(tempAlerta), variant: tempAlerta > 0 ? "danger" : "success" },
+      ],
+      aderencia: {
+        pct: aderencia.pct,
+        finalizadasNoPrazo: aderencia.finalizadasNoPrazo,
+        totalProgramadas: aderencia.totalProgramadas,
+      },
+      tables: [],
+    };
+
     try {
-      await exportExecutiveSummary(chartRef.current, {
-        title: "Visão Geral · Centro de Controle",
-        aderencia: {
-          pct: aderencia.pct,
-          finalizadasNoPrazo: aderencia.finalizadasNoPrazo,
-          totalProgramadas: aderencia.totalProgramadas,
-        },
-        kpis: [
-          { label: "Total de OS", value: formatInt(total) },
-          { label: "Em Andamento", value: formatInt(emAndamento) },
-          { label: "Finalizadas", value: formatInt(finalizadas) },
-          { label: "Criticidade AA", value: formatInt(aa) },
-          { label: "OS Programadas", value: formatInt(programadas) },
-          { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h` },
-          { label: "Técnicos Ativos", value: formatInt(tecnicos.length) },
-          { label: "Temp. em Alerta", value: formatInt(tempAlerta) },
-        ],
-      }, "resumo-executivo");
+      await renderReportPdf(reportData, charts, {
+        filename: "resumo-executivo",
+        orientation: "portrait",
+      });
     } catch (err) {
       console.error("Erro ao exportar resumo executivo:", err);
     }
@@ -206,11 +219,11 @@ function VisaoGeral() {
         })()}
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <Panel title="PLANEJADO vs NÃO PLANEJADO" glass>
+          <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
             <ChartPie data={byPlanejamento} />
           </Panel>
 
-          <Panel title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2" glass>
+          <Panel dataChart="planejamento-dia" title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2" glass>
             {byPlanejamentoDia.length === 0 ? (
               <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
                 Sem registros no período
@@ -235,7 +248,7 @@ function VisaoGeral() {
           </Panel>
         </div>
 
-        <Panel title="OS POR DIA" subtitle="Próximas 2 semanas">
+        <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
           <div className="h-56">
             <ResponsiveContainer>
               <BarChart data={byDia}>
@@ -282,10 +295,10 @@ function VisaoGeral() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="STATUS DAS OS" glass>
+          <Panel dataChart="status-os" title="STATUS DAS OS" glass>
             <ChartPie data={byStatus} />
           </Panel>
-          <Panel title="OS POR SISTEMA" glass>
+          <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
             <ChartPie data={bySistema} />
           </Panel>
         </div>
@@ -313,10 +326,11 @@ function VisaoGeral() {
         })()}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="OS POR CRITICIDADE" glass>
+          <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
             <ChartDonut data={byCriticidade} />
           </Panel>
           <Panel
+            dataChart="quebras"
             title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
             subtitle="OS do tipo quebra agrupadas por solicitante"
           >
@@ -349,7 +363,7 @@ function VisaoGeral() {
         colorIndex={2}
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="HH POR CARGO">
+          <Panel dataChart="hh-cargo" title="HH POR CARGO">
             <ChartBarHorizontal data={aggregateHH(programacaoFiltrada)} />
           </Panel>
         </div>

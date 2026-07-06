@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -49,8 +49,6 @@ const columns: ColumnDef<NcRow>[] = [
 
 function NcPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const pdfRef = useRef<HTMLDivElement>(null);
-
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -81,7 +79,7 @@ function NcPage() {
   }, [nc]);
 
   return (
-    <div ref={pdfRef} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Não Conformidades</h1>
@@ -105,7 +103,6 @@ function NcPage() {
             { header: "Status", value: (r) => r.Status },
             { header: "Data Fechamento", value: (r) => r.DataFechamento },
           ]}
-          pdfTargetRef={pdfRef}
           pdfTitle="Não Conformidades · Centro de Controle"
         />
       </div>

@@ -9,6 +9,7 @@ export function Panel({
   className,
   glow,
   glass,
+  dataChart,
 }: {
   title?: string;
   subtitle?: string;
@@ -17,9 +18,11 @@ export function Panel({
   className?: string;
   glow?: boolean;
   glass?: boolean;
+  dataChart?: string;
 }) {
   return (
     <section
+      data-chart={dataChart}
       className={cn(
         "fade-up rounded-xl p-5",
         glass ? "panel-glass" : "panel",

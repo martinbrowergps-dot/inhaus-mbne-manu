@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toPng } from "html-to-image";
 import html2canvas from "html2canvas";
 import type { CsvColumn } from "./export-csv";
 
@@ -246,18 +247,21 @@ export async function exportVisualPdf(
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeLiveInlineColors(element);
 
-  const fullCanvas = await html2canvas(element, {
-    scale,
+  const dataUrl = await toPng(element, {
+    pixelRatio: scale,
     backgroundColor: "#ffffff",
-    useCORS: true,
-    logging: false,
+    cacheBust: true,
   });
 
   cleanLiveOverride();
   cleanLiveInline();
 
-  const imgW = fullCanvas.width;
-  const imgH = fullCanvas.height;
+  const img = new Image();
+  img.src = dataUrl;
+  await img.decode();
+
+  const imgW = img.naturalWidth;
+  const imgH = img.naturalHeight;
 
   const cssW = imgW / scale;
   const cssH = imgH / scale;
@@ -283,7 +287,7 @@ export async function exportVisualPdf(
 
     sliceCanvas.width = imgW;
     sliceCanvas.height = sh;
-    ctx.drawImage(fullCanvas, 0, sy, imgW, sh, 0, 0, imgW, sh);
+    ctx.drawImage(img, 0, sy, imgW, sh, 0, 0, imgW, sh);
 
     const pageDataUrl = sliceCanvas.toDataURL("image/png");
     const imgMmH = sh / (pxPerMm * scale);
