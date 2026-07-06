@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
-import { exportTableToPdf, exportVisualPdf } from "@/lib/export-pdf";
+import { exportTableToPdf, exportVisualPdf, type VisualPdfQuality } from "@/lib/export-pdf";
 
 interface Props<T> {
   filename: string;
