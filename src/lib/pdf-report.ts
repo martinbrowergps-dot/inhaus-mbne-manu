@@ -326,7 +326,7 @@ function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia, margins: PdfM
   return y + barH + 5;
 }
 
-function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMargins): number {
+function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMargins, showHeader: boolean): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const m = margins;
@@ -360,6 +360,7 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMa
       y += 2;
     }
 
+    let didDrawFirstPage = false;
     autoTable(pdf, {
       head,
       body,
@@ -385,7 +386,8 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMa
       },
       alternateRowStyles: { fillColor: [C.light[0], C.light[1], C.light[2]] },
       didDrawPage: () => {
-        drawPageHeader(pdf, table.title, table.subtitle, margins);
+        if (!didDrawFirstPage) { didDrawFirstPage = true; return; }
+        if (showHeader) drawPageHeader(pdf, table.title, table.subtitle, margins);
       },
     });
 
@@ -431,7 +433,7 @@ export async function renderReportPdf(
   if (data.aderencia) {
     y = drawAderencia(pdf, y, data.aderencia, margins);
   }
-  y = drawTables(pdf, y, data.tables, margins);
+  y = drawTables(pdf, y, data.tables, margins, showHeader);
 
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
