@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DataTable } from "@/components/data-table";
+import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
@@ -202,23 +203,27 @@ function ChecklistsPage() {
       </div>
 
       <SectionHeader label="Distribuição por Tipo" insight={`${allRows.length} itens no total · ${formatBRNumber(hhDocas + hhGeral + hhPortas, 1)}h HH estimado`}>
+        {distTipo.length === 0 ? (
+          <EmptyState />
+        ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
-            <div className="h-56">
+            <div className="h-64">
               <ResponsiveContainer>
                 <PieChart>
-                  <Pie data={distTipo} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={(e) => `${e.name}: ${e.value}`} labelLine={false}>
+                  <Pie data={distTipo} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={(e) => `${e.name}`} labelLine={true}>
                     {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
                   </Pie>
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </Panel>
           <Panel dataChart="hh-tipo" title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
-            <div className="h-56">
+            <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={distTipo}>
+                <BarChart data={distTipo} margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
@@ -232,6 +237,7 @@ function ChecklistsPage() {
             </div>
           </Panel>
         </div>
+        )}
       </SectionHeader>
 
       <SectionHeader label="Planos por Tipo" insight={`Navegue pelos planos de docas, áreas gerais e portas`}>

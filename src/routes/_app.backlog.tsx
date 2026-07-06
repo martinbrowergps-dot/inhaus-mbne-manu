@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Inbox, AlertTriangle, Clock, Users } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   BarChart,
@@ -447,7 +448,7 @@ function ChartBars({
         [
           "#0EA5FF",
           "#EAB308",
-          "#EAB308",
+          "#F97316",
           "#EF4444",
         ][i] || "#0EA5FF"
       );
@@ -459,7 +460,7 @@ function ChartBars({
       <BarChart
         data={data}
         layout={horizontal ? "vertical" : "horizontal"}
-        margin={{ top: 4, right: 8, left: horizontal ? 80 : 0, bottom: 0 }}
+        margin={{ top: 8, right: 8, left: horizontal ? 80 : 0, bottom: 8 }}
       >
         <CartesianGrid stroke="hsl(var(--border) / 0.3)" strokeDasharray="3 3" />
         {horizontal ? (

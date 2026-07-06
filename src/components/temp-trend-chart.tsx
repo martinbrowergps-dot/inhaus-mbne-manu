@@ -91,7 +91,7 @@ export function TempTrendChart({
                 domain={[minT, maxT]}
                 tick={{ fontSize: 10, fill: "#94A3B8" }}
                 stroke="#94A3B8"
-                width={36}
+                width={44}
               />
               {faixa && (
                 <ReferenceArea

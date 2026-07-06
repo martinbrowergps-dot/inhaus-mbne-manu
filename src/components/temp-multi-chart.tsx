@@ -80,7 +80,7 @@ export function TempMultiChart({
             stroke="#94A3B8"
             minTickGap={40}
           />
-          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={36} />
+          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={44} />
           <ReTooltip
             contentStyle={CHART_TOOLTIP_STYLE}
             labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}

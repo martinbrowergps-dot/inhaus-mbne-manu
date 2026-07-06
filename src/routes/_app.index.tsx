@@ -233,7 +233,7 @@ function VisaoGeral() {
             ) : (
               <div className="h-64">
                 <ResponsiveContainer>
-                  <BarChart data={byPlanejamentoDia} barCategoryGap="20%">
+                  <BarChart data={byPlanejamentoDia} barCategoryGap="20%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                     <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
@@ -242,10 +242,10 @@ function VisaoGeral() {
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                     />
                     <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                      <LabelList position="center" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
                     </Bar>
                     <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                      <LabelList position="center" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -255,19 +255,23 @@ function VisaoGeral() {
         </div>
 
         <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
-          <div className="h-56">
-            <ResponsiveContainer>
-              <BarChart data={byDia}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]}>
-                  <LabelList position="top" fill="#94A3B8" fontSize={10} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {byDia.length === 0 ? (
+            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">Sem registros no período</div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer>
+                <BarChart data={byDia} margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                  <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]}>
+                    <LabelList position="top" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </Panel>
       </Section>
 
@@ -349,10 +353,10 @@ function VisaoGeral() {
             ) : (
               <div className="h-64">
                 <ResponsiveContainer>
-                  <BarChart data={quebras} layout="vertical" margin={{ left: 20 }}>
+                  <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
                     <LabelList position="right" fill="#94A3B8" fontSize={10} />
@@ -575,7 +579,7 @@ function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] 
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 130, right: 8, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
           <YAxis
@@ -585,16 +589,9 @@ function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] 
             stroke="#94A3B8"
             width={110}
           />
-          <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
+          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
           <Bar dataKey="value" fill="#22C55E" radius={[0, 4, 4, 0]}>
-            <LabelList position="right" fill="#94A3B8" fontSize={10} />
+            <LabelList position="right" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

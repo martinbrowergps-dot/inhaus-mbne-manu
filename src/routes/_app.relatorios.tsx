@@ -280,7 +280,7 @@ function RelatoriosPage() {
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={periods} barCategoryGap="20%">
+                <BarChart data={periods} barCategoryGap="20%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
@@ -289,10 +289,10 @@ function RelatoriosPage() {
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
                   <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                    <LabelList position="center" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
                   </Bar>
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                    <LabelList position="center" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -306,14 +306,14 @@ function RelatoriosPage() {
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={periods}>
+                <BarChart data={periods} barCategoryGap="20%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   <Bar dataKey="totalHH" name="HH" fill="#EAB308" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
+                    <LabelList position="top" fill="#94A3B8" fontSize={9} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -334,16 +334,16 @@ function RelatoriosPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
-                    label={(e) => `${e.name}: ${e.value}`}
-                    labelLine={false}
+                    outerRadius={70}
+                    label={(e) => `${e.name}`}
+                    labelLine={true}
                   >
                     {byStatus.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -352,9 +352,7 @@ function RelatoriosPage() {
 
         <Panel dataChart="quebras" title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE" subtitle="OS do tipo quebra agrupadas por solicitante">
           {quebras.length === 0 ? (
-            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-              Nenhuma quebra de programação no período
-            </div>
+            <EmptyState />
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
@@ -411,16 +409,16 @@ function aggregateByDay(rows: import("@/lib/sheets-types").ProgramacaoRow[]): Pe
   for (const r of rows) {
     const d = parseDate(r.DataReprogramada || r.DataProgramada);
     if (!d) continue;
-    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
     const entry = map.get(key) ?? { label: key, rows: [] };
     entry.rows.push(r);
     map.set(key, entry);
   }
   return Array.from(map.entries())
     .sort(([a], [b]) => {
-      const [da, ma] = a.split("/").map(Number);
-      const [db, mb] = b.split("/").map(Number);
-      return ma - mb || da - db;
+      const [da, ma, ya] = a.split("/").map(Number);
+      const [db, mb, yb] = b.split("/").map(Number);
+      return ya - yb || ma - mb || da - db;
     })
     .map(([, entry]) => summarize(entry.label, entry.rows));
 }
