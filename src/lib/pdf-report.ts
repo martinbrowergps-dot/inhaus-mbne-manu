@@ -193,15 +193,15 @@ function drawPageHeader(pdf: jsPDF, title: string, subtitle: string | undefined)
   pdf.setFontSize(7);
   pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
   pdf.text(stamp, pageW - MARGIN, y, { align: "right" });
-  y += 2.5;
+  y += 4;
   pdf.setDrawColor(C.primary[0], C.primary[1], C.primary[2]);
   pdf.setLineWidth(0.3);
   pdf.line(MARGIN, y, pageW - MARGIN, y);
-  y += 2;
+  y += 3;
   pdf.setFontSize(13);
   pdf.setTextColor(C.text[0], C.text[1], C.text[2]);
-  pdf.text(title, MARGIN, y + 3);
-  y += 7;
+  pdf.text(title, MARGIN, y + 4);
+  y += 8;
   if (subtitle) {
     pdf.setFontSize(8);
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
@@ -336,7 +336,7 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[]): number {
       head,
       body,
       startY: y + 2,
-      margin: { top: MARGIN + 16, left: MARGIN, right: MARGIN, bottom: MARGIN + 6 },
+      margin: { top: MARGIN + 19, left: MARGIN, right: MARGIN, bottom: MARGIN + 6 },
       tableLineColor: [C.border[0], C.border[1], C.border[2]],
       tableLineWidth: 0.1,
       styles: {
@@ -413,7 +413,7 @@ export async function renderReportPdf(
   if (chartDataUrls.length > 0) {
     // drawPageHeader with subtitle "Gráficos" consumes:
     // brand(10) + gap(2.5) + line(2) + title(7) + subtitle(4) = 25.5mm total from MARGIN
-    const chartHeaderEndY = MARGIN + 2.5 + 2 + 7 + 4;
+    const chartHeaderEndY = MARGIN + 4 + 3 + 8 + 4;
     const imgStartY = chartHeaderEndY + 2;
     const imgAvailH = pageH - imgStartY - MARGIN - 4;
 
