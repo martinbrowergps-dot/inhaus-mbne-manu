@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { RefreshCw, Circle, Activity } from "lucide-react";
+import { RefreshCw, Circle } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

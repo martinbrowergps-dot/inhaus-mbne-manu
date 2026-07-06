@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ClipboardCheck, DoorOpen, Activity, ArrowLeftRight, Search } from "lucide-react";
+import { ClipboardCheck, DoorOpen, Activity } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";

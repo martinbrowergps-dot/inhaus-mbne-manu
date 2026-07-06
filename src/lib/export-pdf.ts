@@ -385,14 +385,17 @@ export async function exportVisualPdf(
   const cleanLiveInline = sanitizeLiveInlineColors(element);
   const candidatesCss = smartBreaks ? collectBreakCandidates(element) : [];
 
-  const dataUrl = await toPng(element, {
-    pixelRatio: scale,
-    backgroundColor: "#ffffff",
-    cacheBust: true,
-  });
-
-  cleanLiveOverride();
-  cleanLiveInline();
+  let dataUrl: string;
+  try {
+    dataUrl = await toPng(element, {
+      pixelRatio: scale,
+      backgroundColor: "#ffffff",
+      cacheBust: true,
+    });
+  } finally {
+    cleanLiveOverride();
+    cleanLiveInline();
+  }
 
   const img = new Image();
   img.src = dataUrl;

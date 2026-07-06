@@ -36,7 +36,7 @@ import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { deriveExecStatus, EXECUTADO_STATUSES } from "@/lib/status";
+import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
 import { EmptyState } from "@/components/empty-state";
