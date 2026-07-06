@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Download, FileText, FileSpreadsheet, Image, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,9 +31,11 @@ import {
   exportTableToPdf,
   exportVisualPdf,
   DEFAULT_MARGINS,
+  validateLayout,
   type VisualPdfQuality,
   type PdfMargins,
   type PdfLayoutOptions,
+  type ValidationResult,
 } from "@/lib/export-pdf";
 
 interface Props<T> {
@@ -64,6 +66,11 @@ export function ExportButton<T>({
   const [showHeader, setShowHeader] = useState(true);
   const [showFooter, setShowFooter] = useState(true);
   const [showPageNumbers, setShowPageNumbers] = useState(true);
+
+  const validation: ValidationResult = useMemo(
+    () => validateLayout(format === "visual" ? "landscape" : "landscape", margins, { showHeader, showFooter }),
+    [format, margins, showHeader, showFooter],
+  );
 
   const handleCsv = () => {
     if (rows.length === 0) return;
@@ -286,6 +293,21 @@ export function ExportButton<T>({
               </div>
             </div>
           </div>
+
+          {(!validation.valid || validation.warnings.length > 0) && (
+            <div className={`rounded-md border p-2.5 text-[11px] leading-relaxed ${
+              validation.valid
+                ? "border-warning/40 bg-warning/10 text-warning"
+                : "border-destructive/40 bg-destructive/10 text-destructive"
+            }`}>
+              {validation.errors.map((e, i) => <p key={i}>{e}</p>)}
+              {validation.warnings.map((w, i) => <p key={i}>{w}</p>)}
+              <p className="mt-1 text-[10px] opacity-70">
+                {validation.metrics.contentH.toFixed(0)}mm × {validation.metrics.contentW.toFixed(0)}mm úteis · {validation.metrics.marginTotalV}mm margem vertical
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setCustomOpen(false)}>
               Cancelar

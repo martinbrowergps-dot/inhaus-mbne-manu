@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
 import type { CsvColumn } from "./export-csv";
-import type { PdfMargins, PdfLayoutOptions } from "./export-pdf";
+import { validateLayout, type PdfMargins, type PdfLayoutOptions } from "./export-pdf";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -409,6 +409,15 @@ export async function renderReportPdf(
   const showHeader = layout.showHeader !== false;
   const showFooter = layout.showFooter !== false;
   const showPageNumbers = layout.showPageNumbers !== false;
+
+  const val = validateLayout(orientation, margins, { showHeader, showFooter });
+  if (!val.valid) {
+    const msg = val.errors.join(". ");
+    throw new Error(`Layout inválido: ${msg}`);
+  }
+  if (val.warnings.length > 0) {
+    console.warn(`[renderReportPdf] Avisos de layout:\n${val.warnings.join("\n")}`);
+  }
 
   // ── Capture charts (with CSS overrides active) ──
   const cleanGlobal = installLiveOverride();
