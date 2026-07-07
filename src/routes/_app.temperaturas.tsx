@@ -1,4 +1,5 @@
 
+import { useRef } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/_app/temperaturas")({
 
 function TemperaturasPage() {
   const { range } = Route.useSearch();
+  const pdfRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate({ from: "/temperaturas" });
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const setRange = (r: TempRange) =>
@@ -52,7 +54,7 @@ function TemperaturasPage() {
   const allLocais = uniqueLocais(medicoes);
 
   return (
-    <div className="space-y-6">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
@@ -87,6 +89,7 @@ function TemperaturasPage() {
                 ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
                 : undefined
             }
+            pdfTargetRef={pdfRef as any}
           />
         </div>
       </div>
