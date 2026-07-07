@@ -83,7 +83,7 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
 
 export function KpiGrid({ items, className }: { items: KpiItem[]; className?: string }) {
   return (
-    <div className={cn("hidden grid-cols-2 gap-3 lg:grid-cols-3", className)}>
+    <div className={cn("hidden md:grid grid-cols-2 gap-3 lg:grid-cols-3", className)}>
       {items.map((kpi, i) => {
         const v = VARIANTS[kpi.variant ?? "primary"];
         return (

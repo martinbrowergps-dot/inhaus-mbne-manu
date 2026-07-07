@@ -297,7 +297,7 @@ function BacklogPage() {
           {Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-28" />)}
         </div>
         <Skeleton className="h-8 w-72" />
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-64" />)}
         </div>
         <Skeleton className="h-96" />
@@ -347,7 +347,7 @@ function BacklogPage() {
       </SectionHeader>
 
       <SectionHeader label="Distribuição" insight="Solicitações por prioridade, idade e técnico">
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Panel dataChart="prioridade" title="POR PRIORIDADE">
             <ChartBars data={porPrioridade} colorBy="priority" />
           </Panel>

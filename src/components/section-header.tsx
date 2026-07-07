@@ -36,7 +36,7 @@ export function SectionHeader({
           <span className={cn("text-[10px] font-bold uppercase tracking-[0.15em]", colorClass)}>
             {label}
           </span>
-          <p className="truncate text-xs text-muted-foreground/70 leading-relaxed">
+          <p className="line-clamp-2 text-xs text-muted-foreground/70 leading-relaxed md:line-clamp-none">
             {insight}
           </p>
         </div>

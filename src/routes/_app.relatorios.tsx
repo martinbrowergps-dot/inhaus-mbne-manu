@@ -224,7 +224,7 @@ function RelatoriosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
         <KpiCard label="Total de OS" value={formatInt(totalOS)} icon={ClipboardList} variant="primary" />
         <KpiCard label="HH Total" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="primary" />
         <KpiCard label="Planejadas" value={formatInt(periods.reduce((s, p) => s + p.planejadas, 0))} icon={CheckCircle2} variant="success" />
@@ -278,7 +278,7 @@ function RelatoriosPage() {
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="h-64">
+            <div className="h-72 md:h-64">
               <ResponsiveContainer>
                 <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -304,7 +304,7 @@ function RelatoriosPage() {
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="h-64">
+            <div className="h-72 md:h-64">
               <ResponsiveContainer>
                 <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />

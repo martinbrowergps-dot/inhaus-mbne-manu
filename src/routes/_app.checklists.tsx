@@ -206,7 +206,7 @@ function ChecklistsPage() {
         {distTipo.length === 0 ? (
           <EmptyState />
         ) : (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
             <div className="h-64">
               <ResponsiveContainer>

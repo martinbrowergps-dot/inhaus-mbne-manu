@@ -220,7 +220,7 @@ function VisaoGeral() {
           );
         })()}
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
             <ChartPie data={byPlanejamento} />
           </Panel>
@@ -231,7 +231,7 @@ function VisaoGeral() {
                 Sem registros no período
               </div>
             ) : (
-              <div className="h-64">
+              <div className="h-72 md:h-64">
                 <ResponsiveContainer>
                   <BarChart data={byPlanejamentoDia} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -258,7 +258,7 @@ function VisaoGeral() {
           {byDia.length === 0 ? (
             <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">Sem registros no período</div>
           ) : (
-            <div className="h-64">
+            <div className="h-72 md:h-64">
               <ResponsiveContainer>
                   <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -282,7 +282,7 @@ function VisaoGeral() {
         icon={CheckCircle2}
         colorIndex={1}
       >
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <AderenciaCard
             pct={aderencia.pct}
             finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
