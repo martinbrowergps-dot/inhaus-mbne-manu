@@ -233,7 +233,7 @@ function VisaoGeral() {
             ) : (
               <div className="h-72 md:h-64">
                 <ResponsiveContainer>
-                  <BarChart data={byPlanejamentoDia} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
+                  <BarChart data={byPlanejamentoDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
                     <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
@@ -242,10 +242,10 @@ function VisaoGeral() {
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                     />
                     <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 2 ? v : ""} />
+                      <LabelList position="center" fill="#fff" fontSize={8} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                     <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                      <LabelList position="top" fill="#EF4444" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
+                      <LabelList position="top" fill="#EF4444" fontSize={8} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
