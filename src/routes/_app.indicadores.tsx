@@ -268,7 +268,7 @@ function IndicadoresPage() {
         <Panel title="ADERÊNCIA POR SISTEMA">
           <div className="h-72">
             <ResponsiveContainer>
-              <BarChart data={computed.aderSistema} layout="vertical" margin={{ left: 20 }}>
+              <BarChart data={computed.aderSistema} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis
                   type="number"
@@ -312,7 +312,7 @@ function IndicadoresPage() {
                 <BarChart data={computed.backlogArr}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
@@ -401,9 +401,9 @@ function IndicadoresPage() {
             ) : (
               <div className="h-64">
                 <ResponsiveContainer>
-                  <BarChart data={computed.duracaoPorExec} layout="vertical" margin={{ left: 20 }}>
+                  <BarChart data={computed.duracaoPorExec} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
                     <YAxis
                       type="category"
                       dataKey="name"
@@ -490,9 +490,9 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
   return (
     <div className="h-72">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"

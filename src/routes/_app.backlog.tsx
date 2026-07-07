@@ -462,30 +462,30 @@ function ChartBars({
         layout={horizontal ? "vertical" : "horizontal"}
         margin={{ top: 8, right: 8, left: horizontal ? 80 : 0, bottom: 8 }}
       >
-        <CartesianGrid stroke="hsl(var(--border) / 0.3)" strokeDasharray="3 3" />
+        <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
         {horizontal ? (
           <>
-            <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+            <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} allowDecimals={false} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 10, fill: "#94A3B8" }}
               width={80}
             />
           </>
         ) : (
           <>
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} />
             <YAxis
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 10, fill: "#94A3B8" }}
               allowDecimals={false}
             />
           </>
         )}
         <Tooltip
           contentStyle={{
-            background: "hsl(var(--card))",
-            border: "1px solid hsl(var(--border))",
+            background: "#05254A",
+            border: "1px solid #0EA5FF55",
             borderRadius: 8,
             fontSize: 11,
           }}

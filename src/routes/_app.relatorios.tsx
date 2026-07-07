@@ -280,10 +280,10 @@ function RelatoriosPage() {
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={periods} barCategoryGap="20%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
+                <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
@@ -306,10 +306,10 @@ function RelatoriosPage() {
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={periods} barCategoryGap="20%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
+                <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   <Bar dataKey="totalHH" name="HH" fill="#EAB308" radius={[4, 4, 0, 0]}>
@@ -356,9 +356,9 @@ function RelatoriosPage() {
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={quebras} layout="vertical" margin={{ left: 20 }}>
+                <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
