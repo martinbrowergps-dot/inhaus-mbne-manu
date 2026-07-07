@@ -2,33 +2,16 @@ import { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ClipboardList,
-  Play,
-  CheckCircle2,
-  Calendar,
-  AlertOctagon,
-  Clock,
-  Users,
-  Thermometer,
+  ClipboardList, Play, CheckCircle2, Calendar,
+  AlertOctagon, Clock, Users, Thermometer,
 } from "lucide-react";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip as ReTooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  LabelList,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
+  Tooltip as ReTooltip, Legend, LabelList,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE } from "@/lib/chart-utils";
-import { KpiCard } from "@/components/kpi-card";
+import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE, aggregate } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
@@ -39,14 +22,16 @@ import { Button } from "@/components/ui/button";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
-import { EmptyState } from "@/components/empty-state";
 import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
+import { Section } from "@/components/visao-geral/section";
+import { ChartPie } from "@/components/visao-geral/chart-pie";
+import { ChartDonut } from "@/components/visao-geral/chart-donut";
+import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
+import { aggregateHH, aggregateByDay, aggregateByDayAndStatus } from "@/components/visao-geral/helpers";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
 });
-
-const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
 
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
@@ -433,188 +418,4 @@ function VisaoGeral() {
   );
 }
 
-function Section({ label, insight, icon: Icon, colorIndex = 0, children }: { label: string; insight: string; icon?: React.ElementType; colorIndex?: number; children: React.ReactNode }) {
-  const SECTION_COLORS = ["text-primary", "text-success", "text-warning", "text-destructive"] as const;
-  const colorClass = SECTION_COLORS[colorIndex % SECTION_COLORS.length];
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-3 border-b border-border/30 pb-2">
-        {Icon && (
-          <div className={`flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 ${colorClass}`}>
-            <Icon className="h-3.5 w-3.5" />
-          </div>
-        )}
-        <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.15em] ${colorClass}`}>
-            {label}
-          </span>
-          <p className="truncate text-xs text-muted-foreground/70 leading-relaxed">
-            {insight}
-          </p>
-        </div>
-      </div>
-      {children}
-    </section>
-  );
-}
 
-function aggregate<T>(items: T[], keyFn: (t: T) => string) {
-  const map = new Map<string, number>();
-  for (const it of items) {
-    const k = keyFn(it) || "—";
-    map.set(k, (map.get(k) ?? 0) + 1);
-  }
-  return Array.from(map.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-}
-
-function aggregateHH(rows: { Cargo: string; HH: number }[]) {
-  const map = new Map<string, number>();
-  for (const r of rows) {
-    const k = r.Cargo || "—";
-    map.set(k, (map.get(k) ?? 0) + (r.HH || 0));
-  }
-  return Array.from(map.entries())
-    .map(([name, value]) => ({ name, value: Number(value.toFixed(1)) }))
-    .sort((a, b) => b.value - a.value);
-}
-
-function aggregateByDay(rows: { DataProgramada: string }[]) {
-  const map = new Map<string, number>();
-  for (const r of rows) {
-    const d = parseBRDate(r.DataProgramada);
-    if (!d) continue;
-    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    map.set(key, (map.get(key) ?? 0) + 1);
-  }
-  return Array.from(map.entries())
-    .sort((a, b) => {
-      const [da, ma] = a[0].split("/").map(Number);
-      const [db, mb] = b[0].split("/").map(Number);
-      return ma - mb || da - db;
-    })
-    .slice(0, 14)
-    .map(([label, value]) => ({ label, value }));
-}
-
-function aggregateByDayAndStatus(rows: { DataProgramada: string; Status: string }[]) {
-  const map = new Map<string, { planejado: number; naoPlanejado: number; label: string }>();
-  for (const r of rows) {
-    const d = parseBRDate(r.DataProgramada);
-    if (!d) continue;
-    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    const e = map.get(key) ?? { planejado: 0, naoPlanejado: 0, label: key };
-    const status = (r.Status || "").trim();
-    const isPlanejado = status === "Planejado";
-    if (isPlanejado) e.planejado++;
-    else e.naoPlanejado++;
-    map.set(key, e);
-  }
-  return Array.from(map.values())
-    .sort((a, b) => {
-      const [da, ma] = a.label.split("/").map(Number);
-      const [db, mb] = b.label.split("/").map(Number);
-      return ma - mb || da - db;
-    })
-    .slice(-14);
-}
-
-function ChartPie({ data }: { data: { name: string; value: number }[] }) {
-  if (data.length === 0) return <Empty />;
-  return (
-    <div className="h-64">
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-            label={({ value }) => value}
-            labelLine={false}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function ChartDonut({ data }: { data: { name: string; value: number }[] }) {
-  if (data.length === 0) return <Empty />;
-  return (
-    <div className="h-64">
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={80}
-            paddingAngle={3}
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <ReTooltip
-            contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] }) {
-  if (data.length === 0) return <Empty />;
-  return (
-    <div className="h-64">
-      <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 8, top: 8, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
-          <YAxis
-            type="category"
-            dataKey="name"
-            tick={{ fontSize: 10, fill: "#94A3B8" }}
-            stroke="#94A3B8"
-            width={110}
-          />
-          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-          <Bar dataKey="value" fill="#22C55E" radius={[0, 4, 4, 0]}>
-            <LabelList position="right" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-function Empty() {
-  return <EmptyState />;
-}

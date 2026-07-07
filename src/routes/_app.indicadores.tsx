@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import { CHART_TOOLTIP_STYLE, COLORS, aggregate } from "@/lib/chart-utils";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
@@ -31,8 +31,6 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_app/indicadores")({
   component: IndicadoresPage,
 });
-
-const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
 
 function IndicadoresPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
@@ -189,9 +187,9 @@ function IndicadoresPage() {
       </div>
     );
 
-  const bySistema = countBy(data.programacao.map((p) => p.Sistema || "—"));
-  const byTipo = countBy(data.programacao.map((p) => p.Tipo || "—"));
-  const byLocal = countBy(data.programacao.map((p) => p.LocalMacro || p.Localidade || "—"));
+  const bySistema = aggregate(data.programacao, (p) => p.Sistema || "—");
+  const byTipo = aggregate(data.programacao, (p) => p.Tipo || "—");
+  const byLocal = aggregate(data.programacao, (p) => p.LocalMacro || p.Localidade || "—");
 
   const locais = summarizeLocais(data.medicoes);
   const statusTemp = [
@@ -475,14 +473,6 @@ function Heatmap({
       </div>
     </div>
   );
-}
-
-function countBy(arr: string[]) {
-  const m = new Map<string, number>();
-  for (const v of arr) m.set(v, (m.get(v) ?? 0) + 1);
-  return Array.from(m.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
 }
 
 function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: string }) {

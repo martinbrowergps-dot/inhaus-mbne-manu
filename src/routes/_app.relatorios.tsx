@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE } from "@/lib/chart-utils";
+import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE, COLORS, aggregate } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
@@ -39,8 +39,6 @@ import type { ReportData, ReportTable } from "@/lib/pdf-report";
 export const Route = createFileRoute("/_app/relatorios")({
   component: RelatoriosPage,
 });
-
-const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
 
 type PeriodRow = {
   periodLabel: string;
@@ -504,13 +502,4 @@ function summarize(label: string, rows: import("@/lib/sheets-types").Programacao
   };
 }
 
-function aggregate<T>(items: T[], keyFn: (t: T) => string) {
-  const map = new Map<string, number>();
-  for (const it of items) {
-    const k = keyFn(it) || "—";
-    map.set(k, (map.get(k) ?? 0) + 1);
-  }
-  return Array.from(map.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-}
+

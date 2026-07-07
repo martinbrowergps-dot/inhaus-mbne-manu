@@ -36,6 +36,19 @@ export function priorityBadge(priority: string) {
   return cls;
 }
 
+export const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
+
+export function aggregate<T>(items: T[], keyFn: (t: T) => string): { name: string; value: number }[] {
+  const map = new Map<string, number>();
+  for (const it of items) {
+    const k = keyFn(it) || "—";
+    map.set(k, (map.get(k) ?? 0) + 1);
+  }
+  return Array.from(map.entries())
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
 export function statusBadge(status: string) {
   const s = (status || "").toLowerCase();
   if (/aberto|pendente/i.test(s))
