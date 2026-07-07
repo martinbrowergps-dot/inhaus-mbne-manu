@@ -242,10 +242,10 @@ function VisaoGeral() {
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                     />
                     <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
+                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 2 ? v : ""} />
                     </Bar>
                     <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                      <LabelList position="center" fill="#fff" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
+                      <LabelList position="top" fill="#EF4444" fontSize={9} formatter={(v: number) => v > 1 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
