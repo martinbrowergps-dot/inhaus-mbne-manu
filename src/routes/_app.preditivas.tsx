@@ -39,6 +39,14 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const preditiva = data?.preditiva ?? [];
+
+  const byTipo = useMemo(() => {
+    const m = new Map<string, number>();
+    preditiva.forEach((r) => { const k = r.Tipo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
+    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [preditiva]);
+
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -51,15 +59,9 @@ function PreditivasPage() {
 
   if (!data) return null;
 
-  const preditiva = data.preditiva;
   const total = preditiva.length;
   const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);
 
-  const byTipo = useMemo(() => {
-    const m = new Map<string, number>();
-    preditiva.forEach((r) => { const k = r.Tipo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
-    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  }, [preditiva]);
 
   return (
     <div className="space-y-6">
