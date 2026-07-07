@@ -289,10 +289,10 @@ function RelatoriosPage() {
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
                   <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                    <LabelList position="center" fill="#fff" fontSize={8} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList position="center" fill="#fff" fontSize={7} formatter={(v: number) => v > 0 ? v : ""} />
                   </Bar>
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#EF4444" fontSize={8} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList position="center" fill="#fff" fontSize={7} formatter={(v: number) => v > 0 ? v : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
