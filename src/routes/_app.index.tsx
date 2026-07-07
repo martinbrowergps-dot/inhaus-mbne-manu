@@ -517,7 +517,7 @@ function ChartPie({ data }: { data: { name: string; value: number }[] }) {
             cx="50%"
             cy="50%"
             outerRadius={80}
-            label={(e) => `${e.name}: ${e.value}`}
+            label={({ value }) => value}
             labelLine={false}
           >
             {data.map((_, i) => (
