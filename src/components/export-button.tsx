@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { toPng } from "html-to-image";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
 import {
   exportTableToPdf,
@@ -75,6 +76,22 @@ export function ExportButton<T>({
   const handleCsv = () => {
     if (rows.length === 0) return;
     downloadCsv(filename, rows, columns);
+  };
+
+  const handlePng = async () => {
+    const el = pdfTargetRef?.current;
+    if (!el) { toast.error("Nada para capturar"); return; }
+    try {
+      const dataUrl = await toPng(el, { quality: 0.95, pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = `${filename}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Imagem exportada");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Erro ao capturar: ${msg}`);
+    }
   };
 
   const runTable = () =>
@@ -185,6 +202,15 @@ export function ExportButton<T>({
             <FileSpreadsheet className="h-3.5 w-3.5 text-success" />
             Exportar CSV
           </DropdownMenuItem>
+          {pdfTargetRef && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handlePng} className="gap-2 text-xs">
+                <Image className="h-3.5 w-3.5 text-primary" />
+                Exportar PNG · Página inteira
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handlePdfTable} className="gap-2 text-xs">
             <FileText className="h-3.5 w-3.5 text-destructive" />
