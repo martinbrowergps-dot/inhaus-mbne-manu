@@ -49,22 +49,7 @@ const columns: ColumnDef<NcRow>[] = [
 
 function NcPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  if (isLoading)
-    return (
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-24" />)}
-        </div>
-        <Skeleton className="h-96" />
-      </div>
-    );
-
-  if (!data) return null;
-
-  const nc = data.nc;
-  const total = nc.length;
-  const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
-  const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
+  const nc = data?.nc ?? [];
 
   const byProcesso = useMemo(() => {
     const m = new Map<string, number>();
@@ -77,6 +62,23 @@ function NcPage() {
     nc.forEach((r) => { const k = r.Status || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
     return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [nc]);
+
+  if (isLoading)
+    return (
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-24" />)}
+        </div>
+        <Skeleton className="h-96" />
+      </div>
+    );
+
+  if (!data) return null;
+
+  const total = nc.length;
+  const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
+  const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
+
 
   return (
     <div className="space-y-6">
