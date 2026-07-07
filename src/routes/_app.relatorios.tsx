@@ -288,11 +288,27 @@ function RelatoriosPage() {
                   <Legend wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
-                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]}>
-                    <LabelList position="center" fill="#fff" fontSize={7} formatter={(v: number) => v > 0 ? v : ""} />
-                  </Bar>
+                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                    <LabelList position="center" fill="#fff" fontSize={7} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList
+                      dataKey="naoPlanejadas"
+                      position="top"
+                      content={({ x, y, width, index }) => {
+                        const d = index !== undefined ? periods[index] : undefined;
+                        if (!d) return null;
+                        return (
+                          <text
+                            x={Number(x) + Number(width) / 2}
+                            y={Number(y) - 4}
+                            textAnchor="middle"
+                            fill="#94A3B8"
+                            fontSize={9}
+                          >
+                            {d.planejadas} / {d.naoPlanejadas}
+                          </text>
+                        );
+                      }}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
