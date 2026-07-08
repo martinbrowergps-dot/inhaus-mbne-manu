@@ -319,7 +319,7 @@ function IndicadoresPage() {
           ) : (
             <div className="h-72">
               <ResponsiveContainer>
-                <BarChart data={computed.backlogArr} margin={{ top: 10, right: 12, left: 12, bottom: 4 }}>
+                <BarChart data={computed.backlogArr} margin={{ top: 10, right: 20, left: 20, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
                   <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
@@ -424,7 +424,7 @@ function IndicadoresPage() {
                   <BarChart
                     data={computed.duracaoPorExec}
                     layout="vertical"
-                    margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
+                    margin={{ left: 20, right: 40, top: 8, bottom: 4 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
@@ -527,7 +527,7 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
   return (
     <div className="h-72">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 28, top: 8, bottom: 4 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 40, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
@@ -556,13 +556,13 @@ function PieView({
   return (
     <div className="h-72">
       <ResponsiveContainer>
-        <PieChart>
+        <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
             innerRadius={55}
-            outerRadius={90}
+            outerRadius={85}
             paddingAngle={2}
           >
             {data.map((_, i) => (

@@ -7,14 +7,14 @@ export function ChartPie({ data }: { data: { name: string; value: number }[] }) 
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <PieChart>
+        <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
             cy="50%"
-            outerRadius={80}
+            outerRadius={75}
             label={({ value }) => value}
             labelLine={false}
           >

@@ -7,7 +7,7 @@ export function ChartDonut({ data }: { data: { name: string; value: number }[] }
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <PieChart>
+        <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <Pie
             data={data}
             dataKey="value"
@@ -15,7 +15,7 @@ export function ChartDonut({ data }: { data: { name: string; value: number }[] }
             cx="50%"
             cy="50%"
             innerRadius={50}
-            outerRadius={80}
+            outerRadius={75}
             paddingAngle={3}
           >
             {data.map((_, i) => (

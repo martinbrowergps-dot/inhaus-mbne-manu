@@ -23,7 +23,7 @@ export function ChartBarHorizontal({
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 28, top: 8, bottom: 4 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 40, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
