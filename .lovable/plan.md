@@ -1,55 +1,103 @@
-## Problema
+# Direção de UI/UX para o Centro de Controle de Manutenção
 
-O export "PDF Visual" (html2canvas) quebra com erro `oklab`/`oklch`. Já existe um patch em `getPatchedCss()` que substitui `oklch(...)` e `oklab(...)` nas regras de CSS clonadas, mas o erro persiste porque:
+## Escolhas do usuário (travadas)
+- **Paleta**: Deep Ocean (`#082F49`, `#0C4A6E`, `#06B6D4`, `#10B981`)
+- **Tipografia**: Tech Mono + Sans (JetBrains Mono para números/IDs + Work Sans para textos)
+- **Layout**: Dashboard denso (sidebar + grid de cards e tabelas)
 
-1. **Estilos inline** — Recharts, Radix e alguns componentes shadcn injetam `style="fill: oklch(...)"` / `stroke` / `background-color` diretamente nos elementos DOM (via CSS custom properties resolvidas em runtime). Esses valores não vivem em stylesheets, então o regex atual não os alcança.
-2. **CSS custom properties** — `--primary`, `--destructive` etc. estão definidos em `oklch()` no `styles.css`. Quando um elemento faz `color: hsl(var(--primary))` ou `fill: var(--chart-1)`, o valor computado é `oklch(...)` e html2canvas falha ao parsear.
-3. **Remoção agressiva de stylesheets** — o `onclone` atual remove TODOS os `<link rel="stylesheet">` e `<style>` e re-injeta só as regras patcheadas. Fontes web e alguns estilos de terceiros somem, mas o problema principal (inline) continua.
+## Direção criativa: "Deep Ocean Command"
+Um painel de controle de manutenção industrial que parece uma sala de comando submarina/offshore: fundo muito profundo, superfícies em camadas de azul-petróleo, acentos em ciano e verde de status. A sensação é **técnica, confiável e imersiva** — não brinca com cores, usa luz para indicar estado.
 
-## Correção
+### Decisões visuais concretas
+- **Fundo**: `#082F49` com gradiente radial suave vindo do topo (`#0C4A6E` → `#082F49` → `#042033`).
+- **Superfícies de cards/painéis** em 3 níveis:
+  - **Nível 1 (base)**: `#0C4A6E` com borda sutil `#06B6D4/15`.
+  - **Nível 2 (hover/focus)**: `#0E5A82` com elevação leve.
+  - **Nível 3 (destaque/KPI crítico)**: `#0A3A55` com glow ciano ou vermelho conforme semântica.
+- **Acentos semânticos**:
+  - Primário: `#06B6D4` (ciano)
+  - Sucesso: `#10B981` (verde oceano)
+  - Alerta: `#F59E0B` (âmbar)
+  - Perigo: `#EF4444` (vermelho)
+- **Tipografia**:
+  - Títulos/seções: Work Sans semibold, tracking levemente negativo.
+  - Números, IDs, datas, HH, porcentagens: JetBrains Mono tabular.
+  - Labels/caps: Work Sans bold, 9–10px, tracking 0.15em, uppercase.
+- **Formas**: bordas arredondadas consistentes (`radius: 12px` para cards, `8px` para botões/chips, `16px` para modais).
+- **Elevação**: sombras azuladas em vez de pretas puras (`0 8px 32px rgba(6,182,212,0.08)`), criando profundidade sem sair da paleta.
+- **Estados de interação**:
+  - Hover: leve elevação + brilho de borda ciano.
+  - Focus: anel ciano sólido com offset.
+  - Crítico: pulse vermelho sutil (mantém o neon, mas mais contido).
+- **Densidade**: mantém dashboard denso. Cards com padding 16–20px, gaps 16px, tabelas compactas com altura de linha 40px.
 
-### 1. Patchar `styles.css` no clone antes de qualquer coisa
-Reescrever `getPatchedCss()` para também substituir as definições de custom properties em `:root`/`.dark` que usam `oklch`/`oklab` por equivalentes hex/rgb. Assim `var(--primary)` já resolve para uma cor html2canvas-safe.
+## O que muda no código
 
-### 2. Varrer o DOM clonado e sanitizar estilos inline
-Dentro do `onclone`, percorrer `doc.querySelectorAll('*')` e:
-- Ler `el.getAttribute('style')`; se contém `oklch(` ou `oklab(`, substituir por `#0EA5FF` (ou por uma cor derivada do nome da propriedade — primary=azul, destructive=vermelho, success=verde, warning=âmbar, muted=cinza).
-- Para SVGs (Recharts), checar atributos `fill` e `stroke` e aplicar a mesma substituição.
-
-### 3. Não remover stylesheets externas
-Manter os `<link>`/`<style>` originais e apenas **acrescentar** um `<style>` no final do `<head>` do clone com overrides que redefinem `--primary`, `--destructive`, `--success`, `--warning`, `--muted`, `--foreground`, `--background`, `--card`, `--border`, `--chart-1..5` para valores hex. Como CSS respeita ordem, esse override vence sem quebrar fontes/layout.
-
-### 4. Fallback com mapa de cores nomeadas
-Definir um mapa fixo:
+### 1. Tokens globais (`src/styles.css`)
+Substituir o tema Martin Brower atual pelos tokens Deep Ocean, mantendo a estrutura de variáveis shadcn:
 ```
---primary       → #0EA5FF
---destructive   → #EF4444
---success       → #22C55E
---warning       → #EAB308
---muted         → #64748B
---foreground    → #0F172A
---background    → #FFFFFF
---card          → #FFFFFF
---border        → #E2E8F0
---chart-1..5    → paleta azul/verde/âmbar/vermelho/roxo
+--background: #082F49
+--foreground: #E0F7FF
+--card: #0C4A6E
+--card-foreground: #FFFFFF
+--popover: #0C4A6E
+--primary: #06B6D4
+--primary-foreground: #042033
+--secondary: #0E5A82
+--muted: #0A3A55
+--muted-foreground: #93C5D8
+--accent: #115E83
+--destructive: #EF4444
+--success: #10B981
+--warning: #F59E0B
+--border: rgba(6, 182, 212, 0.12)
+--input: #0A3A55
+--ring: #06B6D4
+--chart-1: #06B6D4
+--chart-2: #10B981
+--chart-3: #F59E0B
+--chart-4: #EF4444
+--chart-5: #A855F7
+--sidebar: #042033
+--sidebar-foreground: #B8D9E8
+--sidebar-primary: #06B6D4
+--sidebar-accent: #0A3A55
 ```
-Isso garante que o PDF visual saia com as cores corporativas mesmo quando o parser falha.
+Atualizar gradientes, sombras e neon utilities para a nova paleta.
 
-### 5. Reforçar `exportExecutiveSummary`
-Aplicar a mesma sanitização (a função hoje usa `getPatchedCss` + `makeOncloneInject`, então herda automaticamente).
+### 2. Componentes base shadcn
+Ajustar `button`, `card`, `badge`, `dialog`, `input`, `select`, `tabs`, `sidebar` para usarem os novos tokens. Não reescrever do zero — apenas trocar cores/raios/sombras para manter compatibilidade.
 
-### 6. Try/catch com fallback claro
-Se `html2canvas` ainda falhar depois disso, mostrar toast: *"Não foi possível gerar PDF visual. Exportando como PDF tabular."* e chamar `exportTableToPdf` como fallback, em vez de deixar o erro estourar no console.
+### 3. Componentes próprios
+- `Panel`: substituir `.panel`/`.panel-glass` por superfície nível 1 com borda ciano sutil e hover nível 2.
+- `KpiBox`/`KpiCarousel`: cards menores com números em JetBrains Mono e labels em caps.
+- `StatusBadge`: manter forma, atualizar cores para novo semântico.
+- `AppSidebar`: sidebar em `#042033`, item ativo com barra ciano à esquerda e fundo `#0A3A55`.
+- `TopHeader`: fundo glass com blur e borda ciano sutil.
+- `ExportButton`: botão primário ciano, dropdown com ícones coloridos.
 
-## Arquivos afetados
+### 4. Gráficos (Recharts)
+Atualizar cores dos eixos, grid e tooltips para `#93C5D8` e `#06B6D4`. Garantir contraste contra fundo `#082F49`.
 
-- `src/lib/export-pdf.ts` — reescrever `getPatchedCss` + `makeOncloneInject`, adicionar sanitização inline/SVG, adicionar mapa de cores.
-- `src/components/export-button.tsx` — no `catch` do PDF visual, cair no `exportTableToPdf` como fallback.
+### 5. PDFs
+Atualizar `COLOR_OVERRIDES` em `pdf-css-patch.ts` para os hex Deep Ocean, para que exportações visuais não fiquem com cores quebradas.
 
-## Sem impacto em
+### 6. Tipografia
+- Adicionar `@fontsource/jetbrains-mono` e `@fontsource/work-sans` (se ainda não estiverem).
+- Importar no entrypoint da aplicação.
+- Atualizar `--font-mono` e adicionar `--font-sans` no `@theme inline`.
 
-- PDF Tabela (`jspdf-autotable`) — não usa html2canvas.
-- CSV — inalterado.
-- Tema/UI da aplicação — patches vivem só no documento clonado do html2canvas.
+## Escopo de implementação sugerido
+**Passada única** (recomendado): tokens + componentes base + componentes próprios + gráficos + PDFs. Tudo muda junto para consistência visual.
 
-Posso implementar assim?
+## Riscos e mitigações
+- **Contraste em superfícies**: validar `#93C5D8` sobre `#0C4A6E` (ratio ~4.8:1, OK).
+- **PDF visual**: retestar página 2 após mudança de cores para garantir que não haja fundo escuro residual.
+- **Carga de fontes**: usar fontsource para evitar FOUT e garantir funcionamento offline/PDF.
+
+## Próximos passos
+1. Aprovar direção Deep Ocean Command.
+2. Implementar tokens globais.
+3. Re-skin componentes próprios e shadcn.
+4. Ajustar gráficos e PDF overrides.
+5. Validar via build + screenshots desktop/mobile + exportação PDF visual.
