@@ -44,7 +44,7 @@ export function TempTrendChart({
   const series = buildSeries(filtered, local, tipo);
   const kpis = computeRangeKpis(series, faixa);
 
-  const lineColor =
+const lineColor =
     kpis.criticos > 0
       ? "#EF4444"
       : kpis.pctNaFaixa < 100
@@ -105,16 +105,8 @@ export function TempTrendChart({
               )}
               {faixa && (
                 <>
-                  <ReferenceLine
-                    y={faixa.min}
-                    stroke="rgba(34,197,94,0.5)"
-                    strokeDasharray="3 3"
-                  />
-                  <ReferenceLine
-                    y={faixa.max}
-                    stroke="rgba(34,197,94,0.5)"
-                    strokeDasharray="3 3"
-                  />
+                  <ReferenceLine y={faixa.min} stroke="rgba(34,197,94,0.5)" strokeDasharray="3 3" />
+                  <ReferenceLine y={faixa.max} stroke="rgba(34,197,94,0.5)" strokeDasharray="3 3" />
                 </>
               )}
               <ReTooltip

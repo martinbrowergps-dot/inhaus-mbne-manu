@@ -1,4 +1,3 @@
-
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -134,7 +133,10 @@ function PassagemPage() {
           }
         />
       </div>
-      <SectionHeader label="Registro" insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}>
+      <SectionHeader
+        label="Registro"
+        insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}
+      >
         <Panel>
           {isLoading ? (
             <Skeleton className="h-80" />

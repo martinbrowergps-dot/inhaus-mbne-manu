@@ -39,7 +39,11 @@ export interface ValidationResult {
   };
 }
 
-const PAGE_MM: Record<string, [number, number]> = { a4: [210, 297], a3: [297, 420], letter: [215.9, 279.4] };
+const PAGE_MM: Record<string, [number, number]> = {
+  a4: [210, 297],
+  a3: [297, 420],
+  letter: [215.9, 279.4],
+};
 
 export function validateLayout(
   orientation: "portrait" | "landscape",
@@ -54,7 +58,7 @@ export function validateLayout(
   const showHeader = opts.showHeader !== false;
   const showFooter = opts.showFooter !== false;
 
-  const headerReserve = showHeader ? (m.top + 19) : 0;
+  const headerReserve = showHeader ? m.top + 19 : 0;
   const footerReserve = showFooter ? 6 : 0;
   const contentW = pageW - m.left - m.right;
   const contentH = pageH - m.top - m.bottom - headerReserve - footerReserve;
@@ -65,13 +69,19 @@ export function validateLayout(
   const warnings: string[] = [];
 
   if (marginTotalV >= pageH - 10) {
-    errors.push(`Margens verticais (${marginTotalV}mm) ocupam quase toda a página (${pageH}mm). Reduza topo/inferior.`);
+    errors.push(
+      `Margens verticais (${marginTotalV}mm) ocupam quase toda a página (${pageH}mm). Reduza topo/inferior.`,
+    );
   }
   if (marginTotalH >= pageW - 20) {
-    errors.push(`Margens horizontais (${marginTotalH}mm) ocupam quase toda a largura (${pageW}mm). Reduza laterais.`);
+    errors.push(
+      `Margens horizontais (${marginTotalH}mm) ocupam quase toda a largura (${pageW}mm). Reduza laterais.`,
+    );
   }
   if (contentH < 20) {
-    errors.push(`Altura útil insuficiente (${contentH.toFixed(0)}mm). Reduza margens ou desative cabeçalho/rodapé.`);
+    errors.push(
+      `Altura útil insuficiente (${contentH.toFixed(0)}mm). Reduza margens ou desative cabeçalho/rodapé.`,
+    );
   }
   if (contentW < 40) {
     errors.push(`Largura útil insuficiente (${contentW.toFixed(0)}mm). Reduza margens laterais.`);
@@ -80,7 +90,9 @@ export function validateLayout(
     warnings.push(`Altura útil baixa (${contentH.toFixed(0)}mm). Conteúdo pode ficar apertado.`);
   }
   if (headerReserve > pageH * 0.4) {
-    warnings.push(`Cabeçalho ocupa ${headerReserve}mm (${(headerReserve / pageH * 100).toFixed(0)}% da página).`);
+    warnings.push(
+      `Cabeçalho ocupa ${headerReserve}mm (${((headerReserve / pageH) * 100).toFixed(0)}% da página).`,
+    );
   }
   if (m.top < 8) {
     warnings.push(`Margem superior muito pequena (${m.top}mm). Cabeçalho pode ficar cortado.`);
@@ -120,7 +132,12 @@ interface ExportTableOpts<T> {
  * Desenha o cabeçalho no topo da página respeitando `margins.top`.
  * Retorna o Y (mm) onde o conteúdo pode começar.
  */
-function drawHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margins: PdfMargins): number {
+function drawHeader(
+  pdf: jsPDF,
+  title: string,
+  subtitle: string | undefined,
+  margins: PdfMargins,
+): number {
   const pageW = pdf.internal.pageSize.getWidth();
   let y = margins.top;
   pdf.setFontSize(9);
@@ -298,9 +315,9 @@ export interface VisualPdfOptions extends PdfLayoutOptions {
 }
 
 const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }> = {
-  low:    { scale: 1.0, jpeg: 0.72 },
+  low: { scale: 1.0, jpeg: 0.72 },
   medium: { scale: 1.5, jpeg: 0.85 },
-  high:   { scale: 2.2, jpeg: 0.92 },
+  high: { scale: 2.2, jpeg: 0.92 },
 };
 
 function collectBreakCandidates(root: HTMLElement): number[] {
@@ -423,9 +440,7 @@ export async function exportVisualPdf(
 
   for (let i = 0; i < cuts.length - 1; i++) {
     if (i > 0) pdf.addPage();
-    const imgStartY = showHeader
-      ? drawImagePageHeader(pdf, title, subtitle, margins)
-      : margins.top;
+    const imgStartY = showHeader ? drawImagePageHeader(pdf, title, subtitle, margins) : margins.top;
 
     const sy = Math.round(cuts[i] * scale);
     const sh = Math.round((cuts[i + 1] - cuts[i]) * scale);
@@ -460,6 +475,3 @@ export async function exportVisualPdf(
   const stampFile = new Date().toISOString().slice(0, 10);
   pdf.save(filename.endsWith(".pdf") ? filename : `${filename}_${stampFile}.pdf`);
 }
-
-
-

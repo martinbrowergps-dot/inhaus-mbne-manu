@@ -47,14 +47,75 @@ async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
 }
 
 const EXPECTED_HEADERS: Record<string, string[]> = {
-  programacao: ["NumeroOS", "DataProgramada", "Sistema", "Descricao", "Criticidade", "Cargo", "HH", "Status", "Executante", "StatusExecucao"],
-  medicoes: ["LOCAL", "DATA", "HORA", "TEMPERATURA 01", "TEMPERATURA 02", "TEMPERATURA 03", "TEMPERATURA 04", "TECNICO"],
-  passagemTurno: ["Data", "Turno", "Supervisor", "EquipeSaida", "EquipeEntrada", "TecnicoPassa", "TecnicoRecebe", "HorarioInicio", "HorarioTermino", "Aprovador"],
+  programacao: [
+    "NumeroOS",
+    "DataProgramada",
+    "Sistema",
+    "Descricao",
+    "Criticidade",
+    "Cargo",
+    "HH",
+    "Status",
+    "Executante",
+    "StatusExecucao",
+  ],
+  medicoes: [
+    "LOCAL",
+    "DATA",
+    "HORA",
+    "TEMPERATURA 01",
+    "TEMPERATURA 02",
+    "TEMPERATURA 03",
+    "TEMPERATURA 04",
+    "TECNICO",
+  ],
+  passagemTurno: [
+    "Data",
+    "Turno",
+    "Supervisor",
+    "EquipeSaida",
+    "EquipeEntrada",
+    "TecnicoPassa",
+    "TecnicoRecebe",
+    "HorarioInicio",
+    "HorarioTermino",
+    "Aprovador",
+  ],
   tecnicos: ["ID", "NOME", "Cargo"],
   parametrosHH: ["Cargo", "HH_Dia", "HH_Semana"],
-  backlog: ["NUMERO", "IDENTIFICAÇÃO_DA_SOLICITAÇÃO", "Solicitante", "DATA_CRIACAO", "Assunto", "TECNICO", "Prioridade", "DATA_DE_VENCIMENTO", "Estado", "Grupo"],
-  nc: ["Código NC", "Data", "Processo", "Descrição da NC", "Causa Raiz", "Plano de Ação", "Prazo", "Responsável", "Status"],
-  preditiva: ["Código Referência", "Tipo", "Categoria", "Prioridade", "Título", "Objetivo", "Descrição da Atividade", "HH"],
+  backlog: [
+    "NUMERO",
+    "IDENTIFICAÇÃO_DA_SOLICITAÇÃO",
+    "Solicitante",
+    "DATA_CRIACAO",
+    "Assunto",
+    "TECNICO",
+    "Prioridade",
+    "DATA_DE_VENCIMENTO",
+    "Estado",
+    "Grupo",
+  ],
+  nc: [
+    "Código NC",
+    "Data",
+    "Processo",
+    "Descrição da NC",
+    "Causa Raiz",
+    "Plano de Ação",
+    "Prazo",
+    "Responsável",
+    "Status",
+  ],
+  preditiva: [
+    "Código Referência",
+    "Tipo",
+    "Categoria",
+    "Prioridade",
+    "Título",
+    "Objetivo",
+    "Descrição da Atividade",
+    "HH",
+  ],
 };
 
 function validateHeaders(sheetName: string, rows: Record<string, string>[]) {
@@ -62,9 +123,13 @@ function validateHeaders(sheetName: string, rows: Record<string, string>[]) {
   const headers = Object.keys(rows[0]);
   const expected = EXPECTED_HEADERS[sheetName];
   if (!expected) return;
-  const missing = expected.filter((h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()));
+  const missing = expected.filter(
+    (h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()),
+  );
   if (missing.length > 0) {
-    console.warn(`[${sheetName}] Colunas esperadas ausentes: ${missing.join(", ")}. Headers recebidos: ${headers.join(", ")}`);
+    console.warn(
+      `[${sheetName}] Colunas esperadas ausentes: ${missing.join(", ")}. Headers recebidos: ${headers.join(", ")}`,
+    );
   }
 }
 

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { formatBRNumber } from "@/lib/format";
 
 function tone(pct: number) {
-  if (pct >= 95)
+if (pct >= 95)
     return { color: "#10B981", cls: "text-success", ring: "border-success/40" };
   if (pct >= 85)
     return { color: "#F59E0B", cls: "text-warning", ring: "border-warning/40" };

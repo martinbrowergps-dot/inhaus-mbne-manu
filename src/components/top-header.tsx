@@ -39,7 +39,7 @@ export function TopHeader() {
       </div>
 
       <div className="hidden items-center gap-2 sm:flex">
-        <span className="num text-[10px] text-muted-foreground/70">
+<span className="num text-[10px] text-muted-foreground/70">
           {lastUpdate ? lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
         </span>
         <Circle className="h-1.5 w-1.5 animate-pulse fill-success text-success" />
@@ -66,16 +66,16 @@ export function TopHeader() {
               <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Última atualização
               </p>
-              <p className="num text-xs text-foreground">
-                {formatBRDateTime(lastUpdate)}
-              </p>
+              <p className="num text-xs text-foreground">{formatBRDateTime(lastUpdate)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Hora atual
               </p>
               <p className="num text-xs text-foreground">
-                {now ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
+                {now
+                  ? now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                  : "--:--"}
               </p>
             </div>
             <button

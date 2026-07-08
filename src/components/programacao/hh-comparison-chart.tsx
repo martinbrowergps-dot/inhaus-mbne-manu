@@ -1,6 +1,13 @@
 import { useMemo } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
 } from "recharts";
 import { Panel } from "@/components/panel";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
@@ -43,11 +50,17 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
         <div className="flex items-end gap-6 py-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Planejado</p>
-            <p className="num text-3xl font-bold text-foreground">{formatBRNumber(totalPlan, 1)}<span className="ml-0.5 text-sm text-muted-foreground">h</span></p>
+            <p className="num text-3xl font-bold text-foreground">
+              {formatBRNumber(totalPlan, 1)}
+              <span className="ml-0.5 text-sm text-muted-foreground">h</span>
+            </p>
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-success">Executado</p>
-            <p className="num text-3xl font-bold text-foreground">{formatBRNumber(totalExec, 1)}<span className="ml-0.5 text-sm text-muted-foreground">h</span></p>
+            <p className="num text-3xl font-bold text-foreground">
+              {formatBRNumber(totalExec, 1)}
+              <span className="ml-0.5 text-sm text-muted-foreground">h</span>
+            </p>
           </div>
           {totalPlan > 0 && (
             <div>
@@ -76,11 +89,22 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                 <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 11 }}
+                <Legend
+                  wrapperStyle={{ fontSize: 11 }}
                   formatter={(value) => (value === "planejado" ? "Planejado" : "Executado")}
                 />
-                <Bar dataKey="planejado" name="planejado" fill={HH_COLORS[0]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="executado" name="executado" fill={HH_COLORS[1]} radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="planejado"
+                  name="planejado"
+                  fill={HH_COLORS[0]}
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="executado"
+                  name="executado"
+                  fill={HH_COLORS[1]}
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

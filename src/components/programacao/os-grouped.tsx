@@ -50,7 +50,13 @@ export function OsGroupedByDate({ rows, emptyLabel }: { rows: EnrichedRow[]; emp
   );
 }
 
-export function OsGroupedByExecutante({ rows, emptyLabel }: { rows: EnrichedRow[]; emptyLabel: string }) {
+export function OsGroupedByExecutante({
+  rows,
+  emptyLabel,
+}: {
+  rows: EnrichedRow[];
+  emptyLabel: string;
+}) {
   const groups = useMemo(() => {
     const m = new Map<string, EnrichedRow[]>();
     rows.forEach((r) => {

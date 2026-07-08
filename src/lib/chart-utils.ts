@@ -38,7 +38,10 @@ export function priorityBadge(priority: string) {
 
 export const COLORS = ["#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#06B6D4", "#A855F7", "#93C5D8"];
 
-export function aggregate<T>(items: T[], keyFn: (t: T) => string): { name: string; value: number }[] {
+export function aggregate<T>(
+  items: T[],
+  keyFn: (t: T) => string,
+): { name: string; value: number }[] {
   const map = new Map<string, number>();
   for (const it of items) {
     const k = keyFn(it) || "—";
@@ -51,13 +54,9 @@ export function aggregate<T>(items: T[], keyFn: (t: T) => string): { name: strin
 
 export function statusBadge(status: string) {
   const s = (status || "").toLowerCase();
-  if (/aberto|pendente/i.test(s))
-    return "border-warning/40 bg-warning/15 text-warning";
-  if (/conclu|finaliz|fechado/i.test(s))
-    return "border-success/40 bg-success/15 text-success";
-  if (/cancel/i.test(s))
-    return "border-destructive/40 bg-destructive/15 text-destructive";
-  if (/em andamento|em exec/i.test(s))
-    return "border-primary/40 bg-primary/15 text-primary";
+  if (/aberto|pendente/i.test(s)) return "border-warning/40 bg-warning/15 text-warning";
+  if (/conclu|finaliz|fechado/i.test(s)) return "border-success/40 bg-success/15 text-success";
+  if (/cancel/i.test(s)) return "border-destructive/40 bg-destructive/15 text-destructive";
+  if (/em andamento|em exec/i.test(s)) return "border-primary/40 bg-primary/15 text-primary";
   return "border-border/40 bg-card/50 text-muted-foreground";
 }

@@ -61,9 +61,13 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
                     {kpi.label}
                   </div>
                   <div className="num mt-1.5 text-3xl font-bold text-foreground">{kpi.value}</div>
-                  {kpi.hint && <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>}
+                  {kpi.hint && (
+                    <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
+                  )}
                 </div>
-                <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}>
+                <div
+                  className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}
+                >
                   <kpi.icon className="h-5 w-5" />
                 </div>
               </div>
@@ -102,7 +106,9 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
                   {kpi.label}
                 </div>
                 <div className="num mt-1.5 text-3xl font-bold text-foreground">{kpi.value}</div>
-                {kpi.hint && <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>}
+                {kpi.hint && (
+                  <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
+                )}
               </div>
               <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}>
                 <kpi.icon className="h-5 w-5" />

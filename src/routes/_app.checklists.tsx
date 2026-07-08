@@ -19,8 +19,18 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, LabelList,
-  PieChart, Pie, Cell, Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  LabelList,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
@@ -129,7 +139,9 @@ function ChecklistsPage() {
   ];
 
   const handleExportReport = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
-    const chartEls = document.querySelector<HTMLElement>('[data-page="checklists"]')?.querySelectorAll<HTMLElement>("[data-chart]");
+    const chartEls = document
+      .querySelector<HTMLElement>('[data-page="checklists"]')
+      ?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
 
     const table: ReportTable<ChecklistEnriched> = {
@@ -202,97 +214,132 @@ function ChecklistsPage() {
         />
       </div>
 
-      <SectionHeader label="Distribuição por Tipo" insight={`${allRows.length} itens no total · ${formatBRNumber(hhDocas + hhGeral + hhPortas, 1)}h HH estimado`}>
+      <SectionHeader
+        label="Distribuição por Tipo"
+        insight={`${allRows.length} itens no total · ${formatBRNumber(hhDocas + hhGeral + hhPortas, 1)}h HH estimado`}
+      >
         {distTipo.length === 0 ? (
           <EmptyState />
         ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
-            <div className="h-64">
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={distTipo} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={(e) => `${e.name}`} labelLine={true}>
-                    {distTipo.map((_, i) => <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Panel>
-          <Panel dataChart="hh-tipo" title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
-            <div className="h-64">
-              <ResponsiveContainer>
-                <BarChart data={distTipo} margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]} />
-                  <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
-                    {distTipo.map((_, i) => <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />)}
-                    <LabelList position="top" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Panel>
-        </div>
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={distTipo}
+                      dataKey="count"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={70}
+                      label={(e) => `${e.name}`}
+                      labelLine={true}
+                    >
+                      {distTipo.map((_, i) => (
+                        <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+            <Panel dataChart="hh-tipo" title="HH ESTIMADO POR TIPO" className="lg:col-span-2">
+              <div className="h-64">
+                <ResponsiveContainer>
+                  <BarChart data={distTipo} margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: "#93C5D8" }}
+                      stroke="#93C5D8"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "#93C5D8" }}
+                      stroke="#93C5D8"
+                      allowDecimals={false}
+                    />
+                    <Tooltip
+                      contentStyle={CHART_TOOLTIP_STYLE}
+                      formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]}
+                    />
+                    <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
+                      {distTipo.map((_, i) => (
+                        <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />
+                      ))}
+                      <LabelList
+                        position="top"
+                        fill="#93C5D8"
+                        fontSize={10}
+                        formatter={(v: number) => (v > 0 ? formatBRNumber(v, 1) : "")}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Panel>
+          </div>
         )}
       </SectionHeader>
 
-      <SectionHeader label="Planos por Tipo" insight={`Navegue pelos planos de docas, áreas gerais e portas`}>
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="docas">Docas ({docas.length})</TabsTrigger>
-          <TabsTrigger value="geral">Geral ({geral.length})</TabsTrigger>
-          <TabsTrigger value="portas">Portas ({portas.length})</TabsTrigger>
-        </TabsList>
+      <SectionHeader
+        label="Planos por Tipo"
+        insight={`Navegue pelos planos de docas, áreas gerais e portas`}
+      >
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="docas">Docas ({docas.length})</TabsTrigger>
+            <TabsTrigger value="geral">Geral ({geral.length})</TabsTrigger>
+            <TabsTrigger value="portas">Portas ({portas.length})</TabsTrigger>
+          </TabsList>
 
-        {(
-          [
-            ["docas", docas, DoorOpen],
-            ["geral", geral, ClipboardCheck],
-            ["portas", portas, Activity],
-          ] as const
-        ).map(([key, rows, Icon]) => (
-          <TabsContent key={key} value={key} className="m-0 space-y-4">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <SummaryCard
-                icon={<Icon className="h-4 w-4" />}
-                label="Total de itens"
-                value={rows.length}
-              />
-              <SummaryCard
-                icon={
-                  <Badge variant="outline" className="border-primary/30 text-primary text-[10px]">
-                    AA
-                  </Badge>
-                }
-                label="Criticidade AA"
-                value={rows.filter((r) => r._criticidade.toUpperCase() === "AA").length}
-              />
-              <SummaryCard
-                icon={
-                  <Badge variant="outline" className="border-warning/30 text-warning text-[10px]">
-                    h
-                  </Badge>
-                }
-                label="Cargos distintos"
-                value={new Set(rows.map((r) => r._cargo).filter((c) => c !== "—")).size}
-              />
-            </div>
+          {(
+            [
+              ["docas", docas, DoorOpen],
+              ["geral", geral, ClipboardCheck],
+              ["portas", portas, Activity],
+            ] as const
+          ).map(([key, rows, Icon]) => (
+            <TabsContent key={key} value={key} className="m-0 space-y-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <SummaryCard
+                  icon={<Icon className="h-4 w-4" />}
+                  label="Total de itens"
+                  value={rows.length}
+                />
+                <SummaryCard
+                  icon={
+                    <Badge variant="outline" className="border-primary/30 text-primary text-[10px]">
+                      AA
+                    </Badge>
+                  }
+                  label="Criticidade AA"
+                  value={rows.filter((r) => r._criticidade.toUpperCase() === "AA").length}
+                />
+                <SummaryCard
+                  icon={
+                    <Badge variant="outline" className="border-warning/30 text-warning text-[10px]">
+                      h
+                    </Badge>
+                  }
+                  label="Cargos distintos"
+                  value={new Set(rows.map((r) => r._cargo).filter((c) => c !== "—")).size}
+                />
+              </div>
 
-            <Panel title={`ITENS · ${rows.length}`}>
-              <DataTable
-                data={rows}
-                columns={detailCols}
-                searchPlaceholder="Buscar equipamento, TAG, descrição…"
-                pageSize={15}
-              />
-            </Panel>
-          </TabsContent>
-        ))}
-      </Tabs>
+              <Panel title={`ITENS · ${rows.length}`}>
+                <DataTable
+                  data={rows}
+                  columns={detailCols}
+                  searchPlaceholder="Buscar equipamento, TAG, descrição…"
+                  pageSize={15}
+                />
+              </Panel>
+            </TabsContent>
+          ))}
+        </Tabs>
       </SectionHeader>
     </div>
   );

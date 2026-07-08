@@ -69,7 +69,11 @@ export function ExportButton<T>({
   const [showPageNumbers, setShowPageNumbers] = useState(true);
 
   const validation: ValidationResult = useMemo(
-    () => validateLayout(format === "visual" ? "landscape" : "landscape", margins, { showHeader, showFooter }),
+    () =>
+      validateLayout(format === "visual" ? "landscape" : "landscape", margins, {
+        showHeader,
+        showFooter,
+      }),
     [format, margins, showHeader, showFooter],
   );
 
@@ -80,7 +84,10 @@ export function ExportButton<T>({
 
   const handlePng = async () => {
     const el = pdfTargetRef?.current;
-    if (!el) { toast.error("Nada para capturar"); return; }
+    if (!el) {
+      toast.error("Nada para capturar");
+      return;
+    }
     try {
       const dataUrl = await toPng(el, { quality: 0.95, pixelRatio: 2 });
       const link = document.createElement("a");
@@ -223,7 +230,10 @@ export function ExportButton<T>({
                 <Image className="h-3.5 w-3.5 text-primary" />
                 PDF Visual · Alta qualidade
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleQuickVisual("medium")} className="gap-2 text-xs">
+              <DropdownMenuItem
+                onClick={() => handleQuickVisual("medium")}
+                className="gap-2 text-xs"
+              >
                 <Image className="h-3.5 w-3.5 text-primary" />
                 PDF Visual · Média (recomendado)
               </DropdownMenuItem>
@@ -241,7 +251,12 @@ export function ExportButton<T>({
           {onExecutiveSummary && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onExecutiveSummary({ margins, showHeader, showFooter, showPageNumbers })} className="gap-2 text-xs">
+              <DropdownMenuItem
+                onClick={() =>
+                  onExecutiveSummary({ margins, showHeader, showFooter, showPageNumbers })
+                }
+                className="gap-2 text-xs"
+              >
                 <FileText className="h-3.5 w-3.5 text-warning" />
                 Exportar Resumo Executivo
               </DropdownMenuItem>
@@ -259,10 +274,18 @@ export function ExportButton<T>({
             <div className="space-y-1.5">
               <Label className="text-xs">Formato</Label>
               <Select value={format} onValueChange={(v) => setFormat(v as "tabela" | "visual")}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="tabela" className="text-xs">Tabela (dados)</SelectItem>
-                  {pdfTargetRef && <SelectItem value="visual" className="text-xs">Visual (snapshot)</SelectItem>}
+                  <SelectItem value="tabela" className="text-xs">
+                    Tabela (dados)
+                  </SelectItem>
+                  {pdfTargetRef && (
+                    <SelectItem value="visual" className="text-xs">
+                      Visual (snapshot)
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -271,11 +294,19 @@ export function ExportButton<T>({
               <div className="space-y-1.5">
                 <Label className="text-xs">Qualidade da imagem</Label>
                 <Select value={quality} onValueChange={(v) => setQuality(v as VisualPdfQuality)}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="high" className="text-xs">Alta (nítido, arquivo grande)</SelectItem>
-                    <SelectItem value="medium" className="text-xs">Média (recomendado)</SelectItem>
-                    <SelectItem value="low" className="text-xs">Baixa (arquivo pequeno)</SelectItem>
+                    <SelectItem value="high" className="text-xs">
+                      Alta (nítido, arquivo grande)
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-xs">
+                      Média (recomendado)
+                    </SelectItem>
+                    <SelectItem value="low" className="text-xs">
+                      Baixa (arquivo pequeno)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -289,7 +320,13 @@ export function ExportButton<T>({
                 <div key={key} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs capitalize">
-                      {key === "top" ? "Superior" : key === "bottom" ? "Inferior" : key === "left" ? "Esquerda" : "Direita"}
+                      {key === "top"
+                        ? "Superior"
+                        : key === "bottom"
+                          ? "Inferior"
+                          : key === "left"
+                            ? "Esquerda"
+                            : "Direita"}
                     </Label>
                     <span className="num text-[11px] text-muted-foreground">{margins[key]} mm</span>
                   </div>
@@ -315,21 +352,33 @@ export function ExportButton<T>({
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Página X de Y</Label>
-                <Switch checked={showPageNumbers} onCheckedChange={setShowPageNumbers} disabled={!showFooter} />
+                <Switch
+                  checked={showPageNumbers}
+                  onCheckedChange={setShowPageNumbers}
+                  disabled={!showFooter}
+                />
               </div>
             </div>
           </div>
 
           {(!validation.valid || validation.warnings.length > 0) && (
-            <div className={`rounded-md border p-2.5 text-[11px] leading-relaxed ${
-              validation.valid
-                ? "border-warning/40 bg-warning/10 text-warning"
-                : "border-destructive/40 bg-destructive/10 text-destructive"
-            }`}>
-              {validation.errors.map((e, i) => <p key={i}>{e}</p>)}
-              {validation.warnings.map((w, i) => <p key={i}>{w}</p>)}
+            <div
+              className={`rounded-md border p-2.5 text-[11px] leading-relaxed ${
+                validation.valid
+                  ? "border-warning/40 bg-warning/10 text-warning"
+                  : "border-destructive/40 bg-destructive/10 text-destructive"
+              }`}
+            >
+              {validation.errors.map((e, i) => (
+                <p key={i}>{e}</p>
+              ))}
+              {validation.warnings.map((w, i) => (
+                <p key={i}>{w}</p>
+              ))}
               <p className="mt-1 text-[10px] opacity-70">
-                {validation.metrics.contentH.toFixed(0)}mm × {validation.metrics.contentW.toFixed(0)}mm úteis · {validation.metrics.marginTotalV}mm margem vertical
+                {validation.metrics.contentH.toFixed(0)}mm ×{" "}
+                {validation.metrics.contentW.toFixed(0)}mm úteis · {validation.metrics.marginTotalV}
+                mm margem vertical
               </p>
             </div>
           )}

@@ -77,8 +77,12 @@ export function installLiveOverride(tag?: string): () => void {
     `.panel { isolation: auto !important; }`,
   ].join("\n");
   document.head.appendChild(styleEl);
-  restored.push(() => { styleEl.remove(); });
-  return () => { restored.forEach((fn) => fn()); };
+  restored.push(() => {
+    styleEl.remove();
+  });
+  return () => {
+    restored.forEach((fn) => fn());
+  };
 }
 
 export function sanitizeInlineColors(root: HTMLElement): () => void {
@@ -109,10 +113,10 @@ export function sanitizeInlineColors(root: HTMLElement): () => void {
 }
 
 export interface PdfMargins {
-  top: number;    // mm
+  top: number; // mm
   bottom: number; // mm
-  left: number;   // mm
-  right: number;  // mm
+  left: number; // mm
+  right: number; // mm
 }
 
 export const DEFAULT_MARGINS: PdfMargins = { top: 10, bottom: 12, left: 10, right: 10 };

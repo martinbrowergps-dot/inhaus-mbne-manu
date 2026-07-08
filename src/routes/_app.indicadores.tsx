@@ -161,12 +161,10 @@ function IndicadoresPage() {
       e.hhPlan.push(p.HH || 0);
       byExec.set(exe, e);
     }
-    const duracaoMedia = duracoes.length > 0
-      ? duracoes.reduce((s, t) => s + t.inicioFim, 0) / duracoes.length
-      : null;
-    const hhPlanMedio = duracoes.length > 0
-      ? duracoes.reduce((s, t) => s + t.hhPlan, 0) / duracoes.length
-      : null;
+    const duracaoMedia =
+      duracoes.length > 0 ? duracoes.reduce((s, t) => s + t.inicioFim, 0) / duracoes.length : null;
+    const hhPlanMedio =
+      duracoes.length > 0 ? duracoes.reduce((s, t) => s + t.hhPlan, 0) / duracoes.length : null;
     const duracaoPorExec = Array.from(byExec.entries())
       .map(([name, v]) => ({
         name,
@@ -175,7 +173,17 @@ function IndicadoresPage() {
       }))
       .sort((a, b) => b.duracao - a.duracao);
 
-    return { aderencia, aderSistema, semanal, backlogArr, heatmap, hhDiaArr, duracaoMedia, hhPlanMedio, duracaoPorExec };
+    return {
+      aderencia,
+      aderSistema,
+      semanal,
+      backlogArr,
+      heatmap,
+      hhDiaArr,
+      duracaoMedia,
+      hhPlanMedio,
+      duracaoPorExec,
+    };
   }, [data, dateFilter]);
 
   if (isLoading || !data || !computed)
@@ -266,7 +274,11 @@ function IndicadoresPage() {
         <Panel title="ADERÊNCIA POR SISTEMA">
           <div className="h-72">
             <ResponsiveContainer>
-              <BarChart data={computed.aderSistema} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
+              <BarChart
+                data={computed.aderSistema}
+                layout="vertical"
+                margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis
                   type="number"
@@ -309,7 +321,7 @@ function IndicadoresPage() {
               <ResponsiveContainer>
                 <BarChart data={computed.backlogArr}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
+<XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
                   <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -366,14 +378,18 @@ function IndicadoresPage() {
           <Panel title="DURAÇÃO REAL DA ATIVIDADE" subtitle="Início → Fim (execução)">
             <div className="flex flex-wrap gap-6 py-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Duração média real</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                  Duração média real
+                </p>
                 <p className="num text-3xl font-bold text-foreground">
                   {formatBRNumber(computed.duracaoMedia, 1)}
                   <span className="ml-0.5 text-sm text-muted-foreground">h</span>
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-warning">HH planejado (média)</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-warning">
+                  HH planejado (média)
+                </p>
                 <p className="num text-3xl font-bold text-foreground">
                   {formatBRNumber(computed.hhPlanMedio ?? 0, 1)}
                   <span className="ml-0.5 text-sm text-muted-foreground">h</span>
@@ -381,9 +397,14 @@ function IndicadoresPage() {
               </div>
               {computed.hhPlanMedio && computed.hhPlanMedio > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-success">Variação</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-success">
+                    Variação
+                  </p>
                   <p className="num text-3xl font-bold text-foreground">
-                    {formatBRNumber(((computed.duracaoMedia - computed.hhPlanMedio) / computed.hhPlanMedio) * 100, 0)}
+                    {formatBRNumber(
+                      ((computed.duracaoMedia - computed.hhPlanMedio) / computed.hhPlanMedio) * 100,
+                      0,
+                    )}
                     <span className="ml-0.5 text-sm text-muted-foreground">%</span>
                   </p>
                 </div>
@@ -399,9 +420,13 @@ function IndicadoresPage() {
             ) : (
               <div className="h-64">
                 <ResponsiveContainer>
-                  <BarChart data={computed.duracaoPorExec} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
+                  <BarChart
+                    data={computed.duracaoPorExec}
+                    layout="vertical"
+                    margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                     <YAxis
                       type="category"
                       dataKey="name"
@@ -410,8 +435,9 @@ function IndicadoresPage() {
                       width={120}
                     />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                    <Legend wrapperStyle={{ fontSize: 11 }}
-                      formatter={(value) => value === "duracao" ? "Duração real" : "HH Planejado"}
+                    <Legend
+                      wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value) => (value === "duracao" ? "Duração real" : "HH Planejado")}
                     />
                     <Bar dataKey="duracao" name="duracao" fill="#06B6D4" radius={[0, 4, 4, 0]} />
                     <Bar dataKey="hhPlan" name="hhPlan" fill="#F59E0B" radius={[0, 4, 4, 0]} />
@@ -482,7 +508,7 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"

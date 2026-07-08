@@ -13,7 +13,9 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
     <li
       className={cn(
         "rounded-lg border border-border/50 bg-card/40 p-2.5 transition-all",
-        isAtrasada ? "neon-glow-pulse border-destructive/40" : "hover:border-primary/40 hover:bg-primary/5",
+        isAtrasada
+          ? "neon-glow-pulse border-destructive/40"
+          : "hover:border-primary/40 hover:bg-primary/5",
         "md:cursor-default cursor-pointer",
       )}
       onClick={() => setExpanded((v) => !v)}
@@ -36,12 +38,16 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/30 pt-1.5 text-[10px] text-muted-foreground">
         {r.DataReprogramada && (
           <span>
-            <Clock className="mr-0.5 inline h-2.5 w-2.5" /> <span className="num text-warning">{r.DataReprogramada}</span>
+            <Clock className="mr-0.5 inline h-2.5 w-2.5" />{" "}
+            <span className="num text-warning">{r.DataReprogramada}</span>
           </span>
         )}
-          <span className="inline-flex items-center gap-0.5"><Users className="h-2.5 w-2.5" /> {r.Executante || "—"}</span>
-          <span className="inline-flex items-center gap-0.5">
-            <Clock className="h-2.5 w-2.5" /> <span className="num text-foreground">{formatBRNumber(r.HH || 0, 1)}h</span>
+        <span className="inline-flex items-center gap-0.5">
+          <Users className="h-2.5 w-2.5" /> {r.Executante || "—"}
+        </span>
+        <span className="inline-flex items-center gap-0.5">
+          <Clock className="h-2.5 w-2.5" />{" "}
+          <span className="num text-foreground">{formatBRNumber(r.HH || 0, 1)}h</span>
         </span>
         {r.Criticidade && (
           <span
@@ -59,22 +65,35 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
       {expanded && (
         <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2 text-[10px] text-muted-foreground md:hidden">
           {r.LocalMacro && (
-            <p><span className="font-semibold text-foreground">Local:</span> {r.LocalMacro}</p>
+            <p>
+              <span className="font-semibold text-foreground">Local:</span> {r.LocalMacro}
+            </p>
           )}
           {r.Tipo && (
-            <p><span className="font-semibold text-foreground">Tipo:</span> {r.Tipo}</p>
+            <p>
+              <span className="font-semibold text-foreground">Tipo:</span> {r.Tipo}
+            </p>
           )}
           {r.Cargo && (
-            <p><span className="font-semibold text-foreground">Cargo:</span> {r.Cargo}</p>
+            <p>
+              <span className="font-semibold text-foreground">Cargo:</span> {r.Cargo}
+            </p>
           )}
           {r.DataProgramada && (
-            <p><span className="font-semibold text-foreground">Data Prog.:</span> <span className="num">{r.DataProgramada}</span></p>
+            <p>
+              <span className="font-semibold text-foreground">Data Prog.:</span>{" "}
+              <span className="num">{r.DataProgramada}</span>
+            </p>
           )}
           {r.Criticidade && (
-            <p><span className="font-semibold text-foreground">Criticidade:</span> {r.Criticidade}</p>
+            <p>
+              <span className="font-semibold text-foreground">Criticidade:</span> {r.Criticidade}
+            </p>
           )}
           {r.ObservacoesExecucao && (
-            <p className="line-clamp-3"><span className="font-semibold text-foreground">Obs.:</span> {r.ObservacoesExecucao}</p>
+            <p className="line-clamp-3">
+              <span className="font-semibold text-foreground">Obs.:</span> {r.ObservacoesExecucao}
+            </p>
           )}
         </div>
       )}

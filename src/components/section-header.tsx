@@ -28,7 +28,12 @@ export function SectionHeader({
     <section className="space-y-4">
       <div className="flex items-center gap-3 border-b border-border/30 pb-2">
         {Icon && (
-          <div className={cn("flex h-6 w-6 items-center justify-center rounded-md bg-primary/10", colorClass)}>
+          <div
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-md bg-primary/10",
+              colorClass,
+            )}
+          >
             <Icon className="h-3.5 w-3.5" />
           </div>
         )}

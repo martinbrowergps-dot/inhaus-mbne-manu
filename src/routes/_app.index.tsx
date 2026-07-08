@@ -2,16 +2,34 @@ import { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ClipboardList, Play, CheckCircle2, Calendar,
-  AlertOctagon, Clock, Users, Thermometer,
+  ClipboardList,
+  Play,
+  CheckCircle2,
+  Calendar,
+  AlertOctagon,
+  Clock,
+  Users,
+  Thermometer,
 } from "lucide-react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-  Tooltip as ReTooltip, Legend, LabelList,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as ReTooltip,
+  Legend,
+  LabelList,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE, aggregate } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_LEGEND_STYLE,
+  CHART_CURSOR_STYLE,
+  aggregate,
+} from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
@@ -27,7 +45,11 @@ import { Section } from "@/components/visao-geral/section";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
-import { aggregateHH, aggregateByDay, aggregateByDayAndStatus } from "@/components/visao-geral/helpers";
+import {
+  aggregateHH,
+  aggregateByDay,
+  aggregateByDayAndStatus,
+} from "@/components/visao-geral/helpers";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
@@ -128,7 +150,11 @@ function VisaoGeral() {
         { label: "OS Programadas", value: formatInt(programadas), variant: "neutral" },
         { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
         { label: "Técnicos Ativos", value: formatInt(tecnicos.length), variant: "neutral" },
-        { label: "Temp. em Alerta", value: formatInt(tempAlerta), variant: tempAlerta > 0 ? "danger" : "success" },
+        {
+          label: "Temp. em Alerta",
+          value: formatInt(tempAlerta),
+          variant: tempAlerta > 0 ? "danger" : "success",
+        },
       ],
       aderencia: {
         pct: aderencia.pct,
@@ -184,44 +210,150 @@ function VisaoGeral() {
       </div>
 
       <div ref={chartRef} className="space-y-8">
-      {/* ═══════════ ① O PLANO ═══════════ */}
-      <Section
-        label="O Plano"
-        insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
-        icon={ClipboardList}
-        colorIndex={0}
-      >
-        {(() => {
-          const planoKpis: KpiItem[] = [
-            { label: "Total de OS", value: formatInt(total), icon: ClipboardList, variant: "primary" },
-            { label: "OS Programadas", value: formatInt(programadas), icon: Calendar, variant: "neutral" },
-            { label: "HH Programado", value: formatBRNumber(totalHH, 1), hint: "horas-homem", icon: Clock, variant: "primary" },
-          ];
-          return (
-            <>
-              <KpiCarousel items={planoKpis} />
-              <KpiGrid items={planoKpis} />
-            </>
-          );
-        })()}
+        {/* ═══════════ ① O PLANO ═══════════ */}
+        <Section
+          label="O Plano"
+          insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
+          icon={ClipboardList}
+          colorIndex={0}
+        >
+          {(() => {
+            const planoKpis: KpiItem[] = [
+              {
+                label: "Total de OS",
+                value: formatInt(total),
+                icon: ClipboardList,
+                variant: "primary",
+              },
+              {
+                label: "OS Programadas",
+                value: formatInt(programadas),
+                icon: Calendar,
+                variant: "neutral",
+              },
+              {
+                label: "HH Programado",
+                value: formatBRNumber(totalHH, 1),
+                hint: "horas-homem",
+                icon: Clock,
+                variant: "primary",
+              },
+            ];
+            return (
+              <>
+                <KpiCarousel items={planoKpis} />
+                <KpiGrid items={planoKpis} />
+              </>
+            );
+          })()}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
-            <ChartPie data={byPlanejamento} />
-          </Panel>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
+              <ChartPie data={byPlanejamento} />
+            </Panel>
 
-          <Panel dataChart="planejamento-dia" title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias" className="lg:col-span-2" glass>
-            {byPlanejamentoDia.length === 0 ? (
+            <Panel
+              dataChart="planejamento-dia"
+              title="PLANEJADO vs NÃO PLANEJADO POR DIA"
+              subtitle="Últimos 14 dias"
+              className="lg:col-span-2"
+              glass
+            >
+              {byPlanejamentoDia.length === 0 ? (
+                <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+                  Sem registros no período
+                </div>
+              ) : (
+                <div className="h-72 md:h-64">
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={byPlanejamentoDia}
+                      barCategoryGap="5%"
+                      margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 10, fill: "#94A3B8" }}
+                        stroke="#94A3B8"
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "#94A3B8" }}
+                        stroke="#94A3B8"
+                        allowDecimals={false}
+                      />
+                      <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                      <Legend
+                        wrapperStyle={CHART_LEGEND_STYLE}
+                        formatter={(value) =>
+                          value === "planejado" ? "Planejado" : "Não Planejado"
+                        }
+                      />
+                      <Bar
+                        dataKey="planejado"
+                        name="planejado"
+                        stackId="a"
+                        fill="#22C55E"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="naoPlanejado"
+                        name="naoPlanejado"
+                        stackId="a"
+                        fill="#EF4444"
+                        radius={[4, 4, 0, 0]}
+                      >
+                        <LabelList
+                          dataKey="naoPlanejado"
+                          position="top"
+                          content={({ x, y, width, index }) => {
+                            const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
+                            if (!d) return null;
+                            return (
+                              <text
+                                x={Number(x) + Number(width) / 2}
+                                y={Number(y) - 4}
+                                textAnchor="middle"
+                                fill="#94A3B8"
+                                fontSize={9}
+                              >
+                                {d.planejado} / {d.naoPlanejado}
+                              </text>
+                            );
+                          }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+          </div>
+
+          <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
+            {byDia.length === 0 ? (
               <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
                 Sem registros no período
               </div>
             ) : (
               <div className="h-72 md:h-64">
                 <ResponsiveContainer>
-                  <BarChart data={byPlanejamentoDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
+                  <BarChart
+                    data={byDia}
+                    barCategoryGap="5%"
+                    margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-                    <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+<XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 10, fill: "#93C5D8" }}
+                      stroke="#93C5D8"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: "#93C5D8" }}
+                      stroke="#93C5D8"
+                      allowDecimals={false}
+                    />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Legend wrapperStyle={CHART_LEGEND_STYLE}
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
@@ -229,9 +361,8 @@ function VisaoGeral() {
                     <Bar dataKey="planejado" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
                       <LabelList
-                        dataKey="naoPlanejado"
                         position="top"
-                        content={({ x, y, width, index }) => {
+content={({ x, y, width, index }) => {
                           const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
                           if (!d) return null;
                           return (
@@ -253,136 +384,156 @@ function VisaoGeral() {
               </div>
             )}
           </Panel>
-        </div>
+        </Section>
 
-        <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
-          {byDia.length === 0 ? (
-            <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">Sem registros no período</div>
-          ) : (
-            <div className="h-72 md:h-64">
-              <ResponsiveContainer>
-                  <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-                    <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                  <Bar dataKey="value" fill="#06B6D4" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </Panel>
-      </Section>
+{/* ═══════════ ② A EXECUÇÃO ═══════════ */}
+        <Section
+          label="A Execução"
+          insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
+          icon={CheckCircle2}
+          colorIndex={1}
+        >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <AderenciaCard
+              pct={aderencia.pct}
+              finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+              finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
+              canceladas={aderencia.canceladas}
+              pendentes={aderencia.pendentes}
+              totalProgramadas={aderencia.totalProgramadas}
+              className="lg:col-span-1"
+            />
+            {(() => {
+              const execKpis: KpiItem[] = [
+                {
+                  label: "Em Andamento",
+                  value: formatInt(emAndamento),
+                  icon: Play,
+                  variant: "warning",
+                },
+                {
+                  label: "Finalizadas",
+                  value: formatInt(finalizadas),
+                  icon: CheckCircle2,
+                  variant: "success",
+                },
+              ];
+              return (
+                <>
+                  <KpiCarousel items={execKpis} />
+                  <KpiGrid items={execKpis} className="lg:col-span-2" />
+                </>
+              );
+            })()}
+          </div>
 
-      {/* ═══════════ ② A EXECUÇÃO ═══════════ */}
-      <Section
-        label="A Execução"
-        insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
-        icon={CheckCircle2}
-        colorIndex={1}
-      >
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <AderenciaCard
-            pct={aderencia.pct}
-            finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
-            finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
-            canceladas={aderencia.canceladas}
-            pendentes={aderencia.pendentes}
-            totalProgramadas={aderencia.totalProgramadas}
-            className="lg:col-span-1"
-          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel dataChart="status-os" title="STATUS DAS OS" glass>
+              <ChartPie data={byStatus} />
+            </Panel>
+            <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
+              <ChartPie data={bySistema} />
+            </Panel>
+          </div>
+        </Section>
+
+        {/* ═══════════ ③ OS PROBLEMAS ═══════════ */}
+        <Section
+          label="Os Problemas"
+          insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
+          icon={AlertOctagon}
+          colorIndex={3}
+        >
           {(() => {
-            const execKpis: KpiItem[] = [
-              { label: "Em Andamento", value: formatInt(emAndamento), icon: Play, variant: "warning" },
-              { label: "Finalizadas", value: formatInt(finalizadas), icon: CheckCircle2, variant: "success" },
+            const probKpis: KpiItem[] = [
+              {
+                label: "Criticidade AA",
+                value: formatInt(aa),
+                icon: AlertOctagon,
+                variant: "danger",
+              },
+              {
+                label: "Temperaturas em Alerta",
+                value: formatInt(tempAlerta),
+                hint: `${locais.length} locais monitorados`,
+                icon: Thermometer,
+                variant: tempAlerta > 0 ? "danger" : "success",
+              },
+              {
+                label: "Técnicos Ativos",
+                value: formatInt(tecnicos.length),
+                icon: Users,
+                variant: "neutral",
+              },
             ];
             return (
               <>
-                <KpiCarousel items={execKpis} />
-                <KpiGrid items={execKpis} className="lg:col-span-2" />
+                <KpiCarousel items={probKpis} />
+                <KpiGrid items={probKpis} />
               </>
             );
           })()}
-        </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-            <ChartPie data={byStatus} />
-          </Panel>
-          <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
-            <ChartPie data={bySistema} />
-          </Panel>
-        </div>
-      </Section>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
+              <ChartDonut data={byCriticidade} />
+            </Panel>
+            <Panel
+              dataChart="quebras"
+              title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
+              subtitle="OS do tipo quebra agrupadas por solicitante"
+            >
+              {quebras.length === 0 ? (
+                <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
+                  Nenhuma quebra de programação no período
+                </div>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={quebras}
+                      layout="vertical"
+                      margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis
+                        type="number"
+                        tick={{ fontSize: 10, fill: "#94A3B8" }}
+                        stroke="#94A3B8"
+                        allowDecimals={false}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        tick={{ fontSize: 9, fill: "#94A3B8" }}
+                        stroke="#94A3B8"
+                        width={120}
+                      />
+                      <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                      <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
+                        <LabelList position="right" fill="#94A3B8" fontSize={10} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+          </div>
+        </Section>
 
-      {/* ═══════════ ③ OS PROBLEMAS ═══════════ */}
-      <Section
-        label="Os Problemas"
-        insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
-        icon={AlertOctagon}
-        colorIndex={3}
-      >
-        {(() => {
-          const probKpis: KpiItem[] = [
-            { label: "Criticidade AA", value: formatInt(aa), icon: AlertOctagon, variant: "danger" },
-            { label: "Temperaturas em Alerta", value: formatInt(tempAlerta), hint: `${locais.length} locais monitorados`, icon: Thermometer, variant: tempAlerta > 0 ? "danger" : "success" },
-            { label: "Técnicos Ativos", value: formatInt(tecnicos.length), icon: Users, variant: "neutral" },
-          ];
-          return (
-            <>
-              <KpiCarousel items={probKpis} />
-              <KpiGrid items={probKpis} />
-            </>
-          );
-        })()}
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
-            <ChartDonut data={byCriticidade} />
-          </Panel>
-          <Panel
-            dataChart="quebras"
-            title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
-            subtitle="OS do tipo quebra agrupadas por solicitante"
-          >
-            {quebras.length === 0 ? (
-              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-                Nenhuma quebra de programação no período
-              </div>
-            ) : (
-              <div className="h-64">
-                <ResponsiveContainer>
-                  <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
-                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                    <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                    <LabelList position="right" fill="#93C5D8" fontSize={10} />
-                  </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </Panel>
-        </div>
-      </Section>
-
-      {/* ═══════════ ④ RECURSOS ═══════════ */}
-      <Section
-        label="Recursos"
-        insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
-        icon={Users}
-        colorIndex={2}
-      >
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Panel dataChart="hh-cargo" title="HH POR CARGO">
-            <ChartBarHorizontal data={aggregateHH(programacaoFiltrada)} />
-          </Panel>
-        </div>
-      </Section>
+{/* ═══════════ ④ RECURSOS ═══════════ */}
+        <Section
+          label="Recursos"
+          insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
+          icon={Users}
+          colorIndex={2}
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Panel dataChart="hh-cargo" title="HH POR CARGO">
+              <ChartBarHorizontal data={aggregateHH(programacaoFiltrada)} />
+            </Panel>
+          </div>
+        </Section>
       </div>
 
       {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}
@@ -417,5 +568,3 @@ function VisaoGeral() {
     </div>
   );
 }
-
-

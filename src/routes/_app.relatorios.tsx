@@ -15,16 +15,16 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import {
-  ClipboardList,
-  Clock,
-  CheckCircle2,
-  AlertOctagon,
-  Calendar,
-} from "lucide-react";
+import { ClipboardList, Clock, CheckCircle2, AlertOctagon, Calendar } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import { CHART_TOOLTIP_STYLE, CHART_LEGEND_STYLE, CHART_CURSOR_STYLE, COLORS, aggregate } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_LEGEND_STYLE,
+  CHART_CURSOR_STYLE,
+  COLORS,
+  aggregate,
+} from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
@@ -76,11 +76,12 @@ function RelatoriosPage() {
     dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
   );
 
-  const periods = visao === "semanal"
-    ? aggregateByWeek(filtered)
-    : visao === "mensal"
-      ? aggregateByMonth(filtered)
-      : aggregateByDay(filtered);
+  const periods =
+    visao === "semanal"
+      ? aggregateByWeek(filtered)
+      : visao === "mensal"
+        ? aggregateByMonth(filtered)
+        : aggregateByDay(filtered);
 
   const totalOS = periods.reduce((s, p) => s + p.totalOS, 0);
   const totalHH = periods.reduce((s, p) => s + p.totalHH, 0);
@@ -130,8 +131,16 @@ function RelatoriosPage() {
       metrics: [
         { label: "Total de OS", value: formatInt(totalOS), variant: "primary" },
         { label: "HH Total", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
-        { label: "Planejadas", value: formatInt(periods.reduce((s, p) => s + p.planejadas, 0)), variant: "success" },
-        { label: "Não Planejadas", value: formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0)), variant: "danger" },
+        {
+          label: "Planejadas",
+          value: formatInt(periods.reduce((s, p) => s + p.planejadas, 0)),
+          variant: "success",
+        },
+        {
+          label: "Não Planejadas",
+          value: formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0)),
+          variant: "danger",
+        },
         { label: "Finalizadas", value: formatInt(totalFinalizadas), variant: "success" },
         { label: "Canceladas", value: formatInt(totalCanceladas), variant: "neutral" },
         { label: "Períodos", value: formatInt(rowsCount), variant: "neutral" },
@@ -156,9 +165,16 @@ function RelatoriosPage() {
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Relatório de Programação</h1>
           <p className="text-xs text-muted-foreground">
-            {visao === "semanal" ? "Agrupado por semana" : visao === "mensal" ? "Agrupado por mês" : "Agrupado por dia"}
+            {visao === "semanal"
+              ? "Agrupado por semana"
+              : visao === "mensal"
+                ? "Agrupado por mês"
+                : "Agrupado por dia"}
             {dateFilter.isActive && (
-              <> · {formatDateBR(dateFilter.startDate)} a {formatDateBR(dateFilter.endDate)}</>
+              <>
+                {" "}
+                · {formatDateBR(dateFilter.startDate)} a {formatDateBR(dateFilter.endDate)}
+              </>
             )}
           </p>
         </div>
@@ -223,13 +239,48 @@ function RelatoriosPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-        <KpiCard label="Total de OS" value={formatInt(totalOS)} icon={ClipboardList} variant="primary" />
-        <KpiCard label="HH Total" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="primary" />
-        <KpiCard label="Planejadas" value={formatInt(periods.reduce((s, p) => s + p.planejadas, 0))} icon={CheckCircle2} variant="success" />
-        <KpiCard label="Não Planejadas" value={formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0))} icon={AlertOctagon} variant="danger" />
-        <KpiCard label="Finalizadas" value={formatInt(totalFinalizadas)} icon={CheckCircle2} variant="success" />
-        <KpiCard label="Canceladas" value={formatInt(totalCanceladas)} icon={AlertOctagon} variant="neutral" />
-        <KpiCard label="Períodos" value={formatInt(periods.length)} icon={Calendar} variant="neutral" />
+        <KpiCard
+          label="Total de OS"
+          value={formatInt(totalOS)}
+          icon={ClipboardList}
+          variant="primary"
+        />
+        <KpiCard
+          label="HH Total"
+          value={`${formatBRNumber(totalHH, 1)}h`}
+          icon={Clock}
+          variant="primary"
+        />
+        <KpiCard
+          label="Planejadas"
+          value={formatInt(periods.reduce((s, p) => s + p.planejadas, 0))}
+          icon={CheckCircle2}
+          variant="success"
+        />
+        <KpiCard
+          label="Não Planejadas"
+          value={formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0))}
+          icon={AlertOctagon}
+          variant="danger"
+        />
+        <KpiCard
+          label="Finalizadas"
+          value={formatInt(totalFinalizadas)}
+          icon={CheckCircle2}
+          variant="success"
+        />
+        <KpiCard
+          label="Canceladas"
+          value={formatInt(totalCanceladas)}
+          icon={AlertOctagon}
+          variant="neutral"
+        />
+        <KpiCard
+          label="Períodos"
+          value={formatInt(periods.length)}
+          icon={Calendar}
+          variant="neutral"
+        />
       </div>
 
       <SectionHeader label="Dados Agregados" insight={`${formatInt(periods.length)} períodos`}>
@@ -272,21 +323,29 @@ function RelatoriosPage() {
       </SectionHeader>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel dataChart="planejado" title={`PLANEJADO vs NÃO PLANEJADO POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
+        <Panel
+          dataChart="planejado"
+          title={`PLANEJADO vs NÃO PLANEJADO POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}
+        >
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="h-72 md:h-64">
               <ResponsiveContainer>
-                <BarChart data={periods} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
+                <BarChart
+                  data={periods}
+                  barCategoryGap="5%"
+                  margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+<XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                   <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                  <Legend wrapperStyle={CHART_LEGEND_STYLE}
+                  <Legend
+                    wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
-                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
+<Bar dataKey="planejadas" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
                     <LabelList
                       dataKey="naoPlanejadas"
@@ -314,15 +373,22 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel dataChart="hh" title={`HH POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}>
+        <Panel
+          dataChart="hh"
+          title={`HH POR ${visao === "semanal" ? "SEMANA" : visao === "mensal" ? "MÊS" : "DIA"}`}
+        >
           {periods.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="h-72 md:h-64">
               <ResponsiveContainer>
-                <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
+                <BarChart
+                  data={periods}
+                  barCategoryGap="5%"
+                  margin={{ top: 10, right: 8, left: 8, bottom: 4 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+<XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                   <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
@@ -364,15 +430,23 @@ function RelatoriosPage() {
           )}
         </Panel>
 
-        <Panel dataChart="quebras" title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE" subtitle="OS do tipo quebra agrupadas por solicitante">
+        <Panel
+          dataChart="quebras"
+          title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
+          subtitle="OS do tipo quebra agrupadas por solicitante"
+        >
           {quebras.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="h-64">
               <ResponsiveContainer>
-                <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
+                <BarChart
+                  data={quebras}
+                  layout="vertical"
+                  margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
@@ -423,7 +497,11 @@ function aggregateByDay(rows: import("@/lib/sheets-types").ProgramacaoRow[]): Pe
   for (const r of rows) {
     const d = parseDate(r.DataReprogramada || r.DataProgramada);
     if (!d) continue;
-    const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const key = d.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
     const entry = map.get(key) ?? { label: key, rows: [] };
     entry.rows.push(r);
     map.set(key, entry);
@@ -461,10 +539,13 @@ function getMonthKey(d: Date): string {
 }
 
 function getMonthLabel(d: Date): string {
-  return d.toLocaleDateString("pt-BR", {
-    month: "short",
-    year: "numeric",
-  }).replace(/\./g, "").toUpperCase();
+  return d
+    .toLocaleDateString("pt-BR", {
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/\./g, "")
+    .toUpperCase();
 }
 
 function summarize(label: string, rows: import("@/lib/sheets-types").ProgramacaoRow[]): PeriodRow {
@@ -501,5 +582,3 @@ function summarize(label: string, rows: import("@/lib/sheets-types").Programacao
     quebras,
   };
 }
-
-

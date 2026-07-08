@@ -23,11 +23,7 @@ function normalize(s: string) {
     .trim();
 }
 
-function isDateInRange(
-  dateStr: string | undefined | null,
-  start: Date,
-  end: Date,
-): boolean {
+function isDateInRange(dateStr: string | undefined | null, start: Date, end: Date): boolean {
   if (!dateStr) return false;
   const d = parseBRDate(dateStr);
   if (!d) return false;
@@ -119,7 +115,10 @@ function HHPage() {
         />
       </div>
 
-      <SectionHeader label="Capacidade Global" insight={`${formatBRNumber(totalDisp, 1)}h disponíveis · ${formatBRNumber(totalAloc, 1)}h alocadas · ocupação de ${formatBRNumber(totalOc, 1)}%`}>
+      <SectionHeader
+        label="Capacidade Global"
+        insight={`${formatBRNumber(totalDisp, 1)}h disponíveis · ${formatBRNumber(totalAloc, 1)}h alocadas · ocupação de ${formatBRNumber(totalOc, 1)}%`}
+      >
         <Panel title="OCUPAÇÃO TOTAL DA EQUIPE">
           <Gauge
             label="Capacidade semanal global"
@@ -135,7 +134,12 @@ function HHPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {rows.map((r) => (
             <Panel key={r.cargo} title={r.cargo}>
-              <Gauge label="HH" disponivel={r.disponivel} alocado={r.alocado} ocupacao={r.ocupacao} />
+              <Gauge
+                label="HH"
+                disponivel={r.disponivel}
+                alocado={r.alocado}
+                ocupacao={r.ocupacao}
+              />
             </Panel>
           ))}
           {rows.length === 0 && (

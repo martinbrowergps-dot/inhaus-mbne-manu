@@ -1,6 +1,4 @@
-import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { COLORS } from "@/lib/chart-utils";
 import { Empty } from "./empty";
 

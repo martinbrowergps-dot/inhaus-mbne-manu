@@ -1,4 +1,3 @@
-
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -210,7 +209,10 @@ function AlertasPage() {
         />
       </div>
 
-      <SectionHeader label="Resumo" insight={`${alerts.length} alertas ativos · ${counts.alta} alta · ${counts.media} média · ${counts.baixa} baixa`}>
+      <SectionHeader
+        label="Resumo"
+        insight={`${alerts.length} alertas ativos · ${counts.alta} alta · ${counts.media} média · ${counts.baixa} baixa`}
+      >
         <div className="grid gap-3 sm:grid-cols-3">
           <SummaryChip label="ALTA" value={counts.alta} variant="danger" />
           <SummaryChip label="MÉDIA" value={counts.media} variant="warning" />
@@ -218,7 +220,12 @@ function AlertasPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Detalhamento" insight={alerts.length > 0 ? `${alerts.length} alertas requerem atenção` : "Tudo sob controle"}>
+      <SectionHeader
+        label="Detalhamento"
+        insight={
+          alerts.length > 0 ? `${alerts.length} alertas requerem atenção` : "Tudo sob controle"
+        }
+      >
         <Panel title={`${alerts.length} ALERTAS ATIVOS`}>
           {alerts.length === 0 ? (
             <div className="rounded-md border border-success/40 bg-success/10 p-4 text-sm text-success">

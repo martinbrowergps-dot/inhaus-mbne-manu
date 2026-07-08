@@ -1,4 +1,5 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
 > published git history — force pushing, or rebasing/amending/squashing commits
@@ -7,20 +8,25 @@
 >
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
+
 <!-- LOVABLE:END -->
 
 ## Session Summary
 
 ## Goal
+
 Implement dashboard improvements: fix bugs, add charts, expose fields, improve UX, add NC/PREDITIVAS pages, and enhance PDF export.
 
 ## Constraints & Preferences
+
 - App is read-only (Google Sheets as database, no write-back forms)
 - No photos needed for now
 - Foco em dados de manutenção industrial (programação, temperatura, checklists/planos, backlog)
 
 ## Progress
+
 ### Done
+
 - Added missing fields to ProgramacaoRow, PassagemTurnoRow, BacklogRow (incl. OQuePrecisa)
 - Updated sheets.ts mapping to include all new fields
 - Fixed status derivation bug in Visão Geral (uses deriveExecStatus() consistently)
@@ -44,12 +50,15 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - Created RELATÓRIOS page (`/relatorios`) with visão semanal/mensal: KPIs, tabela agregada (OS, HH, planejadas, finalizadas, etc.), gráficos de OS/HH por período, status pie chart, quebras por solicitante; respeita filtro de data global; export CSV + PDF Visual + PDF Tabela
 
 ### In Progress
+
 - (none)
 
 ### Blocked
+
 - (none)
 
 ## Key Decisions
+
 - Renamed "Checklists" to "Planos de Manutenção" because the data is the maintenance plan master (297 items per type), not executed checklists
 - Created aggregateByDayAndStatus() with exact string match (`=== "Planejado"`) instead of regex to avoid false positives from "Não Planejado"
 - NC and PREDITIVAS pages read from their own dedicated sheets (not filtered from programação)
@@ -57,6 +66,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - PDF visual export uses html2canvas `onclone` to patch oklch/oklab → hex in the cloned document because html2canvas does not support modern CSS color functions. Previous approach (patching real DOM `<style>` elements and restoring) was replaced because the CSS is in external `<link>` elements, not inline `<style>`.
 
 ## Critical Context
+
 - Build and TypeScript compile cleanly (`npx tsc --noEmit`, `npm run build` both pass)
 - **installLiveOverride fix**: CSS variables are now set as inline styles on `document.documentElement` (not via a `<style>` element with `:root`). Reason: `html-to-image` clones the element into an SVG foreignObject for `toPng`. In that context, `:root` selectors do NOT match the clone's root, causing CSS variable overrides to be ignored. By setting variables as inline styles on `<html>` in the live DOM, `getComputedStyle` resolves them to hex, and `html-to-image` inlines those hex values on the clone. This fixes both "black text on dark cards" (CSS variables not overridden) and "charts cut off" (Recharts oklch fill not parsed by html2canvas).
 - Backlog: 48 valid rows after PapaParse filtering (estados: "Em Espera" e "Aberto") — page shows data correctly
@@ -68,6 +78,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - CSV fetch uses `gviz/tq?tqx=out:csv&sheet=...` (Google Visualization API)
 
 ## Relevant Files
+
 - `src/lib/sheets-types.ts`: all row interfaces (ProgramacaoRow, NcRow, PreditivaRow, etc.)
 - `src/lib/sheets.ts`: fetch + parse logic, sheet ID = 1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA
 - `src/routes/_app.index.tsx`: Visão Geral with all KPIs + chart components + executive summary

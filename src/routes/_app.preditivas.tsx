@@ -20,14 +20,23 @@ export const Route = createFileRoute("/_app/preditivas")({
 });
 
 const columns: ColumnDef<PreditivaRow>[] = [
-  { accessorKey: "CodigoReferencia", header: "Código", cell: ({ getValue }) => <span className="id">{getValue() as string}</span> },
+  {
+    accessorKey: "CodigoReferencia",
+    header: "Código",
+    cell: ({ getValue }) => <span className="id">{getValue() as string}</span>,
+  },
   { accessorKey: "Tipo", header: "Tipo" },
   { accessorKey: "Categoria", header: "Categoria" },
   {
     accessorKey: "Prioridade",
     header: "Prioridade",
     cell: ({ row }) => (
-      <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", priorityBadge(row.original.Prioridade))}>
+      <span
+        className={cn(
+          "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+          priorityBadge(row.original.Prioridade),
+        )}
+      >
         {row.original.Prioridade}
       </span>
     ),
@@ -39,19 +48,26 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const preditiva = data?.preditiva ?? [];
+  const preditiva = useMemo(() => data?.preditiva ?? [], [data?.preditiva]);
 
   const byTipo = useMemo(() => {
     const m = new Map<string, number>();
-    preditiva.forEach((r) => { const k = r.Tipo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
-    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    preditiva.forEach((r) => {
+      const k = r.Tipo || "—";
+      m.set(k, (m.get(k) ?? 0) + 1);
+    });
+    return Array.from(m.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [preditiva]);
 
   if (isLoading)
     return (
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-24" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
         </div>
         <Skeleton className="h-96" />
       </div>
@@ -61,7 +77,6 @@ function PreditivasPage() {
 
   const total = preditiva.length;
   const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);
-
 
   return (
     <div className="space-y-6">
@@ -87,20 +102,39 @@ function PreditivasPage() {
         />
       </div>
 
-      <SectionHeader label="Panorama" insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byTipo.length} tipos`}>
+      <SectionHeader
+        label="Panorama"
+        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byTipo.length} tipos`}
+      >
         <div className="grid gap-3 sm:grid-cols-3">
           <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
-          <KpiCard label="HH Estimado" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="neutral" />
-          <KpiCard label="Tipos distintos" value={byTipo.length} icon={TrendingUp} variant="success" />
+          <KpiCard
+            label="HH Estimado"
+            value={`${formatBRNumber(totalHH, 1)}h`}
+            icon={Clock}
+            variant="neutral"
+          />
+          <KpiCard
+            label="Tipos distintos"
+            value={byTipo.length}
+            icon={TrendingUp}
+            variant="success"
+          />
         </div>
       </SectionHeader>
 
       {byTipo.length > 0 && (
-        <SectionHeader label="Distribuição" insight={`${byTipo.length} tipos de manutenção preditiva`}>
+        <SectionHeader
+          label="Distribuição"
+          insight={`${byTipo.length} tipos de manutenção preditiva`}
+        >
           <Panel title="AÇÕES POR TIPO" glass>
             <div className="flex flex-wrap gap-2">
               {byTipo.map(({ name, value }) => (
-                <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                >
                   {name} <span className="num font-bold">{value}</span>
                 </span>
               ))}

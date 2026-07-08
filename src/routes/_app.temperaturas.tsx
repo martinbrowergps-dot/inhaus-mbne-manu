@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -47,11 +46,11 @@ function TemperaturasPage() {
 
   const medicoes = data?.medicoes ?? [];
   const medicoesFiltradas = medicoes.filter((m) => dateFilter.filterByDateRange(m.DATA));
-  const locais = summarizeLocais(medicoes);
+  const locais = summarizeLocais(medicoesFiltradas);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
-  const allLocais = uniqueLocais(medicoes);
+  const allLocais = uniqueLocais(medicoesFiltradas);
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -89,12 +88,15 @@ function TemperaturasPage() {
                 ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
                 : undefined
             }
-            pdfTargetRef={pdfRef as any}
+            pdfTargetRef={pdfRef as React.RefObject<HTMLElement | null>}
           />
         </div>
       </div>
 
-      <SectionHeader label="Status dos Locais" insight={`${locais.length} locais monitorados · ${criticos.length} críticos · ${alertas.length} em alerta · ${normais.length} normais`}>
+      <SectionHeader
+        label="Status dos Locais"
+        insight={`${locais.length} locais monitorados · ${criticos.length} críticos · ${alertas.length} em alerta · ${normais.length} normais`}
+      >
         {criticos.length > 0 && (
           <Panel title="CRÍTICOS" glow>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -128,7 +130,10 @@ function TemperaturasPage() {
         </Panel>
       </SectionHeader>
 
-      <SectionHeader label="Análise" insight={`Tendência e comparativo no período de ${range.toUpperCase()}`}>
+      <SectionHeader
+        label="Análise"
+        insight={`Tendência e comparativo no período de ${range.toUpperCase()}`}
+      >
         <Panel
           title={`TENDÊNCIA POR LOCAL · ${range.toUpperCase()}`}
           subtitle="Faixa-alvo em verde · linha colorida pelo status do período"
@@ -153,7 +158,7 @@ function TemperaturasPage() {
           title="VISÃO COMPARATIVA"
           subtitle="Todos os locais sobrepostos · ideal para detectar desvios simultâneos"
         >
-          <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
+          <TempMultiChart locais={allLocais} medicoes={medicoesFiltradas} range={range} />
         </Panel>
       </SectionHeader>
     </div>

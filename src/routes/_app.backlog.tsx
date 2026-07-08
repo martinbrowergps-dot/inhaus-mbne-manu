@@ -241,7 +241,9 @@ function BacklogPage() {
   );
 
   const handleExportReport = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
-    const chartEls = document.querySelector<HTMLElement>('[data-page="backlog"]')?.querySelectorAll<HTMLElement>("[data-chart]");
+    const chartEls = document
+      .querySelector<HTMLElement>('[data-page="backlog"]')
+      ?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
 
     const table: ReportTable<BacklogRow & { _idade: number | null; _vencido: boolean }> = {
@@ -272,8 +274,16 @@ function BacklogPage() {
         : `${filtered.length} registros`,
       metrics: [
         { label: "Total em aberto", value: String(total), variant: "primary" },
-        { label: "Vencidos", value: String(vencidos), variant: vencidos > 0 ? "danger" : "neutral" },
-        { label: "Prioridade alta", value: String(criticos), variant: criticos > 0 ? "warning" : "neutral" },
+        {
+          label: "Vencidos",
+          value: String(vencidos),
+          variant: vencidos > 0 ? "danger" : "neutral",
+        },
+        {
+          label: "Prioridade alta",
+          value: String(criticos),
+          variant: criticos > 0 ? "warning" : "neutral",
+        },
         { label: "Técnicos envolvidos", value: String(tecnicos), variant: "neutral" },
       ],
       tables: [table],
@@ -294,11 +304,15 @@ function BacklogPage() {
     return (
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-28" />)}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
         </div>
         <Skeleton className="h-8 w-72" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-64" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-64" />
+          ))}
         </div>
         <Skeleton className="h-96" />
       </div>
@@ -337,11 +351,24 @@ function BacklogPage() {
         />
       </div>
 
-      <SectionHeader label="Panorama" insight={`${total} solicitações abertas · ${vencidos} vencidas · ${criticos} alta prioridade · ${tecnicos} técnicos`}>
+      <SectionHeader
+        label="Panorama"
+        insight={`${total} solicitações abertas · ${vencidos} vencidas · ${criticos} alta prioridade · ${tecnicos} técnicos`}
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Total em aberto" value={total} icon={Inbox} />
-          <KpiCard label="Vencidos" value={vencidos} icon={AlertTriangle} variant={vencidos > 0 ? "danger" : "neutral"} />
-          <KpiCard label="Prioridade alta" value={criticos} icon={Clock} variant={criticos > 0 ? "warning" : "neutral"} />
+          <KpiCard
+            label="Vencidos"
+            value={vencidos}
+            icon={AlertTriangle}
+            variant={vencidos > 0 ? "danger" : "neutral"}
+          />
+          <KpiCard
+            label="Prioridade alta"
+            value={criticos}
+            icon={Clock}
+            variant={criticos > 0 ? "warning" : "neutral"}
+          />
           <KpiCard label="Técnicos envolvidos" value={tecnicos} icon={Users} />
         </div>
       </SectionHeader>
@@ -360,7 +387,10 @@ function BacklogPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Registro" insight={`${filtered.length} de ${total} solicitações exibidas`}>
+      <SectionHeader
+        label="Registro"
+        insight={`${filtered.length} de ${total} solicitações exibidas`}
+      >
         <Panel
           title={`SOLICITAÇÕES · ${filtered.length} de ${total}`}
           action={
@@ -376,15 +406,35 @@ function BacklogPage() {
           }
         >
           <div className="mb-3 flex flex-wrap gap-2">
-            <FilterChip label="Todas prioridades" active={!priFilter} onClick={() => setPriFilter(null)} />
+            <FilterChip
+              label="Todas prioridades"
+              active={!priFilter}
+              onClick={() => setPriFilter(null)}
+            />
             {prioridades.map((p) => (
-              <FilterChip key={p} label={p} active={priFilter === p} onClick={() => setPriFilter(p)} className={priorityClass(p)} />
+              <FilterChip
+                key={p}
+                label={p}
+                active={priFilter === p}
+                onClick={() => setPriFilter(p)}
+                className={priorityClass(p)}
+              />
             ))}
           </div>
           <div className="mb-3 flex flex-wrap gap-2">
-            <FilterChip label="Todos estados" active={!stateFilter} onClick={() => setStateFilter(null)} />
+            <FilterChip
+              label="Todos estados"
+              active={!stateFilter}
+              onClick={() => setStateFilter(null)}
+            />
             {estados.map((s) => (
-              <FilterChip key={s} label={s} active={stateFilter === s} onClick={() => setStateFilter(s)} className={stateClass(s)} />
+              <FilterChip
+                key={s}
+                label={s}
+                active={stateFilter === s}
+                onClick={() => setStateFilter(s)}
+                className={stateClass(s)}
+              />
             ))}
           </div>
           <DataTable data={filtered} columns={columns} pageSize={15} />
@@ -437,7 +487,7 @@ function ChartBars({
   const color = (name: string, i: number) => {
     if (colorBy === "priority") {
       const r = priorityRank(name);
-      return r === 0
+return r === 0
         ? "#EF4444"
         : r === 1
           ? "#F59E0B"
@@ -475,7 +525,7 @@ function ChartBars({
           </>
         ) : (
           <>
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} />
+<XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} />
             <YAxis
               tick={{ fontSize: 10, fill: "#93C5D8" }}
               allowDecimals={false}
@@ -495,7 +545,7 @@ function ChartBars({
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
-          <LabelList position={horizontal ? "right" : "top"} fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
+<LabelList position={horizontal ? "right" : "top"} fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

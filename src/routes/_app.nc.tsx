@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -19,7 +19,11 @@ export const Route = createFileRoute("/_app/nc")({
 });
 
 const columns: ColumnDef<NcRow>[] = [
-  { accessorKey: "Codigo", header: "Código", cell: ({ getValue }) => <span className="id">{getValue() as string}</span> },
+  {
+    accessorKey: "Codigo",
+    header: "Código",
+    cell: ({ getValue }) => <span className="id">{getValue() as string}</span>,
+  },
   { accessorKey: "Data", header: "Data" },
   { accessorKey: "Processo", header: "Processo" },
   {
@@ -39,7 +43,12 @@ const columns: ColumnDef<NcRow>[] = [
     accessorKey: "Status",
     header: "Status",
     cell: ({ row }) => (
-      <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", statusBadge(row.original.Status))}>
+      <span
+        className={cn(
+          "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+          statusBadge(row.original.Status),
+        )}
+      >
         {row.original.Status}
       </span>
     ),
@@ -49,25 +58,37 @@ const columns: ColumnDef<NcRow>[] = [
 
 function NcPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const nc = data?.nc ?? [];
+  const nc = useMemo(() => data?.nc ?? [], [data?.nc]);
 
   const byProcesso = useMemo(() => {
     const m = new Map<string, number>();
-    nc.forEach((r) => { const k = r.Processo || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
-    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    nc.forEach((r) => {
+      const k = r.Processo || "—";
+      m.set(k, (m.get(k) ?? 0) + 1);
+    });
+    return Array.from(m.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [nc]);
 
   const byStatus = useMemo(() => {
     const m = new Map<string, number>();
-    nc.forEach((r) => { const k = r.Status || "—"; m.set(k, (m.get(k) ?? 0) + 1); });
-    return Array.from(m.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    nc.forEach((r) => {
+      const k = r.Status || "—";
+      m.set(k, (m.get(k) ?? 0) + 1);
+    });
+    return Array.from(m.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
   }, [nc]);
 
   if (isLoading)
     return (
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-24" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
         </div>
         <Skeleton className="h-96" />
       </div>
@@ -78,7 +99,6 @@ function NcPage() {
   const total = nc.length;
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
   const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
-
 
   return (
     <div className="space-y-6">
@@ -109,12 +129,25 @@ function NcPage() {
         />
       </div>
 
-      <SectionHeader label="Panorama" insight={`${total} NCs · ${abertas} abertas · ${fechadas} fechadas · ${byProcesso.length} processos`}>
+      <SectionHeader
+        label="Panorama"
+        insight={`${total} NCs · ${abertas} abertas · ${fechadas} fechadas · ${byProcesso.length} processos`}
+      >
         <div className="grid gap-3 sm:grid-cols-4">
           <KpiCard label="Total de NCs" value={total} icon={ClipboardList} variant="primary" />
-          <KpiCard label="Abertas" value={abertas} icon={AlertTriangle} variant={abertas > 0 ? "warning" : "success"} />
+          <KpiCard
+            label="Abertas"
+            value={abertas}
+            icon={AlertTriangle}
+            variant={abertas > 0 ? "warning" : "success"}
+          />
           <KpiCard label="Fechadas" value={fechadas} icon={CheckCircle2} variant="success" />
-          <KpiCard label="Processos" value={byProcesso.length} icon={FileSearch} variant="neutral" />
+          <KpiCard
+            label="Processos"
+            value={byProcesso.length}
+            icon={FileSearch}
+            variant="neutral"
+          />
         </div>
       </SectionHeader>
 
@@ -124,7 +157,10 @@ function NcPage() {
             <Panel title="NC POR PROCESSO" glass>
               <div className="flex flex-wrap gap-2">
                 {byProcesso.map(({ name, value }) => (
-                  <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <span
+                    key={name}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                  >
                     {name} <span className="num font-bold">{value}</span>
                   </span>
                 ))}
@@ -136,9 +172,11 @@ function NcPage() {
             <Panel title="NC POR STATUS" glass>
               <div className="flex flex-wrap gap-2">
                 {byStatus.map(({ name, value }) => (
-                  <span key={name} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+                  <span
+                    key={name}
+                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
                     style={{
-                      borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
+borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
                       background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
                       color: /conclu|finaliz|fechado/i.test(name) ? "#10B981" : "#F59E0B",
                     }}
@@ -157,7 +195,14 @@ function NcPage() {
           data={nc}
           columns={columns}
           pageSize={15}
-          searchKeys={["Codigo", "DescricaoNC", "Processo", "Responsavel", "CausaRaiz", "PlanoAcao"]}
+          searchKeys={[
+            "Codigo",
+            "DescricaoNC",
+            "Processo",
+            "Responsavel",
+            "CausaRaiz",
+            "PlanoAcao",
+          ]}
           searchPlaceholder="Buscar NC por código, processo, responsável, causa raiz…"
         />
       </SectionHeader>

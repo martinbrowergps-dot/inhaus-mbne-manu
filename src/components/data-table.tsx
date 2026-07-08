@@ -9,7 +9,14 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Search, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,7 +158,11 @@ export function DataTable<T>({
                   </div>
                   {rest.length > 0 && (
                     <span className="mt-1 shrink-0 text-muted-foreground">
-                      {expandedRows.has(idx) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {expandedRows.has(idx) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
                     </span>
                   )}
                 </button>

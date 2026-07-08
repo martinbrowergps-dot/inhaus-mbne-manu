@@ -36,6 +36,7 @@ export interface ReportData {
   subtitle?: string;
   metrics: ReportMetric[];
   aderencia?: ReportAderencia;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tables: ReportTable<any>[];
 }
 
@@ -91,7 +92,12 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
 
 // ─── PDF building ──────────────────────────────────────────────────
 
-function drawPageHeader(pdf: jsPDF, title: string, subtitle: string | undefined, margins: PdfMargins): number {
+function drawPageHeader(
+  pdf: jsPDF,
+  title: string,
+  subtitle: string | undefined,
+  margins: PdfMargins,
+): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const m = margins;
   let y = m.top;
@@ -168,7 +174,7 @@ function drawMetrics(pdf: jsPDF, y: number, metrics: ReportMetric[], margins: Pd
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
     pdf.text(metric.label, x + 2.5, by + 4.5);
     pdf.setFontSize(13);
-    const vc = metric.variant ? VARIANT_MAP[metric.variant] ?? C.text : C.text;
+    const vc = metric.variant ? (VARIANT_MAP[metric.variant] ?? C.text) : C.text;
     pdf.setTextColor(vc[0], vc[1], vc[2]);
     pdf.text(metric.value, x + 2.5, by + boxH - 3);
   });
@@ -220,7 +226,13 @@ function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia, margins: PdfM
   return y + barH + 5;
 }
 
-function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMargins, showHeader: boolean): number {
+function drawTables(
+  pdf: jsPDF,
+  y: number,
+  tables: ReportTable[],
+  margins: PdfMargins,
+  showHeader: boolean,
+): number {
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const m = margins;
@@ -280,7 +292,10 @@ function drawTables(pdf: jsPDF, y: number, tables: ReportTable[], margins: PdfMa
       },
       alternateRowStyles: { fillColor: [C.light[0], C.light[1], C.light[2]] },
       didDrawPage: () => {
-        if (!didDrawFirstPage) { didDrawFirstPage = true; return; }
+        if (!didDrawFirstPage) {
+          didDrawFirstPage = true;
+          return;
+        }
         if (showHeader) drawPageHeader(pdf, table.title, table.subtitle, margins);
       },
     });
@@ -341,9 +356,7 @@ export async function renderReportPdf(
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
     // drawPageHeader with subtitle "Gráficos" consumes ~33mm from margins.top
-    const chartHeaderEndY = showHeader
-      ? margins.top + 5 + 4 + 9 + 5
-      : margins.top;
+    const chartHeaderEndY = showHeader ? margins.top + 5 + 4 + 9 + 5 : margins.top;
     const imgStartY = chartHeaderEndY + 2;
     const imgAvailH = pageH - imgStartY - margins.bottom - (showFooter ? 6 : 0);
 
