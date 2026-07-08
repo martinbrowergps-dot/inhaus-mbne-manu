@@ -84,7 +84,7 @@ export function AderenciaCard({
             </RadialBarChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className={cn("num text-2xl font-bold", t.cls)}>{formatBRNumber(pct, 0)}%</span>
+            <span className={cn("num text-2xl font-bold whitespace-nowrap", t.cls)}>{formatBRNumber(pct, 0)}%</span>
           </div>
         </div>
 

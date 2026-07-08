@@ -336,7 +336,7 @@ function RelatoriosPage() {
                 <BarChart
                   data={periods}
                   barCategoryGap="5%"
-                  margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
+                  margin={{ top: 35, right: 12, left: 12, bottom: 4 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
 <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
@@ -382,7 +382,7 @@ function RelatoriosPage() {
                 <BarChart
                   data={periods}
                   barCategoryGap="5%"
-                  margin={{ top: 10, right: 8, left: 8, bottom: 4 }}
+                  margin={{ top: 30, right: 12, left: 12, bottom: 4 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
 <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
@@ -390,7 +390,7 @@ function RelatoriosPage() {
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   <Bar dataKey="totalHH" name="HH" fill="#F59E0B" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
+                    <LabelList position="top" fill="#fff" fontSize={10} offset={4} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -438,15 +438,15 @@ function RelatoriosPage() {
                 <BarChart
                   data={quebras}
                   layout="vertical"
-                  margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                  margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={140} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                  <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                    <LabelList position="right" fill="#fff" fontSize={10} />
-                  </Bar>
+                    <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
+                      <LabelList position="right" fill="#fff" fontSize={10} offset={8} />
+                    </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -270,7 +270,7 @@ function VisaoGeral() {
                     <BarChart
                       data={byPlanejamentoDia}
                       barCategoryGap="5%"
-                      margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
+                      margin={{ top: 30, right: 12, left: 12, bottom: 4 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis
@@ -302,7 +302,7 @@ function VisaoGeral() {
                           position="insideTop"
                           fill="#fff"
                           fontSize={10}
-                          offset={-4}
+                          offset={-2}
                           formatter={(v: number) => (v > 0 ? v : "")}
                         />
                       </Bar>
@@ -318,7 +318,7 @@ function VisaoGeral() {
                           position="insideTop"
                           fill="#fff"
                           fontSize={10}
-                          offset={-4}
+                          offset={-2}
                           formatter={(v: number) => (v > 0 ? v : "")}
                         />
                       </Bar>
@@ -335,11 +335,11 @@ function VisaoGeral() {
             ) : (
               <div className="h-72 md:h-64">
                 <ResponsiveContainer>
-                  <BarChart
-                    data={byDia}
-                    barCategoryGap="5%"
-                    margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
-                  >
+                    <BarChart
+                      data={byDia}
+                      barCategoryGap="5%"
+                      margin={{ top: 30, right: 12, left: 12, bottom: 4 }}
+                    >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis
                       dataKey="label"
@@ -357,7 +357,7 @@ function VisaoGeral() {
                       {byDia.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
-                      <LabelList position="top" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                      <LabelList position="top" fill="#fff" fontSize={10} offset={4} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -471,7 +471,7 @@ function VisaoGeral() {
                     <BarChart
                       data={quebras}
                       layout="vertical"
-                      margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                      margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis
@@ -483,13 +483,13 @@ function VisaoGeral() {
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={{ fontSize: 9, fill: "#93C5D8" }}
+                        tick={{ fontSize: 10, fill: "#93C5D8" }}
                         stroke="#93C5D8"
-                        width={120}
+                        width={140}
                       />
                       <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                       <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                        <LabelList position="right" fill="#fff" fontSize={10} />
+                        <LabelList position="right" fill="#fff" fontSize={10} offset={8} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>

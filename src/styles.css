@@ -272,6 +272,9 @@ background: linear-gradient(135deg, #E0F7FF, #06B6D4);
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
   }
   .id {
     font-family: var(--font-mono);

@@ -277,7 +277,7 @@ function IndicadoresPage() {
               <BarChart
                 data={computed.aderSistema}
                 layout="vertical"
-                margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis
@@ -319,9 +319,9 @@ function IndicadoresPage() {
           ) : (
             <div className="h-72">
               <ResponsiveContainer>
-                <BarChart data={computed.backlogArr}>
+                <BarChart data={computed.backlogArr} margin={{ top: 10, right: 12, left: 12, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
                   <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: "#F59E0B" }} stroke="#F59E0B" />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
@@ -382,7 +382,7 @@ function IndicadoresPage() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
                   Duração média real
                 </p>
-                <p className="num text-3xl font-bold text-foreground">
+                <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                   {formatBRNumber(computed.duracaoMedia, 1)}
                   <span className="ml-0.5 text-sm text-muted-foreground">h</span>
                 </p>
@@ -391,7 +391,7 @@ function IndicadoresPage() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-warning">
                   HH planejado (média)
                 </p>
-                <p className="num text-3xl font-bold text-foreground">
+                <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                   {formatBRNumber(computed.hhPlanMedio ?? 0, 1)}
                   <span className="ml-0.5 text-sm text-muted-foreground">h</span>
                 </p>
@@ -401,7 +401,7 @@ function IndicadoresPage() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-success">
                     Variação
                   </p>
-                  <p className="num text-3xl font-bold text-foreground">
+                  <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                     {formatBRNumber(
                       ((computed.duracaoMedia - computed.hhPlanMedio) / computed.hhPlanMedio) * 100,
                       0,
@@ -424,10 +424,10 @@ function IndicadoresPage() {
                   <BarChart
                     data={computed.duracaoPorExec}
                     layout="vertical"
-                    margin={{ left: 20, right: 8, top: 8, bottom: 4 }}
+                    margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                     <YAxis
                       type="category"
                       dataKey="name"
@@ -527,9 +527,9 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
   return (
     <div className="h-72">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 20, right: 28, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"

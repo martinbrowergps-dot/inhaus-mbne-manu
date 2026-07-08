@@ -23,9 +23,9 @@ export function ChartBarHorizontal({
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 8, top: 8, bottom: 4 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 28, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"
@@ -49,7 +49,7 @@ export function ChartBarHorizontal({
             />
           )}
 <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]}>
-            <LabelList position="right" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+            <LabelList position="right" fill="#fff" fontSize={10} offset={8} formatter={(v: number) => v > 0 ? v : ""} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
