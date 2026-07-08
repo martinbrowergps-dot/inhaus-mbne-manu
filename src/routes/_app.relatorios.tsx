@@ -347,11 +347,23 @@ function RelatoriosPage() {
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
                   <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="planejadas" position="insideTop" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList
+                      dataKey="planejadas"
+                      position="insideTop"
+                      fill="#fff"
+                      fontSize={10}
+                      content={({ x, y, width, index }) => {
+                        const d = index !== undefined ? periods[index] : undefined;
+                        if (!d) return null;
+                        return (
+                          <text x={Number(x) + Number(width) / 2} y={Number(y) - 4} textAnchor="middle" fill="#fff" fontSize={10}>
+                            {d.planejadas}/{d.naoPlanejadas}
+                          </text>
+                        );
+                      }}
+                    />
                   </Bar>
-                  <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="naoPlanejadas" position="insideTop" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
-                  </Bar>
+                  <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
