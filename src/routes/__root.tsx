@@ -8,6 +8,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import "@fontsource/work-sans/400.css";
+import "@fontsource/work-sans/500.css";
+import "@fontsource/work-sans/600.css";
+import "@fontsource/work-sans/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/700.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
