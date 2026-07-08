@@ -15,13 +15,13 @@ import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 const PALETTE = [
-  "#0EA5FF",
-  "#22C55E",
-  "#EAB308",
+  "#06B6D4",
+  "#10B981",
+  "#F59E0B",
   "#EF4444",
   "#A78BFA",
   "#2563EB",
-  "#0EA5FF",
+  "#06B6D4",
   "#FBBF24",
 ];
 
@@ -76,11 +76,11 @@ export function TempMultiChart({
             type="number"
             domain={["dataMin", "dataMax"]}
             tickFormatter={(t) => fmtX(t as number, range)}
-            tick={{ fontSize: 10, fill: "#94A3B8" }}
-            stroke="#94A3B8"
+            tick={{ fontSize: 10, fill: "#93C5D8" }}
+            stroke="#93C5D8"
             minTickGap={40}
           />
-          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={44} />
+          <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={44} />
           <ReTooltip
             contentStyle={CHART_TOOLTIP_STYLE}
             labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}

@@ -212,7 +212,7 @@ function ChecklistsPage() {
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={distTipo} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={(e) => `${e.name}`} labelLine={true}>
-                    {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
+                    {distTipo.map((_, i) => <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />)}
                   </Pie>
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -225,12 +225,12 @@ function ChecklistsPage() {
               <ResponsiveContainer>
                 <BarChart data={distTipo} margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]} />
                   <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
-                    {distTipo.map((_, i) => <Cell key={i} fill={["#0EA5FF", "#22C55E", "#EAB308"][i]} />)}
-                    <LabelList position="top" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
+                    {distTipo.map((_, i) => <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />)}
+                    <LabelList position="top" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

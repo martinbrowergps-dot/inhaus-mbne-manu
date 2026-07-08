@@ -48,8 +48,8 @@ export function TempTrendChart({
     kpis.criticos > 0
       ? "#EF4444"
       : kpis.pctNaFaixa < 100
-        ? "#EAB308"
-        : "#22C55E";
+        ? "#F59E0B"
+        : "#10B981";
 
   const temps = series.map((s) => s.temp);
   const minT = faixa ? Math.min(faixa.min - 2, ...temps) : Math.min(...temps, 0);
@@ -83,23 +83,23 @@ export function TempTrendChart({
                 type="number"
                 domain={["dataMin", "dataMax"]}
                 tickFormatter={(t) => fmtX(t as number, range)}
-                tick={{ fontSize: 10, fill: "#94A3B8" }}
-                stroke="#94A3B8"
+                tick={{ fontSize: 10, fill: "#93C5D8" }}
+                stroke="#93C5D8"
                 minTickGap={30}
               />
               <YAxis
                 domain={[minT, maxT]}
-                tick={{ fontSize: 10, fill: "#94A3B8" }}
-                stroke="#94A3B8"
+                tick={{ fontSize: 10, fill: "#93C5D8" }}
+                stroke="#93C5D8"
                 width={44}
               />
               {faixa && (
                 <ReferenceArea
                   y1={faixa.min}
                   y2={faixa.max}
-                  fill="#22C55E"
+                  fill="#10B981"
                   fillOpacity={0.08}
-                  stroke="#22C55E"
+                  stroke="#10B981"
                   strokeOpacity={0.25}
                 />
               )}

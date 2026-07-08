@@ -140,7 +140,7 @@ function NcPage() {
                     style={{
                       borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
                       background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
-                      color: /conclu|finaliz|fechado/i.test(name) ? "#22C55E" : "#EAB308",
+                      color: /conclu|finaliz|fechado/i.test(name) ? "#10B981" : "#F59E0B",
                     }}
                   >
                     {name} <span className="num font-bold">{value}</span>
