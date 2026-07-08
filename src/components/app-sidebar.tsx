@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Calendar,
   FileText,
+  LayoutGrid,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,6 +48,7 @@ const items = [
   { title: "NC", url: "/nc", icon: FileWarning },
   { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
   { title: "Indicadores", url: "/indicadores", icon: Activity },
+  { title: "Matriz Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
 ] as const;
 
 export function AppSidebar() {

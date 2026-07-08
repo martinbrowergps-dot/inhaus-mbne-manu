@@ -17,6 +17,7 @@ import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
 import { Route as AppPreditivasRouteImport } from './routes/_app.preditivas'
 import { Route as AppPassagemTurnoRouteImport } from './routes/_app.passagem-turno'
 import { Route as AppNcRouteImport } from './routes/_app.nc'
+import { Route as AppMatrizPriorizacaoRouteImport } from './routes/_app.matriz-priorizacao'
 import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
 import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
 import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
@@ -63,6 +64,11 @@ const AppNcRoute = AppNcRouteImport.update({
   path: '/nc',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMatrizPriorizacaoRoute = AppMatrizPriorizacaoRouteImport.update({
+  id: '/matriz-priorizacao',
+  path: '/matriz-priorizacao',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppIndicadoresRoute = AppIndicadoresRouteImport.update({
   id: '/indicadores',
   path: '/indicadores',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
+  '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
   '/preditivas': typeof AppPreditivasRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
+  '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
   '/preditivas': typeof AppPreditivasRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/_app/equipe': typeof AppEquipeRoute
   '/_app/hh-semanal': typeof AppHhSemanalRoute
   '/_app/indicadores': typeof AppIndicadoresRoute
+  '/_app/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/_app/nc': typeof AppNcRoute
   '/_app/passagem-turno': typeof AppPassagemTurnoRoute
   '/_app/preditivas': typeof AppPreditivasRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
+    | '/matriz-priorizacao'
     | '/nc'
     | '/passagem-turno'
     | '/preditivas'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
+    | '/matriz-priorizacao'
     | '/nc'
     | '/passagem-turno'
     | '/preditivas'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/_app/equipe'
     | '/_app/hh-semanal'
     | '/_app/indicadores'
+    | '/_app/matriz-priorizacao'
     | '/_app/nc'
     | '/_app/passagem-turno'
     | '/_app/preditivas'
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNcRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/matriz-priorizacao': {
+      id: '/_app/matriz-priorizacao'
+      path: '/matriz-priorizacao'
+      fullPath: '/matriz-priorizacao'
+      preLoaderRoute: typeof AppMatrizPriorizacaoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/indicadores': {
       id: '/_app/indicadores'
       path: '/indicadores'
@@ -304,6 +323,7 @@ interface AppRouteChildren {
   AppEquipeRoute: typeof AppEquipeRoute
   AppHhSemanalRoute: typeof AppHhSemanalRoute
   AppIndicadoresRoute: typeof AppIndicadoresRoute
+  AppMatrizPriorizacaoRoute: typeof AppMatrizPriorizacaoRoute
   AppNcRoute: typeof AppNcRoute
   AppPassagemTurnoRoute: typeof AppPassagemTurnoRoute
   AppPreditivasRoute: typeof AppPreditivasRoute
@@ -320,6 +340,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEquipeRoute: AppEquipeRoute,
   AppHhSemanalRoute: AppHhSemanalRoute,
   AppIndicadoresRoute: AppIndicadoresRoute,
+  AppMatrizPriorizacaoRoute: AppMatrizPriorizacaoRoute,
   AppNcRoute: AppNcRoute,
   AppPassagemTurnoRoute: AppPassagemTurnoRoute,
   AppPreditivasRoute: AppPreditivasRoute,
