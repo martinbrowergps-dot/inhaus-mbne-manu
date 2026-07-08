@@ -275,12 +275,12 @@ function VisaoGeral() {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis
                         dataKey="label"
-                        tick={{ fontSize: 10, fill: "#94A3B8" }}
-                        stroke="#94A3B8"
+                        tick={{ fontSize: 10, fill: "#93C5D8" }}
+                        stroke="#93C5D8"
                       />
                       <YAxis
-                        tick={{ fontSize: 10, fill: "#94A3B8" }}
-                        stroke="#94A3B8"
+                        tick={{ fontSize: 10, fill: "#93C5D8" }}
+                        stroke="#93C5D8"
                         allowDecimals={false}
                       />
                       <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
@@ -294,13 +294,13 @@ function VisaoGeral() {
                         dataKey="planejado"
                         name="planejado"
                         stackId="a"
-                        fill="#22C55E"
+                        fill="#10B981"
                         radius={[4, 4, 0, 0]}
                       >
                         <LabelList
                           dataKey="planejado"
                           position="insideTop"
-                          fill="#94A3B8"
+                          fill="#93C5D8"
                           fontSize={8}
                           offset={-4}
                           formatter={(v: number) => (v > 0 ? v : "")}
@@ -316,7 +316,7 @@ function VisaoGeral() {
                         <LabelList
                           dataKey="naoPlanejado"
                           position="insideTop"
-                          fill="#94A3B8"
+                          fill="#93C5D8"
                           fontSize={8}
                           offset={-4}
                           formatter={(v: number) => (v > 0 ? v : "")}
@@ -485,20 +485,20 @@ function VisaoGeral() {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis
                         type="number"
-                        tick={{ fontSize: 10, fill: "#94A3B8" }}
-                        stroke="#94A3B8"
+                        tick={{ fontSize: 10, fill: "#93C5D8" }}
+                        stroke="#93C5D8"
                         allowDecimals={false}
                       />
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={{ fontSize: 9, fill: "#94A3B8" }}
-                        stroke="#94A3B8"
+                        tick={{ fontSize: 9, fill: "#93C5D8" }}
+                        stroke="#93C5D8"
                         width={120}
                       />
                       <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                       <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                        <LabelList position="right" fill="#94A3B8" fontSize={10} />
+                        <LabelList position="right" fill="#93C5D8" fontSize={10} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>

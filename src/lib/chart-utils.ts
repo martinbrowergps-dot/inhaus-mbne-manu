@@ -36,7 +36,7 @@ export function priorityBadge(priority: string) {
   return cls;
 }
 
-export const COLORS = ["#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#06B6D4", "#A855F7", "#93C5D8"];
+export const COLORS = ["#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#F97316", "#A855F7", "#93C5D8"];
 
 export function aggregate<T>(
   items: T[],
