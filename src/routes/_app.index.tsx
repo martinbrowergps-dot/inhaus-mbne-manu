@@ -106,7 +106,7 @@ function VisaoGeral() {
   // OS por Dia (próximos 14 dias)
   const byDia = aggregateByDay(programacaoFiltrada);
   // Status
-  const byStatus = aggregate(programacaoFiltrada, (p) => p.StatusExecucao || p.Status || "—");
+  const byStatus = aggregate(enriched, (p) => p._execStatus);
   const aderencia = computeAderencia(programacaoFiltrada);
 
   // Planejado vs Não Planejado
@@ -296,7 +296,16 @@ function VisaoGeral() {
                         stackId="a"
                         fill="#22C55E"
                         radius={[4, 4, 0, 0]}
-                      />
+                      >
+                        <LabelList
+                          dataKey="planejado"
+                          position="insideTop"
+                          fill="#94A3B8"
+                          fontSize={8}
+                          offset={-4}
+                          formatter={(v: number) => (v > 0 ? v : "")}
+                        />
+                      </Bar>
                       <Bar
                         dataKey="naoPlanejado"
                         name="naoPlanejado"
@@ -306,16 +315,6 @@ function VisaoGeral() {
                       >
                         <LabelList
                           dataKey="naoPlanejado"
-                          position="insideTop"
-                          fill="#94A3B8"
-                          fontSize={8}
-                          offset={-4}
-                          formatter={(v: number) => (v > 0 ? v : "")}
-                        />
-                      </Bar>
-                      <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[0, 0, 0, 0]}>
-                        <LabelList
-                          dataKey="planejado"
                           position="insideTop"
                           fill="#94A3B8"
                           fontSize={8}
