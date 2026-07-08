@@ -71,7 +71,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border bg-sidebar">
         <div className="flex items-center gap-2 px-2 py-3">
           <img
             src="/logo.png"
@@ -84,7 +84,7 @@ export function AppSidebar() {
             <div className="text-[10px] font-bold tracking-[0.18em] text-primary">
               MARTIN BROWER
             </div>
-            <div className="text-[10px] text-muted-foreground tracking-wider">
+            <div className="text-[10px] text-sidebar-foreground/70 tracking-wider">
               IN HAUS INDUSTRIAL
             </div>
           </div>
@@ -105,7 +105,7 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className="data-[active=true]:bg-primary/15 data-[active=true]:text-primary data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
+                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
                     >
                       <Link to={item.url} className="flex items-center gap-3" aria-current={active ? "page" : undefined}>
                         <item.icon className="h-4 w-4" />
