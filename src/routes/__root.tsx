@@ -8,6 +8,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import "@fontsource/work-sans/400.css";
+import "@fontsource/work-sans/500.css";
+import "@fontsource/work-sans/600.css";
+import "@fontsource/work-sans/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/700.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -108,7 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/c47b9256-778a-493f-8d1e-5778f0c99298",
       },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "#0B1A30" },
+      { name: "theme-color", content: "#082F49" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black" },
     ],

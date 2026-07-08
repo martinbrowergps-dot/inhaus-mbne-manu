@@ -191,7 +191,7 @@ export function ExportButton<T>({
             variant="outline"
             disabled={disabled || rows.length === 0}
             title={rows.length === 0 ? "Nenhum registro para exportar" : undefined}
-            className="clay-sm h-8 gap-1.5 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+            className="h-8 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
           >
             <Download className="h-3.5 w-3.5" />
             <span className="text-xs">Exportar</span>

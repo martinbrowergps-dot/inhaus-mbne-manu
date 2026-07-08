@@ -220,13 +220,13 @@ function VisaoGeral() {
                 <ResponsiveContainer>
                   <BarChart data={byPlanejamentoDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                    <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                    <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Legend wrapperStyle={CHART_LEGEND_STYLE}
                       formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                     />
-                    <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="planejado" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
                       <LabelList
                         dataKey="naoPlanejado"
@@ -239,7 +239,7 @@ function VisaoGeral() {
                               x={Number(x) + Number(width) / 2}
                               y={Number(y) - 4}
                               textAnchor="middle"
-                              fill="#94A3B8"
+                              fill="#93C5D8"
                               fontSize={9}
                             >
                               {d.planejado} / {d.naoPlanejado}
@@ -263,11 +263,11 @@ function VisaoGeral() {
               <ResponsiveContainer>
                   <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                    <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                    <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                  <Bar dataKey="value" fill="#0EA5FF" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+                  <Bar dataKey="value" fill="#06B6D4" radius={[4, 4, 0, 0]}>
+                    <LabelList position="top" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -356,11 +356,11 @@ function VisaoGeral() {
                 <ResponsiveContainer>
                   <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                    <LabelList position="right" fill="#94A3B8" fontSize={10} />
+                    <LabelList position="right" fill="#93C5D8" fontSize={10} />
                   </Bar>
                   </BarChart>
                 </ResponsiveContainer>

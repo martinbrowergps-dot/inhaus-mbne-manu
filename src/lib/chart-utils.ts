@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 
 export const CHART_TOOLTIP_STYLE: CSSProperties = {
-  background: "#05254A",
-  border: "1px solid #0EA5FF55",
+  background: "#0C4A6E",
+  border: "1px solid #06B6D455",
   borderRadius: 8,
   fontSize: 12,
   color: "#FFFFFF",
@@ -10,17 +10,17 @@ export const CHART_TOOLTIP_STYLE: CSSProperties = {
 
 export const CHART_LEGEND_STYLE: CSSProperties = {
   fontSize: 11,
-  color: "#A8B8CC",
+  color: "#93C5D8",
 };
 
-export const CHART_CURSOR_STYLE = { stroke: "rgba(14,165,255,0.2)" };
+export const CHART_CURSOR_STYLE = { stroke: "rgba(6,182,212,0.2)" };
 
 export function priorityColor(priority: string): string {
   const p = (priority || "").toLowerCase();
   if (/alta|crit|urgent|aa/i.test(p)) return "#EF4444";
-  if (/m[ée]dia/i.test(p)) return "#EAB308";
-  if (/baixa/i.test(p)) return "#22C55E";
-  return "#94A3B8";
+  if (/m[ée]dia/i.test(p)) return "#F59E0B";
+  if (/baixa/i.test(p)) return "#10B981";
+  return "#93C5D8";
 }
 
 export function priorityBadge(priority: string) {
@@ -28,15 +28,15 @@ export function priorityBadge(priority: string) {
   const cls =
     color === "#EF4444"
       ? "border-destructive/40 bg-destructive/15 text-destructive"
-      : color === "#EAB308"
+      : color === "#F59E0B"
         ? "border-warning/40 bg-warning/15 text-warning"
-        : color === "#22C55E"
+        : color === "#10B981"
           ? "border-success/40 bg-success/15 text-success"
           : "border-border/40 bg-card/50 text-muted-foreground";
   return cls;
 }
 
-export const COLORS = ["#0EA5FF", "#22C55E", "#EAB308", "#EF4444", "#1D4ED8", "#a78bfa", "#94A3B8"];
+export const COLORS = ["#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#06B6D4", "#A855F7", "#93C5D8"];
 
 export function aggregate<T>(items: T[], keyFn: (t: T) => string): { name: string; value: number }[] {
   const map = new Map<string, number>();

@@ -280,13 +280,13 @@ function RelatoriosPage() {
               <ResponsiveContainer>
                 <BarChart data={periods} barCategoryGap="5%" margin={{ top: 20, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
-                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
                     <LabelList
                       dataKey="naoPlanejadas"
@@ -299,7 +299,7 @@ function RelatoriosPage() {
                             x={Number(x) + Number(width) / 2}
                             y={Number(y) - 4}
                             textAnchor="middle"
-                            fill="#94A3B8"
+                            fill="#93C5D8"
                             fontSize={9}
                           >
                             {d.planejadas} / {d.naoPlanejadas}
@@ -322,12 +322,12 @@ function RelatoriosPage() {
               <ResponsiveContainer>
                 <BarChart data={periods} barCategoryGap="5%" margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                  <XAxis dataKey="periodLabel" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                  <Bar dataKey="totalHH" name="HH" fill="#EAB308" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#94A3B8" fontSize={9} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
+                  <Bar dataKey="totalHH" name="HH" fill="#F59E0B" radius={[4, 4, 0, 0]}>
+                    <LabelList position="top" fill="#93C5D8" fontSize={9} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -372,11 +372,11 @@ function RelatoriosPage() {
               <ResponsiveContainer>
                 <BarChart data={quebras} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" width={120} />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                    <LabelList position="right" fill="#94A3B8" fontSize={10} />
+                    <LabelList position="right" fill="#93C5D8" fontSize={10} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

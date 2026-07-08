@@ -440,20 +440,20 @@ function ChartBars({
       return r === 0
         ? "#EF4444"
         : r === 1
-          ? "#EAB308"
-          : "#0EA5FF";
+          ? "#F59E0B"
+          : "#06B6D4";
     }
     if (colorBy === "age") {
       return (
         [
-          "#0EA5FF",
-          "#EAB308",
+          "#06B6D4",
+          "#F59E0B",
           "#F97316",
           "#EF4444",
-        ][i] || "#0EA5FF"
+        ][i] || "#06B6D4"
       );
     }
-    return "#0EA5FF";
+    return "#06B6D4";
   };
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -465,27 +465,27 @@ function ChartBars({
         <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
         {horizontal ? (
           <>
-            <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} allowDecimals={false} />
+            <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} allowDecimals={false} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 10, fill: "#94A3B8" }}
+              tick={{ fontSize: 10, fill: "#93C5D8" }}
               width={80}
             />
           </>
         ) : (
           <>
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94A3B8" }} />
+            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} />
             <YAxis
-              tick={{ fontSize: 10, fill: "#94A3B8" }}
+              tick={{ fontSize: 10, fill: "#93C5D8" }}
               allowDecimals={false}
             />
           </>
         )}
         <Tooltip
           contentStyle={{
-            background: "#05254A",
-            border: "1px solid #0EA5FF55",
+            background: "#0C4A6E",
+            border: "1px solid #06B6D455",
             borderRadius: 8,
             fontSize: 11,
           }}
@@ -495,7 +495,7 @@ function ChartBars({
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
-          <LabelList position={horizontal ? "right" : "top"} fill="#94A3B8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
+          <LabelList position={horizontal ? "right" : "top"} fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

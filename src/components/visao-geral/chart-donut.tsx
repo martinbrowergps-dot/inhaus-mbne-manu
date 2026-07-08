@@ -26,8 +26,8 @@ export function ChartDonut({ data }: { data: { name: string; value: number }[] }
           </Pie>
           <Tooltip
             contentStyle={{
-              background: "#05254A",
-              border: "1px solid #0EA5FF55",
+              background: "#0C4A6E",
+              border: "1px solid #06B6D455",
               borderRadius: 8,
               fontSize: 12,
             }}

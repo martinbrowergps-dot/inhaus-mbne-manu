@@ -7,7 +7,7 @@ import { formatBRNumber, parseBRDate } from "@/lib/format";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import type { EnrichedRow } from "./types";
 
-const HH_COLORS = ["#0EA5FF", "#22C55E"];
+const HH_COLORS = ["#06B6D4", "#10B981"];
 
 export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
   const chartByDay = useMemo(() => {
@@ -73,8 +73,8 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
             <ResponsiveContainer>
               <BarChart data={chartByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-                <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Legend wrapperStyle={{ fontSize: 11 }}
                   formatter={(value) => (value === "planejado" ? "Planejado" : "Executado")}

@@ -238,11 +238,11 @@ function IndicadoresPage() {
             <ResponsiveContainer>
               <LineChart data={computed.semanal}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: "#94A3B8" }}
-                  stroke="#94A3B8"
+                  tick={{ fontSize: 10, fill: "#93C5D8" }}
+                  stroke="#93C5D8"
                   unit="%"
                 />
                 <ReTooltip
@@ -252,9 +252,9 @@ function IndicadoresPage() {
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#0EA5FF"
+                  stroke="#06B6D4"
                   strokeWidth={2}
-                  dot={{ fill: "#0EA5FF", r: 3 }}
+                  dot={{ fill: "#06B6D4", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -272,14 +272,14 @@ function IndicadoresPage() {
                   type="number"
                   domain={[0, 100]}
                   unit="%"
-                  tick={{ fontSize: 10, fill: "#94A3B8" }}
-                  stroke="#94A3B8"
+                  tick={{ fontSize: 10, fill: "#93C5D8" }}
+                  stroke="#93C5D8"
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fontSize: 10, fill: "#94A3B8" }}
-                  stroke="#94A3B8"
+                  tick={{ fontSize: 10, fill: "#93C5D8" }}
+                  stroke="#93C5D8"
                   width={140}
                 />
                 <ReTooltip
@@ -290,7 +290,7 @@ function IndicadoresPage() {
                   {computed.aderSistema.map((d, i) => (
                     <Cell
                       key={i}
-                      fill={d.value >= 95 ? "#22C55E" : d.value >= 85 ? "#EAB308" : "#EF4444"}
+                      fill={d.value >= 95 ? "#10B981" : d.value >= 85 ? "#F59E0B" : "#EF4444"}
                     />
                   ))}
                 </Bar>
@@ -309,12 +309,12 @@ function IndicadoresPage() {
               <ResponsiveContainer>
                 <BarChart data={computed.backlogArr}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94A3B8" }} stroke="#94A3B8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
+                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="HH" fill="#EAB308" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="HH" fill="#F59E0B" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -328,16 +328,16 @@ function IndicadoresPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="OS POR TIPO DE MANUTENÇÃO">
-          <BarH data={byTipo} fill="#0EA5FF" />
+          <BarH data={byTipo} fill="#06B6D4" />
         </Panel>
         <Panel title="OS POR LOCAL / MACRO">
-          <BarH data={byLocal} fill="#22C55E" />
+          <BarH data={byLocal} fill="#10B981" />
         </Panel>
         <Panel title="OS POR SISTEMA">
           <PieView data={bySistema} />
         </Panel>
         <Panel title="STATUS DAS TEMPERATURAS">
-          <PieView data={statusTemp} colors={["#22C55E", "#EAB308", "#EF4444"]} />
+          <PieView data={statusTemp} colors={["#10B981", "#F59E0B", "#EF4444"]} />
         </Panel>
       </div>
 
@@ -346,15 +346,15 @@ function IndicadoresPage() {
           <ResponsiveContainer>
             <LineChart data={computed.hhDiaArr}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+              <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
               <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#0EA5FF"
+                stroke="#06B6D4"
                 strokeWidth={2}
-                dot={{ fill: "#0EA5FF", r: 3 }}
+                dot={{ fill: "#06B6D4", r: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -401,20 +401,20 @@ function IndicadoresPage() {
                 <ResponsiveContainer>
                   <BarChart data={computed.duracaoPorExec} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fontSize: 10, fill: "#94A3B8" }}
-                      stroke="#94A3B8"
+                      tick={{ fontSize: 10, fill: "#93C5D8" }}
+                      stroke="#93C5D8"
                       width={120}
                     />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     <Legend wrapperStyle={{ fontSize: 11 }}
                       formatter={(value) => value === "duracao" ? "Duração real" : "HH Planejado"}
                     />
-                    <Bar dataKey="duracao" name="duracao" fill="#0EA5FF" radius={[0, 4, 4, 0]} />
-                    <Bar dataKey="hhPlan" name="hhPlan" fill="#EAB308" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="duracao" name="duracao" fill="#06B6D4" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="hhPlan" name="hhPlan" fill="#F59E0B" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -482,12 +482,12 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ left: 20, right: 8, top: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} stroke="#94A3B8" allowDecimals={false} />
+          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 10, fill: "#94A3B8" }}
-            stroke="#94A3B8"
+            tick={{ fontSize: 10, fill: "#93C5D8" }}
+            stroke="#93C5D8"
             width={140}
           />
           <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
