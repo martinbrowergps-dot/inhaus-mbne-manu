@@ -194,13 +194,13 @@ function Gauge({
       <div className="mt-3 h-3 overflow-hidden rounded-full bg-background/60">
         <div
           className={cn("h-full transition-all", color)}
-          style={{ width: `${Math.min(ocupacao, 100)}%` }}
+          style={{ width: `${Math.min(ocupacao, 150)}%` }}
         />
       </div>
       {ocupacao > 100 && (
         <div className="mt-2 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1.5 text-[11px] text-destructive">
           <AlertOctagon className="h-3.5 w-3.5" />
-          Sobrecarga: equipe acima da capacidade semanal
+          Sobrecarga: {formatBRNumber(ocupacao, 1)}% da capacidade — {formatBRNumber(alocado - disponivel, 1)}h excedentes
         </div>
       )}
     </div>

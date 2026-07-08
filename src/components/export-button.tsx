@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   exportTableToPdf,
   exportVisualPdf,
@@ -189,16 +190,20 @@ export function ExportButton<T>({
     }
   };
 
+  const isDisabled = disabled || rows.length === 0;
+
   return (
     <>
+      <TooltipProvider>
+      <Tooltip>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             size="sm"
             variant="outline"
             disabled={disabled || rows.length === 0}
-            title={rows.length === 0 ? "Nenhum registro para exportar" : undefined}
             className="h-8 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
+            title={rows.length === 0 && !disabled ? "Nenhum registro para exportar" : undefined}
           >
             <Download className="h-3.5 w-3.5" />
             <span className="text-xs">Exportar</span>
@@ -264,6 +269,11 @@ export function ExportButton<T>({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      <TooltipContent side="bottom" className="text-xs">
+        {isDisabled ? "Nenhum registro no período filtrado para exportar" : ""}
+      </TooltipContent>
+      </Tooltip>
+      </TooltipProvider>
 
       <Dialog open={customOpen} onOpenChange={setCustomOpen}>
         <DialogContent className="max-w-md">

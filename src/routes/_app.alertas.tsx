@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -60,6 +61,14 @@ function AlertasPage() {
   const alerts: Alerta[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const prevAlertCount = (() => {
+    try {
+      const raw = localStorage.getItem("alertas_prev");
+      if (raw) return JSON.parse(raw) as { total: number; ts: number };
+    } catch { /* ignore */ }
+    return null;
+  })();
 
   // Temperaturas fora da faixa
   const medicoesFiltradas = (data.medicoes ?? []).filter((m) =>
@@ -182,14 +191,38 @@ function AlertasPage() {
     baixa: alerts.filter((a) => a.prio === "baixa").length,
   };
 
+  const newAlerts = prevAlertCount ? alerts.length - prevAlertCount.total : 0;
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "alertas_prev",
+        JSON.stringify({ total: alerts.length, ts: Date.now() }),
+      );
+    } catch { /* ignore */ }
+  }, [alerts.length]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Central de Alertas</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="fade-up text-xl font-bold tracking-tight">Central de Alertas</h1>
+            {newAlerts > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-destructive" />
+                {newAlerts} novo{newAlerts !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">
             Alertas gerados automaticamente a partir das condições operacionais
           </p>
+          {prevAlertCount && (
+            <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+              Última verificação: {new Date(prevAlertCount.ts).toLocaleString("pt-BR")} · {prevAlertCount.total} alertas
+            </p>
+          )}
         </div>
         <ExportButton
           filename="alertas"

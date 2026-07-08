@@ -7,8 +7,11 @@ import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { NcRow } from "@/lib/sheets-types";
 import { statusBadge } from "@/lib/chart-utils";
+import { parseBRDate, formatBRDate } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
@@ -24,7 +27,15 @@ const columns: ColumnDef<NcRow>[] = [
     header: "Código",
     cell: ({ getValue }) => <span className="id">{getValue() as string}</span>,
   },
-  { accessorKey: "Data", header: "Data" },
+  {
+    accessorKey: "Data",
+    header: "Data",
+    cell: ({ getValue }) => {
+      const v = getValue() as string;
+      const d = parseBRDate(v);
+      return <span>{d ? formatBRDate(d) : v}</span>;
+    },
+  },
   { accessorKey: "Processo", header: "Processo" },
   {
     accessorKey: "DescricaoNC",
@@ -58,7 +69,13 @@ const columns: ColumnDef<NcRow>[] = [
 
 function NcPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const nc = useMemo(() => data?.nc ?? [], [data?.nc]);
+  const dateFilter = useDateFilter();
+
+  const nc = useMemo(() => {
+    const raw = data?.nc ?? [];
+    if (!dateFilter.isActive) return raw;
+    return raw.filter((r) => dateFilter.filterByDateRange(r.Data));
+  }, [data?.nc, dateFilter]);
 
   const byProcesso = useMemo(() => {
     const m = new Map<string, number>();
@@ -95,6 +112,23 @@ function NcPage() {
     );
 
   if (!data) return null;
+
+  if (nc.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h1 className="fade-up text-xl font-bold tracking-tight">Não Conformidades</h1>
+        <EmptyState
+          icon={FileSearch}
+          title="Nenhuma NC no período"
+          description={
+            dateFilter.isActive
+              ? "Tente ampliar o filtro de datas para ver mais registros."
+              : "Nenhuma não conformidade cadastrada na planilha."
+          }
+        />
+      </div>
+    );
+  }
 
   const total = nc.length;
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;

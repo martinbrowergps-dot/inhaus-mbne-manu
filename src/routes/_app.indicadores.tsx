@@ -322,11 +322,12 @@ function IndicadoresPage() {
                 <BarChart data={computed.backlogArr}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
-                  <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: "#F59E0B" }} stroke="#F59E0B" />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="HH" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="HH" fill="#F59E0B" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -464,14 +465,34 @@ function Heatmap({
     { key: "passagem" as const, label: "Passagem" },
   ];
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
+      {/* Date labels every 5 days */}
+      <div className="flex items-center gap-2">
+        <span className="w-20 shrink-0" />
+        <div
+          className="grid flex-1 gap-0.5"
+          style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}
+        >
+          {rows.map((r, i) => (
+            <span
+              key={r.label}
+              className={cn(
+                "text-center text-[8px] text-muted-foreground/50",
+                i % 5 === 0 ? "visible" : "invisible",
+              )}
+            >
+              {r.label}
+            </span>
+          ))}
+        </div>
+      </div>
       {tracks.map((t) => (
         <div key={t.key} className="flex items-center gap-2">
           <span className="w-20 shrink-0 text-[10px] tracking-wider text-muted-foreground uppercase">
             {t.label}
           </span>
           <div
-            className="grid flex-1 grid-cols-30 gap-0.5"
+            className="grid flex-1 gap-0.5"
             style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}
           >
             {rows.map((r) => (

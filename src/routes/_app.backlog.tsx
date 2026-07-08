@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Inbox, AlertTriangle, Clock, Users } from "lucide-react";
+import { Search, Inbox, AlertTriangle, Clock, Users, X } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -437,6 +437,15 @@ function BacklogPage() {
               />
             ))}
           </div>
+          {(priFilter || stateFilter || q.trim()) && (
+            <button
+              onClick={() => { setPriFilter(null); setStateFilter(null); setQ(""); }}
+              className="mb-3 inline-flex items-center gap-1 rounded-full border border-border/40 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+            >
+              <X className="h-3 w-3" />
+              Limpar filtros
+            </button>
+          )}
           <DataTable data={filtered} columns={columns} pageSize={15} />
         </Panel>
       </SectionHeader>

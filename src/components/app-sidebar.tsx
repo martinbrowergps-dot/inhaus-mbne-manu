@@ -205,7 +205,7 @@ export function AppSidebar() {
           <Popover>
             <PopoverTrigger asChild>
               <button
-                className={`clay-sm flex h-8 w-8 items-center justify-center rounded-lg ${
+                className={`clay-sm relative flex h-8 w-8 items-center justify-center rounded-lg ${
                   isActive
                     ? "bg-primary/20 text-primary"
                     : "text-sidebar-foreground hover:bg-sidebar-accent"
@@ -213,6 +213,9 @@ export function AppSidebar() {
                 title="Filtrar por data"
               >
                 <Calendar className="h-4 w-4" />
+                {isActive && (
+                  <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_4px_rgba(6,182,212,0.6)]" />
+                )}
               </button>
             </PopoverTrigger>
             <PopoverContent

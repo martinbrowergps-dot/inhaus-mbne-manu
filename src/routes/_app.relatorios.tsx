@@ -285,9 +285,9 @@ function RelatoriosPage() {
 
       <SectionHeader label="Dados Agregados" insight={`${formatInt(periods.length)} períodos`}>
         <Panel title={`${visao === "semanal" ? "SEMANAS" : visao === "mensal" ? "MESES" : "DIAS"}`}>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto max-h-[calc(100vh-18rem)]">
             <table className="w-full text-xs">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-[#082F49]">
                 <tr className="border-b border-border text-muted-foreground">
                   <th className="text-left py-2 pr-3 font-semibold">Período</th>
                   <th className="text-right px-2 py-2 font-semibold">OS</th>

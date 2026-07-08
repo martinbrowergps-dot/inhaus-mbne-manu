@@ -7,11 +7,18 @@ import {
   ResponsiveContainer,
   Tooltip,
   LabelList,
+  ReferenceLine,
 } from "recharts";
 import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { Empty } from "./empty";
 
-export function ChartBarHorizontal({ data }: { data: { name: string; value: number }[] }) {
+export function ChartBarHorizontal({
+  data,
+  refLine,
+}: {
+  data: { name: string; value: number }[];
+  refLine?: { value: number; label: string };
+}) {
   if (data.length === 0) return <Empty />;
   return (
     <div className="h-64">
@@ -27,6 +34,20 @@ export function ChartBarHorizontal({ data }: { data: { name: string; value: numb
             width={110}
           />
           <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+          {refLine && (
+            <ReferenceLine
+              x={refLine.value}
+              stroke="#F59E0B"
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{
+                value: refLine.label,
+                position: "top",
+                fill: "#F59E0B",
+                fontSize: 9,
+              }}
+            />
+          )}
 <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]}>
             <LabelList position="right" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
           </Bar>

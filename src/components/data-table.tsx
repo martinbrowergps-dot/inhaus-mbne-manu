@@ -192,9 +192,9 @@ export function DataTable<T>({
       </div>
 
       {/* ── Desktop table ── */}
-      <div className="hidden overflow-x-auto rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm md:block">
+      <div className="hidden overflow-auto rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm md:block">
         <Table className="min-w-[640px]">
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-[#082F49]">
             {table.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id} className="border-border/30 hover:bg-transparent">
                 {hg.headers.map((header) => (

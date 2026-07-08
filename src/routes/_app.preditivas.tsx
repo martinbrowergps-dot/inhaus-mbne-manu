@@ -9,6 +9,7 @@ import type { PreditivaRow } from "@/lib/sheets-types";
 import { priorityBadge } from "@/lib/chart-utils";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
@@ -74,6 +75,19 @@ function PreditivasPage() {
     );
 
   if (!data) return null;
+
+  if (preditiva.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h1 className="fade-up text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
+        <EmptyState
+          icon={TrendingUp}
+          title="Nenhuma ação preditiva cadastrada"
+          description="Não há registros na planilha de manutenção preditiva."
+        />
+      </div>
+    );
+  }
 
   const total = preditiva.length;
   const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);

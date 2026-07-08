@@ -42,43 +42,53 @@ export interface KpiItem {
 export function KpiCarousel({ items }: { items: KpiItem[] }) {
   return (
     <div className="md:hidden">
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-none">
-        {items.map((kpi, i) => {
-          const v = VARIANTS[kpi.variant ?? "primary"];
-          return (
-            <div
-              key={i}
-              className={cn(
-                "fade-up snap-start min-w-[260px] flex-1 rounded-xl border p-4 transition-all hover:-translate-y-0.5",
-                v.ring,
-                v.glow,
-              )}
-              style={{ animationDelay: `${i * 50}ms` }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                    {kpi.label}
+      <div className="relative">
+        <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-none">
+          {items.map((kpi, i) => {
+            const v = VARIANTS[kpi.variant ?? "primary"];
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "fade-up snap-start min-w-[260px] flex-1 rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+                  v.ring,
+                  v.glow,
+                )}
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                      {kpi.label}
+                    </div>
+                    <div className="num mt-1.5 text-3xl font-bold text-foreground">{kpi.value}</div>
+                    {kpi.hint && (
+                      <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
+                    )}
                   </div>
-                  <div className="num mt-1.5 text-3xl font-bold text-foreground">{kpi.value}</div>
-                  {kpi.hint && (
-                    <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
-                  )}
-                </div>
-                <div
-                  className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}
-                >
-                  <kpi.icon className="h-5 w-5" />
+                  <div
+                    className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}
+                  >
+                    <kpi.icon className="h-5 w-5" />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        {/* Right-edge fade hint */}
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-[#082F49] to-transparent" />
       </div>
       {/* Scroll indicators */}
       <div className="mt-2 flex justify-center gap-1.5">
         {items.map((_, i) => (
-          <div key={i} className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+          <div
+            key={i}
+            className={cn(
+              "rounded-full transition-all",
+              i === 0 ? "h-1.5 w-3 bg-muted-foreground/60" : "h-1.5 w-1.5 bg-muted-foreground/25",
+            )}
+          />
         ))}
       </div>
     </div>

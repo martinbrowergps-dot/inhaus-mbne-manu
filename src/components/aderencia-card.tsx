@@ -2,6 +2,7 @@ import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "
 import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBRNumber } from "@/lib/format";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function tone(pct: number) {
 if (pct >= 95)
@@ -19,6 +20,7 @@ export function AderenciaCard({
   pendentes,
   totalProgramadas,
   className,
+  loading,
 }: {
   pct: number;
   finalizadasNoPrazo: number;
@@ -27,7 +29,24 @@ export function AderenciaCard({
   pendentes: number;
   totalProgramadas: number;
   className?: string;
+  loading?: boolean;
 }) {
+  if (loading) {
+    return (
+      <div className={cn("panel fade-up rounded-xl border border-border/40 p-4", className)}>
+        <Skeleton className="mb-3 h-3 w-44" />
+        <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
+          <Skeleton className="h-24 w-24 sm:h-32 sm:w-32 rounded-full" />
+          <div className="flex-1 space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const t = tone(pct);
   const data = [{ name: "aderencia", value: Math.max(0, Math.min(100, pct)), fill: t.color }];
 

@@ -14,6 +14,7 @@ import {
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -305,22 +306,21 @@ function VisaoGeral() {
                       >
                         <LabelList
                           dataKey="naoPlanejado"
-                          position="top"
-                          content={({ x, y, width, index }) => {
-                            const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
-                            if (!d) return null;
-                            return (
-                              <text
-                                x={Number(x) + Number(width) / 2}
-                                y={Number(y) - 4}
-                                textAnchor="middle"
-                                fill="#94A3B8"
-                                fontSize={9}
-                              >
-                                {d.planejado} / {d.naoPlanejado}
-                              </text>
-                            );
-                          }}
+                          position="insideTop"
+                          fill="#94A3B8"
+                          fontSize={8}
+                          offset={-4}
+                          formatter={(v: number) => (v > 0 ? v : "")}
+                        />
+                      </Bar>
+                      <Bar dataKey="planejado" name="planejado" stackId="a" fill="#22C55E" radius={[0, 0, 0, 0]}>
+                        <LabelList
+                          dataKey="planejado"
+                          position="insideTop"
+                          fill="#94A3B8"
+                          fontSize={8}
+                          offset={-4}
+                          formatter={(v: number) => (v > 0 ? v : "")}
                         />
                       </Bar>
                     </BarChart>
@@ -356,7 +356,15 @@ function VisaoGeral() {
                     />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                    <Bar dataKey="value" name="OS" fill="#06B6D4" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]}>
+                      {byDia.map((d, i) => {
+                        const maxVal = Math.max(...byDia.map((x) => x.value), 1);
+                        const intensity = d.value / maxVal;
+                        const r = Math.round(6 + 182 * intensity);
+                        const g = Math.round(182 - 140 * intensity);
+                        const b = Math.round(212 - 150 * intensity);
+                        return <Cell key={i} fill={`rgb(${r},${g},${b})`} />;
+                      })}
                       <LabelList position="top" fill="#93C5D8" fontSize={9} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                   </BarChart>
@@ -510,7 +518,18 @@ function VisaoGeral() {
         >
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel dataChart="hh-cargo" title="HH POR CARGO">
-              <ChartBarHorizontal data={aggregateHH(programacaoFiltrada)} />
+              {(() => {
+                const hhData = aggregateHH(programacaoFiltrada);
+                const avg = hhData.length > 0
+                  ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
+                  : 0;
+                return (
+                  <ChartBarHorizontal
+                    data={hhData}
+                    refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
+                  />
+                );
+              })()}
             </Panel>
           </div>
         </Section>
