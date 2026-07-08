@@ -344,7 +344,7 @@ function VisaoGeral() {
                     margin={{ top: 20, right: 8, left: 8, bottom: 4 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-<XAxis
+                    <XAxis
                       dataKey="label"
                       tick={{ fontSize: 10, fill: "#93C5D8" }}
                       stroke="#93C5D8"
@@ -355,29 +355,9 @@ function VisaoGeral() {
                       allowDecimals={false}
                     />
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                    <Legend wrapperStyle={CHART_LEGEND_STYLE}
-                      formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
-                    />
-                    <Bar dataKey="planejado" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                      <LabelList
-                        position="top"
-content={({ x, y, width, index }) => {
-                          const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
-                          if (!d) return null;
-                          return (
-                            <text
-                              x={Number(x) + Number(width) / 2}
-                              y={Number(y) - 4}
-                              textAnchor="middle"
-                              fill="#93C5D8"
-                              fontSize={9}
-                            >
-                              {d.planejado} / {d.naoPlanejado}
-                            </text>
-                          );
-                        }}
-                      />
+                    <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+                    <Bar dataKey="value" name="OS" fill="#06B6D4" radius={[4, 4, 0, 0]}>
+                      <LabelList position="top" fill="#93C5D8" fontSize={9} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
