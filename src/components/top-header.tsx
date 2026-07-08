@@ -51,6 +51,7 @@ export function TopHeader() {
             size="sm"
             variant="outline"
             className="gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
+          >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
