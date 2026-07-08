@@ -554,7 +554,7 @@ return r === 0
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
-<LabelList position={horizontal ? "right" : "top"} fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
+<LabelList position={horizontal ? "right" : "top"} fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

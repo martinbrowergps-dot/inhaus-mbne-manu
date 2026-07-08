@@ -49,7 +49,7 @@ export function ChartBarHorizontal({
             />
           )}
 <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]}>
-            <LabelList position="right" fill="#93C5D8" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
+            <LabelList position="right" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

@@ -271,7 +271,7 @@ function ChecklistsPage() {
                       ))}
                       <LabelList
                         position="top"
-                        fill="#93C5D8"
+                        fill="#fff"
                         fontSize={10}
                         formatter={(v: number) => (v > 0 ? formatBRNumber(v, 1) : "")}
                       />

@@ -75,6 +75,7 @@ function RelatoriosPage() {
   const filtered = (programacao ?? []).filter((p) =>
     dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
   );
+  const enriched = filtered.map((p) => ({ ...p, _execStatus: deriveExecStatus(p) }));
 
   const periods =
     visao === "semanal"
@@ -88,7 +89,7 @@ function RelatoriosPage() {
   const totalFinalizadas = periods.reduce((s, p) => s + p.finalizadas, 0);
   const totalCanceladas = periods.reduce((s, p) => s + p.canceladas, 0);
 
-  const byStatus = aggregate(filtered, (p) => p.StatusExecucao || p.Status || "—");
+  const byStatus = aggregate(enriched, (p) => p._execStatus);
 
   const quebras = filtered
     .filter((p) => (p.Tipo || "").toUpperCase() === "QUEBRA DE PROGRAMAÇÃO")
@@ -346,10 +347,10 @@ function RelatoriosPage() {
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
                   <Bar dataKey="planejadas" name="planejado" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="planejadas" position="insideTop" fill="#fff" fontSize={9} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList dataKey="planejadas" position="insideTop" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
                   </Bar>
                   <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill="#EF4444" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="naoPlanejadas" position="insideTop" fill="#fff" fontSize={9} formatter={(v: number) => v > 0 ? v : ""} />
+                    <LabelList dataKey="naoPlanejadas" position="insideTop" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -377,7 +378,7 @@ function RelatoriosPage() {
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   <Bar dataKey="totalHH" name="HH" fill="#F59E0B" radius={[4, 4, 0, 0]}>
-                    <LabelList position="top" fill="#93C5D8" fontSize={9} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
+                    <LabelList position="top" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 1) : ""} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -398,9 +399,7 @@ function RelatoriosPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={70}
-                    label={(e) => `${e.name}`}
-                    labelLine={true}
+                    outerRadius={80}
                   >
                     {byStatus.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -434,7 +433,7 @@ function RelatoriosPage() {
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={120} />
                   <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                   <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                    <LabelList position="right" fill="#93C5D8" fontSize={10} />
+                    <LabelList position="right" fill="#fff" fontSize={10} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

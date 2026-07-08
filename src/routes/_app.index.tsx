@@ -29,6 +29,7 @@ import {
   CHART_TOOLTIP_STYLE,
   CHART_LEGEND_STYLE,
   CHART_CURSOR_STYLE,
+  COLORS,
   aggregate,
 } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
@@ -42,6 +43,7 @@ import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
 import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
+import { EmptyState } from "@/components/empty-state";
 import { Section } from "@/components/visao-geral/section";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
@@ -261,9 +263,7 @@ function VisaoGeral() {
               glass
             >
               {byPlanejamentoDia.length === 0 ? (
-                <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-                  Sem registros no período
-                </div>
+                <EmptyState className="h-64" />
               ) : (
                 <div className="h-72 md:h-64">
                   <ResponsiveContainer>
@@ -300,8 +300,8 @@ function VisaoGeral() {
                         <LabelList
                           dataKey="planejado"
                           position="insideTop"
-                          fill="#93C5D8"
-                          fontSize={8}
+                          fill="#fff"
+                          fontSize={10}
                           offset={-4}
                           formatter={(v: number) => (v > 0 ? v : "")}
                         />
@@ -316,8 +316,8 @@ function VisaoGeral() {
                         <LabelList
                           dataKey="naoPlanejado"
                           position="insideTop"
-                          fill="#93C5D8"
-                          fontSize={8}
+                          fill="#fff"
+                          fontSize={10}
                           offset={-4}
                           formatter={(v: number) => (v > 0 ? v : "")}
                         />
@@ -331,9 +331,7 @@ function VisaoGeral() {
 
           <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
             {byDia.length === 0 ? (
-              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-                Sem registros no período
-              </div>
+              <EmptyState className="h-64" />
             ) : (
               <div className="h-72 md:h-64">
                 <ResponsiveContainer>
@@ -356,15 +354,10 @@ function VisaoGeral() {
                     <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                     <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                     <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]}>
-                      {byDia.map((d, i) => {
-                        const maxVal = Math.max(...byDia.map((x) => x.value), 1);
-                        const intensity = d.value / maxVal;
-                        const r = Math.round(6 + 182 * intensity);
-                        const g = Math.round(182 - 140 * intensity);
-                        const b = Math.round(212 - 150 * intensity);
-                        return <Cell key={i} fill={`rgb(${r},${g},${b})`} />;
-                      })}
-                      <LabelList position="top" fill="#93C5D8" fontSize={9} formatter={(v: number) => v > 0 ? v : ""} />
+                      {byDia.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                      <LabelList position="top" fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? v : ""} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -471,9 +464,7 @@ function VisaoGeral() {
               subtitle="OS do tipo quebra agrupadas por solicitante"
             >
               {quebras.length === 0 ? (
-                <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-                  Nenhuma quebra de programação no período
-                </div>
+                <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-64" />
               ) : (
                 <div className="h-64">
                   <ResponsiveContainer>
@@ -498,7 +489,7 @@ function VisaoGeral() {
                       />
                       <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
                       <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                        <LabelList position="right" fill="#93C5D8" fontSize={10} />
+                        <LabelList position="right" fill="#fff" fontSize={10} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
