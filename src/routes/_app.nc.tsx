@@ -25,32 +25,47 @@ export const Route = createFileRoute("/_app/nc")({
 const columns: ColumnDef<NcRow>[] = [
   {
     accessorKey: "Codigo",
-    header: "Código",
+    header: "Nº NC",
     cell: ({ getValue }) => <span className="id">{getValue() as string}</span>,
   },
   {
-    accessorKey: "Data",
-    header: "Data",
-    cell: ({ getValue }) => {
-      const v = getValue() as string;
-      const d = parseBRDate(v);
-      return <span>{d ? formatBRDate(d) : v}</span>;
-    },
-  },
-  { accessorKey: "Processo", header: "Processo" },
-  {
-    accessorKey: "DescricaoNC",
-    header: "Descrição da NC",
+    accessorKey: "Ocorrencia",
+    header: "Ocorrência",
     cell: ({ row }) => (
-      <span className="max-w-xs truncate block" title={row.original.DescricaoNC}>
-        {row.original.DescricaoNC}
+      <span className="max-w-xs truncate block" title={row.original.Ocorrencia}>
+        {row.original.Ocorrencia}
       </span>
     ),
   },
-  { accessorKey: "CausaRaiz", header: "Causa Raiz" },
-  { accessorKey: "PlanoAcao", header: "Plano de Ação" },
-  { accessorKey: "Prazo", header: "Prazo" },
-  { accessorKey: "Responsavel", header: "Responsável" },
+  {
+    accessorKey: "MedidasCorretivas",
+    header: "Medidas Corretivas",
+    cell: ({ row }) => (
+      <span className="max-w-xs truncate block" title={row.original.MedidasCorretivas}>
+        {row.original.MedidasCorretivas}
+      </span>
+    ),
+  },
+  { accessorKey: "Responsavel", header: "Resp. Medida" },
+  {
+    accessorKey: "DataConclusao",
+    header: "Data Conclusão",
+    cell: ({ getValue }) => {
+      const v = getValue() as string;
+      const d = parseBRDate(v);
+      return <span>{d ? formatBRDate(d) : v || "—"}</span>;
+    },
+  },
+  { accessorKey: "Andamento", header: "Andamento" },
+  {
+    accessorKey: "OQueFazer",
+    header: "O que fazer",
+    cell: ({ row }) => (
+      <span className="max-w-xs truncate block" title={row.original.OQueFazer}>
+        {row.original.OQueFazer}
+      </span>
+    ),
+  },
   {
     accessorKey: "Status",
     header: "Status",
@@ -65,7 +80,6 @@ const columns: ColumnDef<NcRow>[] = [
       </span>
     ),
   },
-  { accessorKey: "DataFechamento", header: "Data Fechamento" },
 ];
 
 function NcPage() {
@@ -75,13 +89,13 @@ function NcPage() {
   const nc = useMemo(() => {
     const raw = data?.nc ?? [];
     if (!dateFilter.isActive) return raw;
-    return raw.filter((r) => dateFilter.filterByDateRange(r.Data));
+    return raw.filter((r) => dateFilter.filterByDateRange(r.DataConclusao));
   }, [data?.nc, dateFilter]);
 
-  const byProcesso = useMemo(() => {
+  const byResponsavel = useMemo(() => {
     const m = new Map<string, number>();
     nc.forEach((r) => {
-      const k = r.Processo || "—";
+      const k = r.Responsavel || "—";
       m.set(k, (m.get(k) ?? 0) + 1);
     });
     return Array.from(m.entries())
@@ -144,17 +158,14 @@ function NcPage() {
           filename="nao-conformidades"
           rows={nc}
           columns={[
-            { header: "Código", value: (r) => r.Codigo },
-            { header: "Data", value: (r) => r.Data },
-            { header: "Processo", value: (r) => r.Processo },
-            { header: "Descrição", value: (r) => r.DescricaoNC },
-            { header: "Contenção", value: (r) => r.Contencao },
-            { header: "Causa Raiz", value: (r) => r.CausaRaiz },
-            { header: "Plano de Ação", value: (r) => r.PlanoAcao },
-            { header: "Prazo", value: (r) => r.Prazo },
-            { header: "Responsável", value: (r) => r.Responsavel },
+            { header: "Nº NC", value: (r) => r.Codigo },
+            { header: "Ocorrência", value: (r) => r.Ocorrencia },
+            { header: "Medidas Corretivas", value: (r) => r.MedidasCorretivas },
+            { header: "Resp. Medida", value: (r) => r.Responsavel },
+            { header: "Data Conclusão", value: (r) => r.DataConclusao },
+            { header: "Andamento", value: (r) => r.Andamento },
+            { header: "O que fazer", value: (r) => r.OQueFazer },
             { header: "Status", value: (r) => r.Status },
-            { header: "Data Fechamento", value: (r) => r.DataFechamento },
           ]}
           pdfTitle="Não Conformidades · Centro de Controle"
         />
@@ -162,7 +173,7 @@ function NcPage() {
 
       <SectionHeader
         label="Panorama"
-        insight={`${total} NCs · ${abertas} abertas · ${fechadas} fechadas · ${byProcesso.length} processos`}
+        insight={`${total} NCs · ${abertas} abertas · ${fechadas} fechadas · ${byResponsavel.length} responsáveis`}
       >
         <div className="grid gap-3 sm:grid-cols-4">
           <KpiCard label="Total de NCs" value={total} icon={ClipboardList} variant="primary" />
@@ -174,20 +185,20 @@ function NcPage() {
           />
           <KpiCard label="Fechadas" value={fechadas} icon={CheckCircle2} variant="success" />
           <KpiCard
-            label="Processos"
-            value={byProcesso.length}
+            label="Responsáveis"
+            value={byResponsavel.length}
             icon={FileSearch}
             variant="neutral"
           />
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Análise" insight="NCs distribuídas por processo e status de fechamento">
+      <SectionHeader label="Análise" insight="NCs distribuídas por responsável e status de fechamento">
         <div className="grid gap-4 lg:grid-cols-2">
-          {byProcesso.length > 0 && (
-            <Panel title="NC POR PROCESSO" glass>
+          {byResponsavel.length > 0 && (
+            <Panel title="NC POR RESPONSÁVEL" glass>
               <div className="flex flex-wrap gap-2">
-                {byProcesso.map(({ name, value }) => (
+                {byResponsavel.map(({ name, value }) => (
                   <span
                     key={name}
                     className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"

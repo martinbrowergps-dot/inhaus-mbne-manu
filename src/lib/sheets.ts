@@ -46,6 +46,52 @@ async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
   return parsed.data.filter((r) => Object.values(r).some((v) => v && String(v).trim() !== ""));
 }
 
+// A aba NC foi reestruturada em um layout de relatório: a primeira linha do
+// CSV do gviz vem com o rótulo concatenado ao conteúdo do primeiro registro, e
+// os dados úteis ficam numa tabela de 8 colunas nas linhas seguintes. Por isso
+// parseamos por posição de coluna em vez de nome de cabeçalho.
+async function fetchNcRows(): Promise<NcRow[]> {
+  const res = await fetch(csvUrl(SHEETS.nc), { cache: "no-store" });
+  if (!res.ok) throw new Error(`Falha ao ler aba "NC" (${res.status})`);
+  const text = await res.text();
+  const parsed = Papa.parse<string[]>(text, {
+    header: false,
+    skipEmptyLines: "greedy",
+  });
+  const rows = parsed.data as string[][];
+  const result: NcRow[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const c = rows[i] ?? [];
+    const numero = (c[0] ?? "").trim();
+    const ocorrencia = (c[1] ?? "").trim();
+    const medidas = (c[2] ?? "").trim();
+    const resp = (c[3] ?? "").trim();
+    const dataConc = (c[4] ?? "").trim();
+    const andamento = (c[5] ?? "").trim();
+    const oQueFazer = (c[6] ?? "").trim();
+    const status = (c[7] ?? "").trim();
+    // Pula a linha de cabeçalho/rótulo e a "NC em destaque" (formato formulário)
+    if (!ocorrencia) continue;
+    if (
+      ocorrencia.toUpperCase().startsWith("OCORRÊNCIA") ||
+      ocorrencia.toUpperCase().startsWith("RESP PELA MEDIDA CORRETIVA") ||
+      numero.toUpperCase().startsWith("NUMERO DE NC")
+    )
+      continue;
+    result.push({
+      Codigo: numero,
+      Ocorrencia: ocorrencia,
+      MedidasCorretivas: medidas,
+      Responsavel: resp,
+      DataConclusao: dataConc,
+      Andamento: andamento,
+      OQueFazer: oQueFazer,
+      Status: status || andamento,
+    });
+  }
+  return result;
+}
+
 const EXPECTED_HEADERS: Record<string, string[]> = {
   programacao: [
     "NumeroOS",
@@ -96,15 +142,14 @@ const EXPECTED_HEADERS: Record<string, string[]> = {
     "Grupo",
   ],
   nc: [
-    "Código NC",
-    "Data",
-    "Processo",
-    "Descrição da NC",
-    "Causa Raiz",
-    "Plano de Ação",
-    "Prazo",
-    "Responsável",
-    "Status",
+    "NUMERO DE NC",
+    "OCORRÊNCIA",
+    "MEDIDAS CORRETIVAS",
+    "RESP PELA MEDIDA CORRETIVA",
+    "DATA CONCLUSÃO",
+    "ANDAMENTO",
+    "O QUE FAZER",
+    "STATUS",
   ],
   preditiva: [
     "Código Referência",
@@ -153,7 +198,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     tecnicosRaw,
     parametrosRaw,
     backlogRaw,
-    ncRaw,
+    ncRows,
     preditivaRaw,
   ] = await Promise.all([
     fetchCsv(SHEETS.programacao),
@@ -165,7 +210,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     fetchCsv(SHEETS.tecnicos),
     fetchCsv(SHEETS.parametrosHH),
     fetchCsv(SHEETS.backlog).catch(() => [] as Record<string, string>[]),
-    fetchCsv(SHEETS.nc).catch(() => [] as Record<string, string>[]),
+    fetchNcRows().catch(() => [] as NcRow[]),
     fetchCsv(SHEETS.preditiva).catch(() => [] as Record<string, string>[]),
   ]);
 
@@ -175,7 +220,6 @@ export async function fetchSheetsData(): Promise<SheetsData> {
   validateHeaders("tecnicos", tecnicosRaw);
   validateHeaders("parametrosHH", parametrosRaw);
   validateHeaders("backlog", backlogRaw);
-  validateHeaders("nc", ncRaw);
   validateHeaders("preditiva", preditivaRaw);
 
   const programacao: ProgramacaoRow[] = programacaoRaw.map((r) => ({
@@ -276,22 +320,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     OQuePrecisa: pick(r, "o que precisa", "OQuePrecisa"),
   }));
 
-  const nc: NcRow[] = ncRaw.map((r) => ({
-    Codigo: pick(r, "Código NC", "Código", "Codigo"),
-    Data: pick(r, "Data"),
-    Processo: pick(r, "Processo"),
-    DescricaoNC: pick(r, "Descrição da NC", "Descricao da NC"),
-    Contencao: pick(r, "Contenção", "Contencao"),
-    AnaliseIshikawa: pick(r, "Análise Ishikawa", "Analise Ishikawa"),
-    CincoPorques: pick(r, "5 Porquês", "5 Porques"),
-    CausaRaiz: pick(r, "Causa Raiz", "CausaRaiz"),
-    PlanoAcao: pick(r, "Plano de Ação", "Plano de Acao"),
-    Prazo: pick(r, "Prazo"),
-    Responsavel: pick(r, "Responsável", "Responsavel"),
-    Status: pick(r, "Status"),
-    DataFechamento: pick(r, "Data de Fechamento", "DataFechamento"),
-    evidencias: pick(r, "Evidências", "evidencias"),
-  }));
+  const nc: NcRow[] = ncRows;
 
   const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({
     CodigoReferencia: pick(r, "Código Referência", "CodigoReferencia"),
