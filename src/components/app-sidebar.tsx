@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   CalendarDays,
-  Users,
   Clock,
   Thermometer,
   ClipboardCheck,
@@ -37,18 +36,17 @@ import {
 const items = [
   { title: "Visão Geral", url: "/", icon: LayoutDashboard },
   { title: "Programação", url: "/programacao", icon: CalendarDays },
-  { title: "Backlog", url: "/backlog", icon: Inbox },
-  { title: "Equipe", url: "/equipe", icon: Users },
-  { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
   { title: "Relatórios", url: "/relatorios", icon: FileText },
+  { title: "Indicadores", url: "/indicadores", icon: Activity },
   { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
+  { title: "Backlog", url: "/backlog", icon: Inbox },
+  { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
+  { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
   { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
-  { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
-  { title: "Alertas", url: "/alertas", icon: AlertTriangle },
   { title: "NC", url: "/nc", icon: FileWarning },
   { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
-  { title: "Indicadores", url: "/indicadores", icon: Activity },
-  { title: "Matriz Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
+  { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
+  { title: "Alertas", url: "/alertas", icon: AlertTriangle },
 ] as const;
 
 export function AppSidebar() {
