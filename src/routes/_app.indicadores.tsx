@@ -117,17 +117,11 @@ function IndicadoresPage() {
     const docasSet = new Set(data.checklistDocas.map((c) => (c.Data || "").slice(0, 10)));
     const geralSet = new Set(data.checklistGeral.map((c) => (c.Data || "").slice(0, 10)));
     const portasSet = new Set(data.checklistPortas.map((c) => (c.Data || "").slice(0, 10)));
-    const passagemSet = new Set(
-      (data.passagemTurno ?? [])
-        .filter((p) => dateFilter.filterByDateRange(p.Data))
-        .map((c) => (c.Data || "").slice(0, 10)),
-    );
     const heatmap = days.map((d) => ({
       ...d,
       docas: docasSet.has(d.key),
       geral: geralSet.has(d.key),
       portas: portasSet.has(d.key),
-      passagem: passagemSet.has(d.key),
     }));
 
     // HH por dia
@@ -456,13 +450,12 @@ function IndicadoresPage() {
 function Heatmap({
   rows,
 }: {
-  rows: { label: string; docas: boolean; geral: boolean; portas: boolean; passagem: boolean }[];
+  rows: { label: string; docas: boolean; geral: boolean; portas: boolean }[];
 }) {
   const tracks = [
     { key: "docas" as const, label: "Docas" },
     { key: "geral" as const, label: "Geral" },
     { key: "portas" as const, label: "Portas" },
-    { key: "passagem" as const, label: "Passagem" },
   ];
   return (
     <div className="space-y-1">

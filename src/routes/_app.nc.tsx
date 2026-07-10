@@ -237,13 +237,12 @@ function NcPage() {
           pageSize={15}
           searchKeys={[
             "Codigo",
-            "DescricaoNC",
-            "Processo",
+            "Ocorrencia",
             "Responsavel",
-            "CausaRaiz",
-            "PlanoAcao",
+            "OQueFazer",
+            "Status",
           ]}
-          searchPlaceholder="Buscar NC por código, processo, responsável, causa raiz…"
+          searchPlaceholder="Buscar NC por código, ocorrência, responsável, status…"
         />
       </SectionHeader>
     </div>
