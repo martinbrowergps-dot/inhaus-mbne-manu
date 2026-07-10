@@ -17,7 +17,7 @@ export function SummaryCards({
   const can = filtered.filter((r) => r._status === "Cancelada").length;
   const hh = sumHH(filtered);
   return (
-    <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
       <KpiCard label="Programadas" value={prog} icon={Calendar} variant="primary" />
       <KpiCard label="Em Execução" value={exec} icon={Play} variant="warning" />
       <KpiCard

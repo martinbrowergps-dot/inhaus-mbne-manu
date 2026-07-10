@@ -11,6 +11,7 @@ import { parseBRDate, formatBRDate } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
@@ -102,11 +103,7 @@ function NcPage() {
   if (isLoading)
     return (
       <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
+        <KpiSkeletonGrid count={3} className="sm:grid-cols-3" heightClass="h-24" />
         <Skeleton className="h-96" />
       </div>
     );
@@ -208,12 +205,10 @@ function NcPage() {
                 {byStatus.map(({ name, value }) => (
                   <span
                     key={name}
-                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
-                    style={{
-borderColor: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.4)" : "rgba(234,179,8,0.4)",
-                      background: /conclu|finaliz|fechado/i.test(name) ? "rgba(34,197,94,0.1)" : "rgba(234,179,8,0.1)",
-                      color: /conclu|finaliz|fechado/i.test(name) ? "#10B981" : "#F59E0B",
-                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+                      statusBadge(name),
+                    )}
                   >
                     {name} <span className="num font-bold">{value}</span>
                   </span>

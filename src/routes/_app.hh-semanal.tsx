@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
-import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { ExportButton } from "@/components/export-button";
 import { formatBRNumber, getWeekStart, parseBRDate, formatDateBR } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
@@ -44,13 +44,7 @@ function HHPage() {
   weekEnd.setDate(weekEnd.getDate() + 6);
 
   if (isLoading)
-    return (
-      <div className="grid gap-4 md:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-40" />
-        ))}
-      </div>
-    );
+    return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   if (!data) return null;
 

@@ -284,7 +284,7 @@ export function ExportButton<T>({
             <div className="space-y-1.5">
               <Label className="text-xs">Formato</Label>
               <Select value={format} onValueChange={(v) => setFormat(v as "tabela" | "visual")}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -1,10 +1,10 @@
-import { Thermometer, AlertTriangle, AlertOctagon, CheckCircle2 } from "lucide-react";
+import { Thermometer, AlertTriangle, AlertOctagon, CheckCircle2, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { LocalSummary } from "@/lib/temperature";
+import type { LocalSummary, DurationAlert } from "@/lib/temperature";
 import { getFaixa } from "@/lib/temperature";
 import { formatBRDateTime, formatBRNumber } from "@/lib/format";
 
-export function TempCard({ summary }: { summary: LocalSummary }) {
+export function TempCard({ summary, durationInfo }: { summary: LocalSummary; durationInfo?: DurationAlert }) {
   const faixa = getFaixa(summary.tipo);
   const isCritico = summary.status === "critico";
   const isAlerta = summary.status === "alerta";
@@ -71,6 +71,13 @@ export function TempCard({ summary }: { summary: LocalSummary }) {
           </div>
         )}
       </div>
+
+      {durationInfo?.isViolation && (
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[10px] font-bold tracking-wider text-destructive">
+          <Timer className="h-3 w-3" />
+          HÁ {durationInfo.currentDurationLabel} FORA DA FAIXA
+        </div>
+      )}
 
       <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2 text-[10px] text-muted-foreground">
         <span className="truncate">{summary.tecnico || "—"}</span>

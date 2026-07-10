@@ -1,42 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type Variant = "primary" | "success" | "warning" | "danger" | "neutral";
-
-const VARIANTS: Record<Variant, { ring: string; icon: string; glow: string }> = {
-  primary: {
-    ring: "border-primary/30",
-    icon: "bg-primary/15 text-primary",
-    glow: "shadow-[0_0_24px_rgba(6,182,212,0.18)]",
-  },
-  success: {
-    ring: "border-success/30",
-    icon: "bg-success/15 text-success",
-    glow: "shadow-[0_0_24px_rgba(16,185,129,0.18)]",
-  },
-  warning: {
-    ring: "border-warning/30",
-    icon: "bg-warning/15 text-warning",
-    glow: "shadow-[0_0_24px_rgba(245,158,11,0.18)]",
-  },
-  danger: {
-    ring: "border-destructive/40",
-    icon: "bg-destructive/15 text-destructive",
-    glow: "shadow-[0_0_24px_rgba(239,68,68,0.22)]",
-  },
-  neutral: {
-    ring: "border-border/60",
-    icon: "bg-accent text-foreground",
-    glow: "",
-  },
-};
+import { KPI_VARIANTS, type KpiVariant } from "@/lib/kpi-variants";
 
 export interface KpiItem {
   label: string;
   value: string | number;
   hint?: string;
   icon: LucideIcon;
-  variant?: Variant;
+  variant?: KpiVariant;
 }
 
 export function KpiCarousel({ items }: { items: KpiItem[] }) {
@@ -45,12 +16,12 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
       <div className="relative">
         <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-none">
           {items.map((kpi, i) => {
-            const v = VARIANTS[kpi.variant ?? "primary"];
+            const v = KPI_VARIANTS[kpi.variant ?? "primary"];
             return (
               <div
                 key={i}
                 className={cn(
-                  "fade-up snap-start min-w-[260px] flex-1 rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+                  "fade-up snap-start min-w-[220px] flex-1 rounded-xl border p-4 transition-all hover:-translate-y-0.5",
                   v.ring,
                   v.glow,
                 )}
@@ -99,7 +70,7 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
   return (
     <div className={cn("hidden md:grid grid-cols-2 gap-3 lg:grid-cols-3", className)}>
       {items.map((kpi, i) => {
-        const v = VARIANTS[kpi.variant ?? "primary"];
+        const v = KPI_VARIANTS[kpi.variant ?? "primary"];
         return (
           <div
             key={i}

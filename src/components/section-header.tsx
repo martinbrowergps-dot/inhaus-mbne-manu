@@ -9,6 +9,13 @@ const SECTION_COLORS = [
   "text-destructive",
 ] as const;
 
+const SECTION_ICON_BG = [
+  "bg-primary/10",
+  "bg-success/10",
+  "bg-warning/10",
+  "bg-destructive/10",
+] as const;
+
 export function SectionHeader({
   label,
   insight,
@@ -22,7 +29,8 @@ export function SectionHeader({
   colorIndex?: number;
   children: ReactNode;
 }) {
-  const colorClass = SECTION_COLORS[colorIndex % SECTION_COLORS.length];
+  const idx = colorIndex % SECTION_COLORS.length;
+  const colorClass = SECTION_COLORS[idx];
 
   return (
     <section className="space-y-4">
@@ -30,7 +38,8 @@ export function SectionHeader({
         {Icon && (
           <div
             className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-md bg-primary/10",
+              "flex h-6 w-6 items-center justify-center rounded-md",
+              SECTION_ICON_BG[idx],
               colorClass,
             )}
           >

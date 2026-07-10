@@ -1,5 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { COLORS } from "@/lib/chart-utils";
+import { COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { Empty } from "./empty";
 
 export function ChartPie({ data }: { data: { name: string; value: number }[] }) {
@@ -22,14 +22,7 @@ export function ChartPie({ data }: { data: { name: string; value: number }[] }) 
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              background: "#0C4A6E",
-              border: "1px solid #06B6D455",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
-          />
+          <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
           <Legend wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>

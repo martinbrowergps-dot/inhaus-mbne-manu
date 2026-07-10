@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Calendar, AlertTriangle } from "lucide-react";
+import { Search, Calendar, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,9 +31,9 @@ import {
 } from "@/components/programacao/types";
 import { DateNav } from "@/components/programacao/date-nav";
 import { Stat } from "@/components/programacao/stat";
-import { KpiBox } from "@/components/programacao/kpi-box";
 import { FilterRow } from "@/components/programacao/filter-row";
 import { SummaryCards } from "@/components/programacao/summary-cards";
+import { KpiCard } from "@/components/kpi-card";
 import { OsGroupedByDate, OsGroupedByExecutante } from "@/components/programacao/os-grouped";
 import { CalendarHeatmap } from "@/components/programacao/calendar-heatmap";
 import { HhComparisonChart } from "@/components/programacao/hh-comparison-chart";
@@ -248,7 +248,7 @@ function ProgramacaoPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Programação</h1>
@@ -385,7 +385,7 @@ function ProgramacaoPage() {
                       type="date"
                       value={diaSel}
                       onChange={(e) => setDiaSel(e.target.value)}
-                      className="h-8 w-40 border-border/60 bg-card/50 text-xs"
+                      className="h-9 w-40 border-border/60 bg-card/50 text-xs"
                     />
                   }
                 />
@@ -422,7 +422,7 @@ function ProgramacaoPage() {
                       onChange={(e) =>
                         setSemanaSel(fmtISO(getWeekStart(isoToDate(e.target.value))))
                       }
-                      className="h-8 w-40 border-border/60 bg-card/50 text-xs"
+                      className="h-9 w-40 border-border/60 bg-card/50 text-xs"
                     />
                   }
                 />
@@ -484,20 +484,27 @@ function ProgramacaoPage() {
                       type="month"
                       value={mesSel}
                       onChange={(e) => setMesSel(e.target.value)}
-                      className="h-8 w-40 border-border/60 bg-card/50 text-xs"
+                      className="h-9 w-40 border-border/60 bg-card/50 text-xs"
                     />
                   }
                 />
                 <div className="grid gap-3 md:grid-cols-3">
-                  <KpiBox label="OS no mês" value={rowsMes.length} />
-                  <KpiBox label="HH alocados" value={formatBRNumber(sumHH(rowsMes), 1)} />
-                  <KpiBox
+                  <KpiCard label="OS no mês" value={rowsMes.length} icon={Calendar} variant="primary" />
+                  <KpiCard
+                    label="HH alocados"
+                    value={formatBRNumber(sumHH(rowsMes), 1)}
+                    icon={Clock}
+                    variant="neutral"
+                  />
+                  <KpiCard
                     label="% Executado"
                     value={
                       rowsMes.length > 0
                         ? `${Math.round((rowsMes.filter((r) => EXECUTADO_STATUSES.includes(r._status)).length / rowsMes.length) * 100)}%`
                         : "—"
                     }
+                    icon={CheckCircle2}
+                    variant="success"
                   />
                 </div>
                 <Panel title="DISTRIBUIÇÃO DIÁRIA DO MÊS">

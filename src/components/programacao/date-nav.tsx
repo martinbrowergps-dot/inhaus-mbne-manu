@@ -23,10 +23,10 @@ export function DateNav({
       </div>
       <div className="flex items-center gap-2">
         {control}
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={onPrev}>
+        <Button size="sm" variant="outline" className="h-9 w-9 p-0" onClick={onPrev}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={onNext}>
+        <Button size="sm" variant="outline" className="h-9 w-9 p-0" onClick={onNext}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

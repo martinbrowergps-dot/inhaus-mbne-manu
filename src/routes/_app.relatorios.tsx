@@ -28,11 +28,12 @@ import {
 import { Panel } from "@/components/panel";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { deriveExecStatus } from "@/lib/status";
 import { EmptyState } from "@/components/empty-state";
 import { SectionHeader } from "@/components/section-header";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 
@@ -60,13 +61,7 @@ function RelatoriosPage() {
   const [visao, setVisao] = useState<"semanal" | "mensal" | "dia">("dia");
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-28" />
-        ))}
-      </div>
-    );
+    return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;
   }
 
   if (!data) return null;
@@ -180,38 +175,15 @@ function RelatoriosPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => setVisao("dia")}
-              className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                visao === "dia"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              Dia
-            </button>
-            <button
-              onClick={() => setVisao("semanal")}
-              className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                visao === "semanal"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              Semana
-            </button>
-            <button
-              onClick={() => setVisao("mensal")}
-              className={`px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-                visao === "mensal"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              Mês
-            </button>
-          </div>
+          <SegmentedControl
+            value={visao}
+            onChange={setVisao}
+            options={[
+              { value: "dia", label: "Dia" },
+              { value: "semanal", label: "Semana" },
+              { value: "mensal", label: "Mês" },
+            ]}
+          />
           <ExportButton
             filename={`relatorio-programacao-${visao}`}
             rows={periods}

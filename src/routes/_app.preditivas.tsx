@@ -9,6 +9,7 @@ import type { PreditivaRow } from "@/lib/sheets-types";
 import { priorityBadge } from "@/lib/chart-utils";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
@@ -65,11 +66,7 @@ function PreditivasPage() {
   if (isLoading)
     return (
       <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
+        <KpiSkeletonGrid count={3} className="sm:grid-cols-3" heightClass="h-24" />
         <Skeleton className="h-96" />
       </div>
     );

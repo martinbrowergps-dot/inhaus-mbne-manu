@@ -37,14 +37,14 @@ import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
-import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { Button } from "@/components/ui/button";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
 import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
 import { EmptyState } from "@/components/empty-state";
-import { Section } from "@/components/visao-geral/section";
+import { SectionHeader } from "@/components/section-header";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
@@ -65,13 +65,7 @@ function VisaoGeral() {
   const dateFilter = useDateFilter();
 
   if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-28" />
-        ))}
-      </div>
-    );
+    return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;
   }
 
   if (error || !data) {
@@ -214,7 +208,7 @@ function VisaoGeral() {
 
       <div ref={chartRef} className="space-y-8">
         {/* ═══════════ ① O PLANO ═══════════ */}
-        <Section
+        <SectionHeader
           label="O Plano"
           insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
           icon={ClipboardList}
@@ -390,10 +384,10 @@ function VisaoGeral() {
               </div>
             )}
           </Panel>
-        </Section>
+        </SectionHeader>
 
 {/* ═══════════ ② A EXECUÇÃO ═══════════ */}
-        <Section
+        <SectionHeader
           label="A Execução"
           insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
           icon={CheckCircle2}
@@ -441,10 +435,10 @@ function VisaoGeral() {
               <ChartPie data={bySistema} />
             </Panel>
           </div>
-        </Section>
+        </SectionHeader>
 
         {/* ═══════════ ③ OS PROBLEMAS ═══════════ */}
-        <Section
+        <SectionHeader
           label="Os Problemas"
           insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
           icon={AlertOctagon}
@@ -523,10 +517,10 @@ function VisaoGeral() {
               )}
             </Panel>
           </div>
-        </Section>
+        </SectionHeader>
 
 {/* ═══════════ ④ RECURSOS ═══════════ */}
-        <Section
+        <SectionHeader
           label="Recursos"
           insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
           icon={Users}
@@ -548,7 +542,7 @@ function VisaoGeral() {
               })()}
             </Panel>
           </div>
-        </Section>
+        </SectionHeader>
       </div>
 
       {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}

@@ -8,12 +8,13 @@ import {
   Thermometer,
   CalendarX,
   ClipboardX,
+  Timer,
 } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportButton } from "@/components/export-button";
-import { summarizeLocais } from "@/lib/temperature";
+import { summarizeLocais, computeDurationAlerts } from "@/lib/temperature";
 import { formatBRNumber, parseBRDate, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
@@ -93,6 +94,21 @@ function AlertasPage() {
         desc: `Leitura ${l.temperatura}°C próxima do limite`,
         prio: "media",
         when: l.tecnico,
+      });
+    }
+  }
+
+  // Violação por duração (>4h fora da faixa)
+  const durationAlertsMap = computeDurationAlerts(medicoesFiltradas);
+  for (const [local, dur] of durationAlertsMap) {
+    if (dur.isViolation) {
+      alerts.push({
+        id: `temp-duracao-${local}`,
+        icon: Timer,
+        title: `Temperatura fora da faixa há mais de 4h: ${local}`,
+        desc: `Há ${dur.currentDurationLabel} com temperatura fora do range permitido`,
+        prio: "alta",
+        when: undefined,
       });
     }
   }

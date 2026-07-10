@@ -8,10 +8,10 @@ import { Panel } from "@/components/panel";
 import { TempCard } from "@/components/temp-card";
 import { TempTrendChart } from "@/components/temp-trend-chart";
 import { TempMultiChart } from "@/components/temp-multi-chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
-import { filterByRange, summarizeLocais, uniqueLocais, type TempRange } from "@/lib/temperature";
+import { filterByRange, summarizeLocais, uniqueLocais, computeDurationAlerts, type TempRange } from "@/lib/temperature";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { formatDateBR } from "@/lib/format";
 import { SectionHeader } from "@/components/section-header";
@@ -36,17 +36,12 @@ function TemperaturasPage() {
   const dateFilter = useDateFilter();
 
   if (isLoading)
-    return (
-      <div className="grid gap-3 md:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-40" />
-        ))}
-      </div>
-    );
+    return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   const medicoes = data?.medicoes ?? [];
   const medicoesFiltradas = medicoes.filter((m) => dateFilter.filterByDateRange(m.DATA));
   const locais = summarizeLocais(medicoesFiltradas);
+  const durationAlerts = computeDurationAlerts(medicoesFiltradas);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
@@ -101,7 +96,7 @@ function TemperaturasPage() {
           <Panel title="CRÍTICOS" glow>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {criticos.map((l) => (
-                <TempCard key={l.local} summary={l} />
+                <TempCard key={l.local} summary={l} durationInfo={durationAlerts.get(l.local)} />
               ))}
             </div>
           </Panel>
@@ -111,7 +106,7 @@ function TemperaturasPage() {
           <Panel title="EM ALERTA">
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {alertas.map((l) => (
-                <TempCard key={l.local} summary={l} />
+                <TempCard key={l.local} summary={l} durationInfo={durationAlerts.get(l.local)} />
               ))}
             </div>
           </Panel>
@@ -123,7 +118,7 @@ function TemperaturasPage() {
           ) : (
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {normais.map((l) => (
-                <TempCard key={l.local} summary={l} />
+                <TempCard key={l.local} summary={l} durationInfo={durationAlerts.get(l.local)} />
               ))}
             </div>
           )}

@@ -169,3 +169,72 @@ export function uniqueLocais(medicoes: MedicaoRow[]): string[] {
   for (const m of medicoes) if (m.LOCAL) set.add(m.LOCAL);
   return Array.from(set).sort();
 }
+
+export interface DurationAlert {
+  currentDurationMs: number;
+  currentDurationLabel: string;
+  violations: number;
+  isViolation: boolean;
+}
+
+export function formatDuration(ms: number): string {
+  if (ms <= 0) return "0min";
+  const hours = Math.floor(ms / 3_600_000);
+  const minutes = Math.floor((ms % 3_600_000) / 60_000);
+  if (hours > 0) return `${hours}h ${minutes}min`;
+  return `${minutes}min`;
+}
+
+export function computeOutOfRangeDuration(
+  series: SeriesPoint[],
+  faixa: { min: number; max: number } | null,
+): DurationAlert {
+  if (series.length === 0 || !faixa) {
+    return { currentDurationMs: 0, currentDurationLabel: "0min", violations: 0, isViolation: false };
+  }
+
+  let streakStart: number | null = null;
+  let streakEnd: number | null = null;
+  let violations = 0;
+
+  const isOutside = (p: SeriesPoint) => p.temp < faixa.min || p.temp > faixa.max;
+
+  for (const p of series) {
+    if (isOutside(p)) {
+      if (streakStart === null) streakStart = p.t;
+      streakEnd = p.t;
+    } else if (streakStart !== null) {
+      const dur = streakEnd! - streakStart;
+      if (dur > 4 * 3_600_000) violations++;
+      streakStart = null;
+      streakEnd = null;
+    }
+  }
+
+  const currentDuration =
+    streakStart !== null && streakEnd !== null ? streakEnd - streakStart : 0;
+
+  if (currentDuration > 4 * 3_600_000) violations++;
+
+  return {
+    currentDurationMs: currentDuration,
+    currentDurationLabel: formatDuration(currentDuration),
+    violations,
+    isViolation: currentDuration > 4 * 3_600_000,
+  };
+}
+
+export function computeDurationAlerts(
+  medicoes: MedicaoRow[],
+): Map<string, DurationAlert> {
+  const locais = uniqueLocais(medicoes);
+  const map = new Map<string, DurationAlert>();
+  for (const local of locais) {
+    const tipo = classifyLocal(local);
+    const faixa = getFaixa(tipo);
+    if (!faixa) continue;
+    const series = buildSeries(medicoes, local, tipo);
+    map.set(local, computeOutOfRangeDuration(series, faixa));
+  }
+  return map;
+}

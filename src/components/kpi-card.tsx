@@ -1,35 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type Variant = "primary" | "success" | "warning" | "danger" | "neutral";
-
-const VARIANTS: Record<Variant, { ring: string; icon: string; glow: string }> = {
-  primary: {
-    ring: "border-primary/30",
-    icon: "bg-primary/15 text-primary",
-    glow: "shadow-[0_0_24px_rgba(6,182,212,0.18)]",
-  },
-  success: {
-    ring: "border-success/30",
-    icon: "bg-success/15 text-success",
-    glow: "shadow-[0_0_24px_rgba(16,185,129,0.18)]",
-  },
-  warning: {
-    ring: "border-warning/30",
-    icon: "bg-warning/15 text-warning",
-    glow: "shadow-[0_0_24px_rgba(245,158,11,0.18)]",
-  },
-  danger: {
-    ring: "border-destructive/40",
-    icon: "bg-destructive/15 text-destructive",
-    glow: "shadow-[0_0_24px_rgba(239,68,68,0.22)]",
-  },
-  neutral: {
-    ring: "border-border/60",
-    icon: "bg-accent text-foreground",
-    glow: "",
-  },
-};
+import { KPI_VARIANTS, type KpiVariant } from "@/lib/kpi-variants";
 
 export function KpiCard({
   label,
@@ -42,11 +13,11 @@ export function KpiCard({
   label: string;
   value: string | number;
   hint?: string;
-  icon: LucideIcon;
-  variant?: Variant;
+  icon?: LucideIcon;
+  variant?: KpiVariant;
   glass?: boolean;
 }) {
-  const v = VARIANTS[variant];
+  const v = KPI_VARIANTS[variant];
   return (
     <div
       className={cn(
@@ -56,7 +27,7 @@ export function KpiCard({
         v.glow,
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className={cn("flex items-start justify-between gap-3", !Icon && "items-center")}>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             {label}
@@ -64,9 +35,11 @@ export function KpiCard({
           <div className="num mt-1.5 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{value}</div>
           {hint && <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>}
         </div>
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}>
-          <Icon className="h-5 w-5" />
-        </div>
+        {Icon && (
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", v.icon)}>
+            <Icon className="h-5 w-5" />
+          </div>
+        )}
       </div>
     </div>
   );

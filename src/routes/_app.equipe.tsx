@@ -32,7 +32,7 @@ const cols: ColumnDef<TecnicoRow>[] = [
 function EquipePage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Equipe</h1>

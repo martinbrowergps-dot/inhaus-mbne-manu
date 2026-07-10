@@ -29,7 +29,9 @@ import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
 import { SectionHeader } from "@/components/section-header";
+import { FilterChip } from "@/components/ui/filter-chip";
 
 export const Route = createFileRoute("/_app/backlog")({
   component: BacklogPage,
@@ -320,7 +322,7 @@ function BacklogPage() {
   }
 
   return (
-    <div data-page="backlog" className="space-y-4">
+    <div data-page="backlog" className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
@@ -417,7 +419,7 @@ function BacklogPage() {
                 label={p}
                 active={priFilter === p}
                 onClick={() => setPriFilter(p)}
-                className={priorityClass(p)}
+                className={priFilter === p ? priorityClass(p) : undefined}
               />
             ))}
           </div>
@@ -433,7 +435,7 @@ function BacklogPage() {
                 label={s}
                 active={stateFilter === s}
                 onClick={() => setStateFilter(s)}
-                className={stateClass(s)}
+                className={stateFilter === s ? stateClass(s) : undefined}
               />
             ))}
           </div>
@@ -450,34 +452,6 @@ function BacklogPage() {
         </Panel>
       </SectionHeader>
     </div>
-  );
-}
-
-function FilterChip({
-  label,
-  active,
-  onClick,
-  className,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active
-          ? "border-primary bg-primary/15 text-primary shadow-[0_0_10px_rgba(14,165,255,0.3)]"
-          : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-        active && className,
-      )}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -542,12 +516,7 @@ return r === 0
           </>
         )}
         <Tooltip
-          contentStyle={{
-            background: "#0C4A6E",
-            border: "1px solid #06B6D455",
-            borderRadius: 8,
-            fontSize: 11,
-          }}
+          contentStyle={CHART_TOOLTIP_STYLE}
           formatter={(v: number) => [formatBRNumber(v, 0), "OS"]}
         />
         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
