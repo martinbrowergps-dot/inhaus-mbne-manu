@@ -290,27 +290,7 @@ function VisaoGeral() {
                         stackId="a"
                         fill="#10B981"
                         radius={[4, 4, 0, 0]}
-                      >
-                        <LabelList
-                          content={({ x, y, width, height, value }) => {
-                            const numVal = Number(value);
-                            const numH = Number(height);
-                            if (!numVal || numVal <= 0 || !numH || numH < 14) return null;
-                            return (
-                              <text
-                                x={Number(x) + Number(width) / 2}
-                                y={Number(y) + numH / 2}
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fill="#fff"
-                                fontSize={10}
-                              >
-                                {numVal}
-                              </text>
-                            );
-                          }}
-                        />
-                      </Bar>
+                      />
                       <Bar
                         dataKey="naoPlanejado"
                         name="naoPlanejado"
@@ -319,11 +299,23 @@ function VisaoGeral() {
                         radius={[4, 4, 0, 0]}
                       >
                         <LabelList
-                          position="top"
-                          fill="#fff"
-                          fontSize={10}
-                          offset={4}
-                          formatter={(v: number) => (v > 0 ? v : "")}
+                          content={({ x, y, width, index }) => {
+                            const d =
+                              index !== undefined ? byPlanejamentoDia[index] : undefined;
+                            if (!d) return null;
+                            if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
+                            return (
+                              <text
+                                x={Number(x) + Number(width) / 2}
+                                y={Number(y) - 6}
+                                textAnchor="middle"
+                                fill="#fff"
+                                fontSize={10}
+                              >
+                                {d.planejado}/{d.naoPlanejado}
+                              </text>
+                            );
+                          }}
                         />
                       </Bar>
                     </BarChart>
