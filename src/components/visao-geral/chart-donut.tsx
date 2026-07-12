@@ -1,15 +1,24 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { COLORS } from "@/lib/chart-utils";
+import {
+  COLORS,
+  CHART_TOOLTIP_STYLE,
+  CHART_LEGEND_STYLE,
+  statusColor,
+  tooltipValueFormatter,
+} from "@/lib/chart-utils";
+import { formatInt } from "@/lib/format";
 import { Empty } from "./empty";
 
 export function ChartDonut({ data }: { data: { name: string; value: number }[] }) {
   if (data.length === 0) return <Empty />;
+  const sorted = [...data].sort((a, b) => b.value - a.value);
+
   return (
     <div className="h-64">
       <ResponsiveContainer>
         <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
           <Pie
-            data={data}
+            data={sorted}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -17,20 +26,22 @@ export function ChartDonut({ data }: { data: { name: string; value: number }[] }
             innerRadius={50}
             outerRadius={75}
             paddingAngle={3}
+            labelLine={false}
+            label={({ value, percent }) => {
+              const pct = Math.round((percent ?? 0) * 100);
+              if (pct < 6) return "";
+              return `${formatInt(Number(value))}`;
+            }}
           >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            {sorted.map((d, i) => (
+              <Cell key={i} fill={statusColor(d.name) || COLORS[i % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              background: "#0C4A6E",
-              border: "1px solid #06B6D455",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={CHART_TOOLTIP_STYLE}
+            formatter={(v: number, name) => [tooltipValueFormatter(v, "int"), name as string]}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} iconType="square" />
         </PieChart>
       </ResponsiveContainer>
     </div>
