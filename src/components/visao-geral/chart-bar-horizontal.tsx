@@ -9,7 +9,17 @@ import {
   LabelList,
   ReferenceLine,
 } from "recharts";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_TICK,
+  CHART_AXIS_STROKE,
+  CHART_GRID_STROKE,
+  CHART_BAR_CURSOR,
+  CHART_LABEL_STYLE,
+  SERIES_COLORS,
+  brTickFormatter,
+  tooltipValueFormatter,
+} from "@/lib/chart-utils";
 import { Empty } from "./empty";
 
 export function ChartBarHorizontal({
@@ -20,36 +30,52 @@ export function ChartBarHorizontal({
   refLine?: { value: number; label: string };
 }) {
   if (data.length === 0) return <Empty />;
+  const sorted = [...data].sort((a, b) => a.value - b.value);
   return (
     <div className="h-64">
       <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ left: 115, right: 40, top: 8, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+        <BarChart data={sorted} layout="vertical" margin={{ left: 115, right: 40, top: 8, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} horizontal={false} />
+          <XAxis
+            type="number"
+            tick={CHART_AXIS_TICK}
+            stroke={CHART_AXIS_STROKE}
+            allowDecimals={false}
+            tickFormatter={brTickFormatter}
+          />
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 10, fill: "#93C5D8" }}
-            stroke="#93C5D8"
+            tick={CHART_AXIS_TICK}
+            stroke={CHART_AXIS_STROKE}
             width={110}
           />
-          <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+          <Tooltip
+            contentStyle={CHART_TOOLTIP_STYLE}
+            cursor={CHART_BAR_CURSOR}
+            formatter={(v: number) => [tooltipValueFormatter(v, "int"), "Total"]}
+          />
           {refLine && (
             <ReferenceLine
               x={refLine.value}
-              stroke="#F59E0B"
+              stroke={SERIES_COLORS.ref}
               strokeDasharray="4 4"
               strokeWidth={1.5}
               label={{
                 value: refLine.label,
                 position: "top",
-                fill: "#F59E0B",
+                fill: SERIES_COLORS.ref,
                 fontSize: 9,
               }}
             />
           )}
-<Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]}>
-            <LabelList position="right" fill="#fff" fontSize={10} offset={8} formatter={(v: number) => v > 0 ? v : ""} />
+          <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]}>
+            <LabelList
+              position="right"
+              offset={8}
+              style={CHART_LABEL_STYLE}
+              formatter={(v: number) => (v > 0 ? brTickFormatter(v) : "")}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

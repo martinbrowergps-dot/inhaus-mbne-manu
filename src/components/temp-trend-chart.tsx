@@ -20,7 +20,13 @@ import {
   type TempRange,
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_TICK,
+  CHART_AXIS_STROKE,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_STYLE,
+} from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 function fmtX(t: number, range: TempRange): string {
@@ -77,21 +83,22 @@ const lineColor =
         <div className="h-40">
           <ResponsiveContainer>
             <LineChart data={series} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
               <XAxis
                 dataKey="t"
                 type="number"
                 domain={["dataMin", "dataMax"]}
                 tickFormatter={(t) => fmtX(t as number, range)}
-                tick={{ fontSize: 10, fill: "#93C5D8" }}
-                stroke="#93C5D8"
+                tick={CHART_AXIS_TICK}
+                stroke={CHART_AXIS_STROKE}
                 minTickGap={30}
               />
               <YAxis
                 domain={[minT, maxT]}
-                tick={{ fontSize: 10, fill: "#93C5D8" }}
-                stroke="#93C5D8"
+                tick={CHART_AXIS_TICK}
+                stroke={CHART_AXIS_STROKE}
                 width={44}
+                tickFormatter={(v) => `${Math.round(Number(v))}°`}
               />
               {faixa && (
                 <ReferenceArea
@@ -111,6 +118,7 @@ const lineColor =
               )}
               <ReTooltip
                 contentStyle={CHART_TOOLTIP_STYLE}
+                cursor={CHART_CURSOR_STYLE}
                 labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
                 formatter={(v: number) => [`${formatBRNumber(v, 1)}°C`, "Temperatura"]}
               />

@@ -11,7 +11,14 @@ import {
 } from "recharts";
 import { buildSeries, filterByRange, type TempRange } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_LEGEND_STYLE,
+  CHART_AXIS_TICK,
+  CHART_AXIS_STROKE,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_STYLE,
+} from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 const PALETTE = [
@@ -70,23 +77,29 @@ export function TempMultiChart({
     <div className="h-80">
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
           <XAxis
             dataKey="t"
             type="number"
             domain={["dataMin", "dataMax"]}
             tickFormatter={(t) => fmtX(t as number, range)}
-            tick={{ fontSize: 10, fill: "#93C5D8" }}
-            stroke="#93C5D8"
+            tick={CHART_AXIS_TICK}
+            stroke={CHART_AXIS_STROKE}
             minTickGap={40}
           />
-          <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" width={44} />
+          <YAxis
+            tick={CHART_AXIS_TICK}
+            stroke={CHART_AXIS_STROKE}
+            width={44}
+            tickFormatter={(v) => `${Math.round(Number(v))}°`}
+          />
           <ReTooltip
             contentStyle={CHART_TOOLTIP_STYLE}
+            cursor={CHART_CURSOR_STYLE}
             labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
             formatter={(v: number, name) => [`${formatBRNumber(v, 1)}°C`, name as string]}
           />
-          <Legend wrapperStyle={{ fontSize: 10 }} iconType="line" />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} iconType="line" />
           {keys.map((k, i) => (
             <Line
               key={k}
