@@ -1,103 +1,68 @@
-# Direção de UI/UX para o Centro de Controle de Manutenção
+# Auditoria — Gráficos vs. padrão Power BI
 
-## Escolhas do usuário (travadas)
-- **Paleta**: Deep Ocean (`#082F49`, `#0C4A6E`, `#06B6D4`, `#10B981`)
-- **Tipografia**: Tech Mono + Sans (JetBrains Mono para números/IDs + Work Sans para textos)
-- **Layout**: Dashboard denso (sidebar + grid de cards e tabelas)
+Comparei os gráficos atuais (Recharts) com o que se espera de um dashboard estilo Power BI. Abaixo, o que já está OK e o que falta para bater o padrão.
 
-## Direção criativa: "Deep Ocean Command"
-Um painel de controle de manutenção industrial que parece uma sala de comando submarina/offshore: fundo muito profundo, superfícies em camadas de azul-petróleo, acentos em ciano e verde de status. A sensação é **técnica, confiável e imersiva** — não brinca com cores, usa luz para indicar estado.
+## Já está no padrão
 
-### Decisões visuais concretas
-- **Fundo**: `#082F49` com gradiente radial suave vindo do topo (`#0C4A6E` → `#082F49` → `#042033`).
-- **Superfícies de cards/painéis** em 3 níveis:
-  - **Nível 1 (base)**: `#0C4A6E` com borda sutil `#06B6D4/15`.
-  - **Nível 2 (hover/focus)**: `#0E5A82` com elevação leve.
-  - **Nível 3 (destaque/KPI crítico)**: `#0A3A55` com glow ciano ou vermelho conforme semântica.
-- **Acentos semânticos**:
-  - Primário: `#06B6D4` (ciano)
-  - Sucesso: `#10B981` (verde oceano)
-  - Alerta: `#F59E0B` (âmbar)
-  - Perigo: `#EF4444` (vermelho)
-- **Tipografia**:
-  - Títulos/seções: Work Sans semibold, tracking levemente negativo.
-  - Números, IDs, datas, HH, porcentagens: JetBrains Mono tabular.
-  - Labels/caps: Work Sans bold, 9–10px, tracking 0.15em, uppercase.
-- **Formas**: bordas arredondadas consistentes (`radius: 12px` para cards, `8px` para botões/chips, `16px` para modais).
-- **Elevação**: sombras azuladas em vez de pretas puras (`0 8px 32px rgba(6,182,212,0.08)`), criando profundidade sem sair da paleta.
-- **Estados de interação**:
-  - Hover: leve elevação + brilho de borda ciano.
-  - Focus: anel ciano sólido com offset.
-  - Crítico: pulse vermelho sutil (mantém o neon, mas mais contido).
-- **Densidade**: mantém dashboard denso. Cards com padding 16–20px, gaps 16px, tabelas compactas com altura de linha 40px.
+- Paleta consistente Deep Ocean (ciano/verde/âmbar/vermelho) por semântica de status.
+- Grid discreto (`rgba(255,255,255,0.06)`) e eixos em ciano suave (`#93C5D8`).
+- Tooltip customizado (`CHART_TOOLTIP_STYLE`) com fundo escuro e borda ciano.
+- Cantos arredondados nas barras, donut com `paddingAngle`, radial de aderência.
+- Aderência com breakdown numérico + meta.
 
-## O que muda no código
+## O que falta para virar "Power BI-like"
 
-### 1. Tokens globais (`src/styles.css`)
-Substituir o tema Martin Brower atual pelos tokens Deep Ocean, mantendo a estrutura de variáveis shadcn:
-```
---background: #082F49
---foreground: #E0F7FF
---card: #0C4A6E
---card-foreground: #FFFFFF
---popover: #0C4A6E
---primary: #06B6D4
---primary-foreground: #042033
---secondary: #0E5A82
---muted: #0A3A55
---muted-foreground: #93C5D8
---accent: #115E83
---destructive: #EF4444
---success: #10B981
---warning: #F59E0B
---border: rgba(6, 182, 212, 0.12)
---input: #0A3A55
---ring: #06B6D4
---chart-1: #06B6D4
---chart-2: #10B981
---chart-3: #F59E0B
---chart-4: #EF4444
---chart-5: #A855F7
---sidebar: #042033
---sidebar-foreground: #B8D9E8
---sidebar-primary: #06B6D4
---sidebar-accent: #0A3A55
-```
-Atualizar gradientes, sombras e neon utilities para a nova paleta.
+### 1. Data labels sempre visíveis
+- Power BI mostra o valor em cima de cada barra/fatia por padrão. Hoje:
+  - `HhComparisonChart` (barras planejado/executado) — sem `LabelList`.
+  - `chart-donut` — sem rótulo nas fatias.
+  - `chart-pie` — mostra só o número cru, sem `%` nem nome.
+  - `chart-bar-horizontal` — OK, já tem `LabelList`.
+  - Gráficos de dia/status na Visão Geral e Relatórios — sem rótulos.
 
-### 2. Componentes base shadcn
-Ajustar `button`, `card`, `badge`, `dialog`, `input`, `select`, `tabs`, `sidebar` para usarem os novos tokens. Não reescrever do zero — apenas trocar cores/raios/sombras para manter compatibilidade.
+### 2. Formatação BR nos eixos e tooltips
+- Eixos Y numéricos mostram `1000` em vez de `1.000`. Aplicar `formatBRNumber` no `tickFormatter`.
+- HH deve exibir sufixo `h`; percentuais `%`; datas no formato `dd/mm`.
+- Tooltip deve reformatar valor + nome amigável (hoje vários gráficos usam a chave crua tipo `planejado`).
 
-### 3. Componentes próprios
-- `Panel`: substituir `.panel`/`.panel-glass` por superfície nível 1 com borda ciano sutil e hover nível 2.
-- `KpiBox`/`KpiCarousel`: cards menores com números em JetBrains Mono e labels em caps.
-- `StatusBadge`: manter forma, atualizar cores para novo semântico.
-- `AppSidebar`: sidebar em `#042033`, item ativo com barra ciano à esquerda e fundo `#0A3A55`.
-- `TopHeader`: fundo glass com blur e borda ciano sutil.
-- `ExportButton`: botão primário ciano, dropdown com ícones coloridos.
+### 3. Legenda e títulos consistentes
+- Legenda no topo (Power BI padrão), com bullets quadrados coloridos e capitalização correta.
+- Título do gráfico + subtítulo + unidade (ex.: "HH por dia · horas") padronizados via `Panel`.
+- Remover legendas redundantes quando há só 1 série.
 
-### 4. Gráficos (Recharts)
-Atualizar cores dos eixos, grid e tooltips para `#93C5D8` e `#06B6D4`. Garantir contraste contra fundo `#082F49`.
+### 4. Interatividade
+- `activeDot` e `cursor` destacando a categoria/hover (linhas de temperatura já têm; barras não).
+- Cursor customizado nas barras (`cursor={{ fill: 'rgba(6,182,212,0.08)' }}`).
+- Ordenação consistente (donut/pie sempre desc por valor; barras horizontais idem).
 
-### 5. PDFs
-Atualizar `COLOR_OVERRIDES` em `pdf-css-patch.ts` para os hex Deep Ocean, para que exportações visuais não fiquem com cores quebradas.
+### 5. Empty state e loading
+- `Empty` existe em Visão Geral, mas outros gráficos (HH, temperatura multi) mostram texto solto. Padronizar componente único.
+- Skeleton nos gráficos durante o `loading` (hoje só KPIs têm).
 
-### 6. Tipografia
-- Adicionar `@fontsource/jetbrains-mono` e `@fontsource/work-sans` (se ainda não estiverem).
-- Importar no entrypoint da aplicação.
-- Atualizar `--font-mono` e adicionar `--font-sans` no `@theme inline`.
+### 6. Escalas e eixos
+- Barras com `domain={[0, 'dataMax + padding']}` para não colar no topo.
+- Eixo Y do multi-temperatura fica melhor com `allowDecimals={false}` quando a série é inteira.
+- Rotacionar `XAxis` labels quando há >10 categorias (`angle={-30}`, `textAnchor="end"`).
 
-## Escopo de implementação sugerido
-**Passada única** (recomendado): tokens + componentes base + componentes próprios + gráficos + PDFs. Tudo muda junto para consistência visual.
+### 7. Cores por status (semântica global)
+- Hoje cada gráfico define seu array de cores local (`HH_COLORS`, `PALETTE`, `COLORS`). Centralizar em `chart-utils.ts`:
+  - `STATUS_COLORS.planejado / naoPlanejado / finalizada / cancelada / pendente`
+  - `SERIES_COLORS.planejado / executado`
+  - Garantir que a mesma categoria tem sempre a mesma cor em todo o app.
 
-## Riscos e mitigações
-- **Contraste em superfícies**: validar `#93C5D8` sobre `#0C4A6E` (ratio ~4.8:1, OK).
-- **PDF visual**: retestar página 2 após mudança de cores para garantir que não haja fundo escuro residual.
-- **Carga de fontes**: usar fontsource para evitar FOUT e garantir funcionamento offline/PDF.
+### 8. Detalhes visuais Power BI
+- Borda inferior de 2px na cor da série sob KPIs (accent line) — já parcial em `KpiCard`.
+- Sombra sutil no tooltip.
+- Fonte mono (`JetBrains Mono`) nos números dos rótulos e eixos (já ativa em KPIs, faltam gráficos).
 
-## Próximos passos
-1. Aprovar direção Deep Ocean Command.
-2. Implementar tokens globais.
-3. Re-skin componentes próprios e shadcn.
-4. Ajustar gráficos e PDF overrides.
-5. Validar via build + screenshots desktop/mobile + exportação PDF visual.
+## Escopo se você aprovar a padronização
+
+Se topar, o próximo passo é uma passada única aplicando:
+1. `STATUS_COLORS` + `SERIES_COLORS` centralizados.
+2. `LabelList` + `tickFormatter` BR em todos os gráficos de barras/pizza.
+3. Tooltip e legenda padronizados via helpers em `chart-utils.ts`.
+4. Fonte mono nos rótulos, cursor destacado, empty/skeleton unificado.
+
+Arquivos que seriam tocados: `src/lib/chart-utils.ts`, `src/components/visao-geral/chart-*.tsx`, `src/components/programacao/hh-comparison-chart.tsx`, `src/components/temp-multi-chart.tsx`, `src/components/temp-trend-chart.tsx`, `src/components/aderencia-card.tsx`, e os gráficos inline em `_app.index.tsx` e `_app.relatorios.tsx`.
+
+Quer que eu prossiga com essa padronização?
