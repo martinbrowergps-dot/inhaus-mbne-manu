@@ -83,21 +83,22 @@ const lineColor =
         <div className="h-40">
           <ResponsiveContainer>
             <LineChart data={series} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
               <XAxis
                 dataKey="t"
                 type="number"
                 domain={["dataMin", "dataMax"]}
                 tickFormatter={(t) => fmtX(t as number, range)}
-                tick={{ fontSize: 10, fill: "#93C5D8" }}
-                stroke="#93C5D8"
+                tick={CHART_AXIS_TICK}
+                stroke={CHART_AXIS_STROKE}
                 minTickGap={30}
               />
               <YAxis
                 domain={[minT, maxT]}
-                tick={{ fontSize: 10, fill: "#93C5D8" }}
-                stroke="#93C5D8"
+                tick={CHART_AXIS_TICK}
+                stroke={CHART_AXIS_STROKE}
                 width={44}
+                tickFormatter={(v) => `${Math.round(Number(v))}°`}
               />
               {faixa && (
                 <ReferenceArea
