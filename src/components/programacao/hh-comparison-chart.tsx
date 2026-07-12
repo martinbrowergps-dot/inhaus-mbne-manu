@@ -8,13 +8,23 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  LabelList,
 } from "recharts";
 import { Panel } from "@/components/panel";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_LEGEND_STYLE,
+  CHART_AXIS_TICK,
+  CHART_AXIS_STROKE,
+  CHART_GRID_STROKE,
+  CHART_BAR_CURSOR,
+  CHART_LABEL_STYLE,
+  SERIES_COLORS,
+  brHourFormatter,
+  tooltipValueFormatter,
+} from "@/lib/chart-utils";
 import type { EnrichedRow } from "./types";
-
-const HH_COLORS = ["#06B6D4", "#10B981"];
 
 export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
   const chartByDay = useMemo(() => {
@@ -43,6 +53,11 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
   const totalExec = chartByDay.reduce((s, d) => s + d.executado, 0);
 
   if (rows.length === 0) return null;
+
+  const labelMap: Record<string, string> = {
+    planejado: "Planejado",
+    executado: "Executado",
+  };
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -76,7 +91,7 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
         </div>
       </Panel>
 
-      <Panel title="HH PLANEJADO vs EXECUTADO" subtitle="Por dia">
+      <Panel title="HH PLANEJADO vs EXECUTADO" subtitle="Por dia · horas">
         {chartByDay.length === 0 ? (
           <div className="flex h-56 items-center justify-center text-xs text-muted-foreground">
             Sem dados no período
@@ -84,27 +99,53 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
         ) : (
           <div className="h-64">
             <ResponsiveContainer>
-              <BarChart data={chartByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-                <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+              <BarChart data={chartByDay} margin={{ top: 24, right: 12, left: -12, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                <XAxis dataKey="label" tick={CHART_AXIS_TICK} stroke={CHART_AXIS_STROKE} />
+                <YAxis
+                  tick={CHART_AXIS_TICK}
+                  stroke={CHART_AXIS_STROKE}
+                  tickFormatter={(v) => `${Math.round(Number(v))}h`}
+                />
+                <Tooltip
+                  contentStyle={CHART_TOOLTIP_STYLE}
+                  cursor={CHART_BAR_CURSOR}
+                  formatter={(v: number, name) => [
+                    tooltipValueFormatter(v, "hh"),
+                    labelMap[name as string] ?? name,
+                  ]}
+                />
                 <Legend
-                  wrapperStyle={{ fontSize: 11 }}
-                  formatter={(value) => (value === "planejado" ? "Planejado" : "Executado")}
+                  wrapperStyle={CHART_LEGEND_STYLE}
+                  iconType="square"
+                  formatter={(value) => labelMap[value as string] ?? value}
                 />
                 <Bar
                   dataKey="planejado"
                   name="planejado"
-                  fill={HH_COLORS[0]}
+                  fill={SERIES_COLORS.planejado}
                   radius={[4, 4, 0, 0]}
-                />
+                >
+                  <LabelList
+                    position="top"
+                    offset={6}
+                    style={CHART_LABEL_STYLE}
+                    formatter={(v: number) => (v > 0 ? brHourFormatter(v) : "")}
+                  />
+                </Bar>
                 <Bar
                   dataKey="executado"
                   name="executado"
-                  fill={HH_COLORS[1]}
+                  fill={SERIES_COLORS.executado}
                   radius={[4, 4, 0, 0]}
-                />
+                >
+                  <LabelList
+                    position="top"
+                    offset={6}
+                    style={CHART_LABEL_STYLE}
+                    formatter={(v: number) => (v > 0 ? brHourFormatter(v) : "")}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
