@@ -20,7 +20,13 @@ import {
   type TempRange,
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  CHART_TOOLTIP_STYLE,
+  CHART_AXIS_TICK,
+  CHART_AXIS_STROKE,
+  CHART_GRID_STROKE,
+  CHART_CURSOR_STYLE,
+} from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 function fmtX(t: number, range: TempRange): string {
