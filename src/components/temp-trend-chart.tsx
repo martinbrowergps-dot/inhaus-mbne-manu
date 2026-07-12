@@ -118,6 +118,7 @@ const lineColor =
               )}
               <ReTooltip
                 contentStyle={CHART_TOOLTIP_STYLE}
+                cursor={CHART_CURSOR_STYLE}
                 labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
                 formatter={(v: number) => [`${formatBRNumber(v, 1)}°C`, "Temperatura"]}
               />
