@@ -34,6 +34,10 @@ function csvUrl(sheet: string): string {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 }
 
+function logSheetError(sheet: string, err: unknown) {
+  console.error(`[sheets] Falha ao carregar aba "${sheet}":`, err);
+}
+
 async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
   const res = await fetch(csvUrl(sheet), { cache: "no-store" });
   if (!res.ok) throw new Error(`Falha ao ler aba "${sheet}" (${res.status})`);
@@ -59,9 +63,15 @@ async function fetchNcRows(): Promise<NcRow[]> {
     skipEmptyLines: "greedy",
   });
   const rows = parsed.data as string[][];
+  if (rows.length > 0 && (rows[0] ?? []).length < 8) {
+    console.warn(
+      `[NC] Esperadas >= 8 colunas por linha; cabeçalho detectado com ${(rows[0] ?? []).length}. O parser por posição pode estar desatualizado.`,
+    );
+  }
   const result: NcRow[] = [];
   for (let i = 1; i < rows.length; i++) {
     const c = rows[i] ?? [];
+    if (c.length < 8) continue;
     const numero = (c[0] ?? "").trim();
     const ocorrencia = (c[1] ?? "").trim();
     const medidas = (c[2] ?? "").trim();
@@ -188,6 +198,8 @@ function pick(row: Record<string, string>, ...keys: string[]): string {
 }
 
 export async function fetchSheetsData(): Promise<SheetsData> {
+  const errors: string[] = [];
+
   const [
     programacaoRaw,
     medicoesRaw,
@@ -209,9 +221,21 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     fetchCsv(SHEETS.passagemTurno),
     fetchCsv(SHEETS.tecnicos),
     fetchCsv(SHEETS.parametrosHH),
-    fetchCsv(SHEETS.backlog).catch(() => [] as Record<string, string>[]),
-    fetchNcRows().catch(() => [] as NcRow[]),
-    fetchCsv(SHEETS.preditiva).catch(() => [] as Record<string, string>[]),
+    fetchCsv(SHEETS.backlog).catch((e) => {
+      logSheetError(SHEETS.backlog, e);
+      errors.push(`BACKLOG: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
+    fetchNcRows().catch((e) => {
+      logSheetError(SHEETS.nc, e);
+      errors.push(`NC: falha ao carregar`);
+      return [] as NcRow[];
+    }),
+    fetchCsv(SHEETS.preditiva).catch((e) => {
+      logSheetError(SHEETS.preditiva, e);
+      errors.push(`PREDITIVA: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
   ]);
 
   validateHeaders("programacao", programacaoRaw);
@@ -346,6 +370,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     nc,
     preditiva,
     fetchedAt: Date.now(),
+    errors: errors.length ? errors : undefined,
   };
 }
 

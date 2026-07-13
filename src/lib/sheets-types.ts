@@ -130,4 +130,5 @@ export interface SheetsData {
   nc: NcRow[];
   preditiva: PreditivaRow[];
   fetchedAt: number;
+  errors?: string[];
 }
