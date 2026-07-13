@@ -42,7 +42,7 @@ import { Button } from "@/components/ui/button";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
-import { KpiCarousel, KpiGrid, type KpiItem } from "@/components/kpi-carousel";
+import { KpiStrip, type KpiItem } from "@/components/kpi-carousel";
 import { EmptyState } from "@/components/empty-state";
 import { SectionHeader } from "@/components/section-header";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
@@ -173,7 +173,7 @@ function VisaoGeral() {
   };
 
   return (
-    <div ref={pdfRef} className="space-y-8">
+    <div ref={pdfRef} className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="fade-up text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
@@ -206,44 +206,70 @@ function VisaoGeral() {
         />
       </div>
 
-      <div ref={chartRef} className="space-y-8">
-        {/* ═══════════ ① O PLANO ═══════════ */}
+      <div ref={chartRef} className="space-y-6">
+        {/* ═══════════ HERO DE KPIs ═══════════ */}
+        <KpiStrip
+          items={[
+            {
+              label: "Total de OS",
+              value: formatInt(total),
+              icon: ClipboardList,
+              variant: "primary",
+            },
+            {
+              label: "OS Programadas",
+              value: formatInt(programadas),
+              icon: Calendar,
+              variant: "neutral",
+            },
+            {
+              label: "Em Andamento",
+              value: formatInt(emAndamento),
+              icon: Play,
+              variant: "warning",
+            },
+            {
+              label: "Finalizadas",
+              value: formatInt(finalizadas),
+              icon: CheckCircle2,
+              variant: "success",
+            },
+            {
+              label: "Criticidade AA",
+              value: formatInt(aa),
+              icon: AlertOctagon,
+              variant: "danger",
+            },
+            {
+              label: "HH Programado",
+              value: formatBRNumber(totalHH, 1),
+              hint: "horas-homem",
+              icon: Clock,
+              variant: "primary",
+            },
+            {
+              label: "Técnicos Ativos",
+              value: formatInt(tecnicos.length),
+              icon: Users,
+              variant: "neutral",
+            },
+            {
+              label: "Temp. em Alerta",
+              value: formatInt(tempAlerta),
+              hint: `${locais.length} locais`,
+              icon: Thermometer,
+              variant: tempAlerta > 0 ? "danger" : "success",
+            },
+          ]}
+        />
+
+        {/* ═══════════ PLANEJAMENTO ═══════════ */}
         <SectionHeader
-          label="O Plano"
-          insight={`${formatInt(total)} OS no período · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH`}
+          label="Planejamento"
+          insight={`${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH no período`}
           icon={ClipboardList}
           colorIndex={0}
         >
-          {(() => {
-            const planoKpis: KpiItem[] = [
-              {
-                label: "Total de OS",
-                value: formatInt(total),
-                icon: ClipboardList,
-                variant: "primary",
-              },
-              {
-                label: "OS Programadas",
-                value: formatInt(programadas),
-                icon: Calendar,
-                variant: "neutral",
-              },
-              {
-                label: "HH Programado",
-                value: formatBRNumber(totalHH, 1),
-                hint: "horas-homem",
-                icon: Clock,
-                variant: "primary",
-              },
-            ];
-            return (
-              <>
-                <KpiCarousel items={planoKpis} />
-                <KpiGrid items={planoKpis} />
-              </>
-            );
-          })()}
-
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
               <ChartPie data={byPlanejamento} />
@@ -378,14 +404,14 @@ function VisaoGeral() {
           </Panel>
         </SectionHeader>
 
-{/* ═══════════ ② A EXECUÇÃO ═══════════ */}
+        {/* ═══════════ EXECUÇÃO ═══════════ */}
         <SectionHeader
-          label="A Execução"
-          insight={`${formatInt(finalizadas)} OS finalizadas (${formatBRNumber(aderencia.pct, 1)}% de aderência) · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
+          label="Execução"
+          insight={`${formatBRNumber(aderencia.pct, 1)}% de aderência · ${formatInt(finalizadas)} finalizadas · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
           icon={CheckCircle2}
           colorIndex={1}
         >
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-3">
             <AderenciaCard
               pct={aderencia.pct}
               finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
@@ -393,79 +419,23 @@ function VisaoGeral() {
               canceladas={aderencia.canceladas}
               pendentes={aderencia.pendentes}
               totalProgramadas={aderencia.totalProgramadas}
-              className="lg:col-span-1"
             />
-            {(() => {
-              const execKpis: KpiItem[] = [
-                {
-                  label: "Em Andamento",
-                  value: formatInt(emAndamento),
-                  icon: Play,
-                  variant: "warning",
-                },
-                {
-                  label: "Finalizadas",
-                  value: formatInt(finalizadas),
-                  icon: CheckCircle2,
-                  variant: "success",
-                },
-              ];
-              return (
-                <>
-                  <KpiCarousel items={execKpis} />
-                  <KpiGrid items={execKpis} className="lg:col-span-2" />
-                </>
-              );
-            })()}
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
             <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-              <ChartPie data={byStatus} />
+              <ChartDonut data={byStatus} />
             </Panel>
-            <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
-              <ChartPie data={bySistema} />
+            <Panel dataChart="os-sistema" title="OS POR SISTEMA" className="lg:col-span-1" glass>
+              <ChartBarHorizontal data={bySistema} />
             </Panel>
           </div>
         </SectionHeader>
 
-        {/* ═══════════ ③ OS PROBLEMAS ═══════════ */}
+        {/* ═══════════ PROBLEMAS ═══════════ */}
         <SectionHeader
-          label="Os Problemas"
+          label="Problemas"
           insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
           icon={AlertOctagon}
           colorIndex={3}
         >
-          {(() => {
-            const probKpis: KpiItem[] = [
-              {
-                label: "Criticidade AA",
-                value: formatInt(aa),
-                icon: AlertOctagon,
-                variant: "danger",
-              },
-              {
-                label: "Temperaturas em Alerta",
-                value: formatInt(tempAlerta),
-                hint: `${locais.length} locais monitorados`,
-                icon: Thermometer,
-                variant: tempAlerta > 0 ? "danger" : "success",
-              },
-              {
-                label: "Técnicos Ativos",
-                value: formatInt(tecnicos.length),
-                icon: Users,
-                variant: "neutral",
-              },
-            ];
-            return (
-              <>
-                <KpiCarousel items={probKpis} />
-                <KpiGrid items={probKpis} />
-              </>
-            );
-          })()}
-
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
               <ChartDonut data={byCriticidade} />
@@ -511,10 +481,10 @@ function VisaoGeral() {
           </div>
         </SectionHeader>
 
-{/* ═══════════ ④ RECURSOS ═══════════ */}
+        {/* ═══════════ RECURSOS ═══════════ */}
         <SectionHeader
           label="Recursos"
-          insight={`${formatInt(tecnicos.length)} técnicos disponíveis · ${bySistema.length} sistemas em operação · ${locais.length} locais monitorados`}
+          insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${locais.length} locais monitorados`}
           icon={Users}
           colorIndex={2}
         >
@@ -537,7 +507,7 @@ function VisaoGeral() {
         </SectionHeader>
       </div>
 
-      {/* ═══════════ ⑤ NAVEGAÇÃO ═══════════ */}
+      {/* ═══════════ NAVEGAÇÃO ═══════════ */}
       <Panel
         title="Navegação Rápida"
         glass

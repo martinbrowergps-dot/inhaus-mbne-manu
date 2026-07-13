@@ -66,6 +66,15 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
   );
 }
 
+export function KpiStrip({ items, className }: { items: KpiItem[]; className?: string }) {
+  return (
+    <>
+      <KpiCarousel items={items} />
+      <KpiGrid items={items} className={className} />
+    </>
+  );
+}
+
 export function KpiGrid({ items, className }: { items: KpiItem[]; className?: string }) {
   return (
     <div className={cn("hidden md:grid grid-cols-2 gap-3 lg:grid-cols-3", className)}>
