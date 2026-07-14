@@ -273,7 +273,6 @@ function ProgramacaoPage() {
             { header: "Tipo", value: (r) => r.Tipo ?? "" },
             { header: "Local", value: (r) => r.LocalMacro ?? r.Localidade ?? "" },
             { header: "Status", value: (r) => r._status },
-            { header: "Dias Atraso", value: (r) => r._diasAtraso ?? "" },
           ]}
           pdfTitle="Programação · Centro de Controle"
           pdfSubtitle={
