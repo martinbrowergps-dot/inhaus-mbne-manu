@@ -1,15 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Activity, Clock, ListFilter, TrendingUp } from "lucide-react";
+import { Activity, Clock, ListFilter, TrendingUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
-import { priorityBadge, statusBadge, aggregate, SERIES_COLORS, aggregateHierarchy } from "@/lib/chart-utils";
+import { priorityBadge, statusBadge, aggregate, SERIES_COLORS } from "@/lib/chart-utils";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
-import { ChartTreemap } from "@/components/chart-treemap";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -123,11 +122,6 @@ function PreditivasPage() {
       .sort((a, b) => b.value - a.value);
   }, [preditiva]);
 
-  const treemapData = useMemo(
-    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"], "Status", "HH"),
-    [preditiva],
-  );
-
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -150,6 +144,10 @@ function PreditivasPage() {
       </div>
     );
   }
+
+  const [fullscreenImg, setFullscreenImg] = useState(false);
+  const openFullscreen = useCallback(() => setFullscreenImg(true), []);
+  const closeFullscreen = useCallback(() => setFullscreenImg(false), []);
 
   const total = preditiva.length;
   const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);
@@ -251,13 +249,6 @@ function PreditivasPage() {
       </SectionHeader>
 
       <SectionHeader
-        label="Mapa de Atividades"
-        insight="Hierarquia: Área > Setor > Conjunto > Serviço"
-      >
-        <ChartTreemap data={treemapData} height={500} />
-      </SectionHeader>
-
-      <SectionHeader
         label="Registro"
         insight={`${preditiva.length} ações cadastradas`}
       >
@@ -277,13 +268,37 @@ function PreditivasPage() {
       >
         <Panel title="PLANO DE MANUTENÇÃO PREDITIVA">
           <div className="flex justify-center">
-            <img
-              src="/newplot.png"
-              alt="Plano de Manutenção Preditiva"
-              className="max-w-full h-auto rounded-lg border"
-            />
+            <button type="button" onClick={openFullscreen} className="cursor-pointer focus:outline-none">
+              <img
+                src="/newplot.png"
+                alt="Plano de Manutenção Preditiva"
+                className="max-w-full h-auto rounded-lg border hover:opacity-90 transition-opacity"
+              />
+            </button>
           </div>
         </Panel>
+
+      {fullscreenImg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={closeFullscreen}
+        >
+          <button
+            type="button"
+            onClick={closeFullscreen}
+            className="absolute right-4 top-4 z-10 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors cursor-pointer"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src="/newplot.png"
+            alt="Plano de Manutenção Preditiva"
+            className="rounded-lg"
+            style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       </SectionHeader>
     </div>
   );

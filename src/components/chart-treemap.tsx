@@ -364,7 +364,7 @@ function WeightToggle({
 
 export function ChartTreemap({
   data,
-  height = 500,
+  height = 360,
   rootLabel = "Cabo de Santo Agostinho",
 }: {
   data: HierarchicalNode[];
@@ -440,7 +440,7 @@ export function ChartTreemap({
           </span>
           <button
             type="button"
-            onClick={() => setZoom((z) => Math.min(z + 0.2, 3))}
+            onClick={() => setZoom((z) => Math.min(z + 0.2, 2))}
             className="p-1.5 rounded-md hover:bg-slate-700 transition-colors cursor-pointer text-slate-400 hover:text-white"
           >
             <ZoomIn className="h-4 w-4" />
@@ -465,12 +465,8 @@ export function ChartTreemap({
 
       {/* Treemap area */}
       <div
-        className="px-2 pb-2"
-        style={{
-          height: height * zoom,
-          minHeight: height,
-          transition: "height 0.3s ease",
-        }}
+        className="px-2 pb-2 overflow-hidden"
+        style={{ height: height * zoom }}
         onClick={(e) => {
           const target = e.target as SVGElement;
           if (target.tagName === "rect") {
