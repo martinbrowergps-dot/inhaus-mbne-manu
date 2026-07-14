@@ -15,11 +15,12 @@ import {
   Legend,
   LineChart,
   Line,
+  LabelList,
 } from "recharts";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
+import { parseBRDate, formatBRNumber, formatDateBR, formatInt } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
 import {
@@ -30,6 +31,7 @@ import {
   chartAxisProps,
   chartGridProps,
   chartTooltipProps,
+  CHART_FONT,
 } from "@/lib/chart-utils";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
@@ -279,7 +281,7 @@ function IndicadoresPage() {
               <BarChart
                 data={computed.aderSistema}
                 layout="vertical"
-                margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
+                margin={{ left: 20, right: 48, top: 8, bottom: 4 }}
               >
                 <CartesianGrid {...chartGridProps} horizontal={false} />
                 <XAxis
@@ -305,6 +307,14 @@ function IndicadoresPage() {
                       fill={d.value >= 95 ? "#10B981" : d.value >= 85 ? "#F59E0B" : "#EF4444"}
                     />
                   ))}
+                  <LabelList
+                    dataKey="value"
+                    position="right"
+                    fill="#F1F5F9"
+                    fontSize={10}
+                    offset={6}
+                    formatter={(v: number) => `${formatBRNumber(Number(v), 0)}%`}
+                  />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -319,15 +329,19 @@ function IndicadoresPage() {
           ) : (
             <div className="h-72">
               <ResponsiveContainer>
-                <BarChart data={computed.backlogArr} margin={{ top: 10, right: 20, left: 20, bottom: 4 }}>
+                <BarChart data={computed.backlogArr} margin={{ top: 18, right: 24, left: 20, bottom: 4 }}>
                   <CartesianGrid {...chartGridProps} />
                   <XAxis dataKey="name" {...chartAxisProps} fontSize={11} />
                   <YAxis yAxisId="left" {...chartAxisProps} allowDecimals={false} />
                   <YAxis yAxisId="right" orientation="right" {...chartAxisProps} stroke={SERIES_COLORS.hh} />
                   <ReTooltip {...chartTooltipProps} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar yAxisId="left" dataKey="OS" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                  <Bar yAxisId="right" dataKey="HH" fill={SERIES_COLORS.hh} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  <Bar yAxisId="left" dataKey="OS" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    <LabelList dataKey="OS" position="top" fill="#F1F5F9" fontSize={10} formatter={(v: number) => formatInt(Number(v))} />
+                  </Bar>
+                  <Bar yAxisId="right" dataKey="HH" fill={SERIES_COLORS.hh} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                    <LabelList dataKey="HH" position="top" fill="#F1F5F9" fontSize={10} formatter={(v: number) => formatBRNumber(Number(v), 1)} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -347,7 +361,7 @@ function IndicadoresPage() {
           <BarH data={byLocal} fill={SERIES_COLORS.planejado} />
         </Panel>
         <Panel title="OS POR SISTEMA">
-          <PieView data={bySistema} />
+          <PieView data={bySistema} donut />
         </Panel>
         <Panel title="STATUS DAS TEMPERATURAS">
           <PieView data={statusTemp} colors={["#10B981", "#F59E0B", "#EF4444"]} />
@@ -536,7 +550,16 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
             width={140}
           />
           <ReTooltip {...chartTooltipProps} />
-          <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} isAnimationActive={false} />
+          <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+            <LabelList
+              dataKey="value"
+              position="right"
+              fill="#F1F5F9"
+              fontSize={10}
+              offset={6}
+              formatter={(v: number) => formatInt(Number(v))}
+            />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -546,30 +569,51 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
 function PieView({
   data,
   colors = COLORS,
+  donut = false,
 }: {
   data: { name: string; value: number }[];
   colors?: string[];
+  donut?: boolean;
 }) {
   if (data.length === 0) return <p className="text-xs text-muted-foreground">Sem registros</p>;
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
   return (
     <div className="h-72">
       <ResponsiveContainer>
-        <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+        <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
-            innerRadius={55}
-            outerRadius={85}
+            innerRadius={donut ? "58%" : 0}
+            outerRadius="82%"
             paddingAngle={2}
             isAnimationActive={false}
+            label={({ x, y, value, percent }) => {
+              const pct = Math.round((percent ?? Number(value) / total) * 100);
+              if (pct < 5) return null;
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill="#F1F5F9"
+                  fontSize={10}
+                  fontFamily={CHART_FONT}
+                  fontWeight={600}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                >
+                  {`${formatInt(Number(value))} · ${pct}%`}
+                </text>
+              );
+            }}
           >
             {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
           <ReTooltip {...chartTooltipProps} />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>
     </div>

@@ -6,7 +6,9 @@ import { Activity, Clock, ListFilter, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
-import { priorityBadge, statusBadge, aggregate } from "@/lib/chart-utils";
+import { priorityBadge, statusBadge, aggregate, SERIES_COLORS } from "@/lib/chart-utils";
+import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
+import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -95,6 +97,23 @@ function PreditivasPage() {
   const byTipo = useMemo(() => aggregate(preditiva, (r) => r.Tipo), [preditiva]);
   const byArea = useMemo(() => aggregate(preditiva, (r) => r.Area), [preditiva]);
   const byStatus = useMemo(() => aggregate(preditiva, (r) => r.Status), [preditiva]);
+  const byPrioridade = useMemo(() => aggregate(preditiva, (r) => r.Prioridade), [preditiva]);
+
+  const sumByTipoHH = useMemo(() => {
+    const map = new Map<string, number>();
+    preditiva.forEach((r) => map.set(r.Tipo, (map.get(r.Tipo) ?? 0) + Number(r.HH || 0)));
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [preditiva]);
+
+  const sumByAreaHH = useMemo(() => {
+    const map = new Map<string, number>();
+    preditiva.forEach((r) => map.set(r.Area, (map.get(r.Area) ?? 0) + Number(r.HH || 0)));
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [preditiva]);
 
   if (isLoading)
     return (
@@ -179,62 +198,44 @@ function PreditivasPage() {
         </div>
       </SectionHeader>
 
-      {byTipo.length > 0 && (
-        <SectionHeader
-          label="Distribuição"
-          insight={`${byTipo.length} tipos de manutenção preditiva`}
-        >
-          <Panel title="AÇÕES POR TIPO" glass>
-            <div className="flex flex-wrap gap-2">
-              {byTipo.map(({ name, value }) => (
-                <span
-                  key={name}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                >
-                  {name} <span className="num font-bold">{value}</span>
-                </span>
-              ))}
-            </div>
+      <SectionHeader
+        label="Distribuição"
+        insight={`${byTipo.length} tipos · ${byArea.length} áreas`}
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="AÇÕES POR TIPO" dataChart="preditivas-tipo">
+            <ChartBarHorizontal data={byTipo} color={SERIES_COLORS.executado} />
           </Panel>
-        </SectionHeader>
-      )}
+          <Panel title="AÇÕES POR ÁREA" dataChart="preditivas-area">
+            <ChartBarHorizontal data={byArea} color={SERIES_COLORS.planejado} />
+          </Panel>
+        </div>
+      </SectionHeader>
 
-      {byArea.length > 0 && (
-        <SectionHeader label="Áreas" insight={`${byArea.length} áreas atendidas`}>
-          <Panel title="AÇÕES POR ÁREA" glass>
-            <div className="flex flex-wrap gap-2">
-              {byArea.map(({ name, value }) => (
-                <span
-                  key={name}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/50 px-3 py-1 text-xs font-medium text-muted-foreground"
-                >
-                  {name} <span className="num font-bold text-foreground">{value}</span>
-                </span>
-              ))}
-            </div>
+      <SectionHeader
+        label="Esforço estimado (HH)"
+        insight={`${formatBRNumber(totalHH, 1)}h distribuídos`}
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="HH POR TIPO" dataChart="preditivas-hh-tipo">
+            <ChartBarHorizontal data={sumByTipoHH} color={SERIES_COLORS.hh} />
           </Panel>
-        </SectionHeader>
-      )}
+          <Panel title="HH POR ÁREA" dataChart="preditivas-hh-area">
+            <ChartBarHorizontal data={sumByAreaHH} color={SERIES_COLORS.hh} />
+          </Panel>
+        </div>
+      </SectionHeader>
 
-      {byStatus.length > 0 && (
-        <SectionHeader label="Situação" insight="Status de execução das ações">
-          <Panel title="AÇÕES POR STATUS" glass>
-            <div className="flex flex-wrap gap-2">
-              {byStatus.map(({ name, value }) => (
-                <span
-                  key={name}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-wider",
-                    statusBadge(name),
-                  )}
-                >
-                  {name} <span className="num font-bold">{value}</span>
-                </span>
-              ))}
-            </div>
+      <SectionHeader label="Situação" insight="Status e prioridade das ações">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel title="AÇÕES POR STATUS" dataChart="preditivas-status">
+            <ChartDonut data={byStatus} />
           </Panel>
-        </SectionHeader>
-      )}
+          <Panel title="PRIORIDADE" dataChart="preditivas-prioridade">
+            <ChartDonut data={byPrioridade} />
+          </Panel>
+        </div>
+      </SectionHeader>
 
       <SectionHeader
         label="Registro"

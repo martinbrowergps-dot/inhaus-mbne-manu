@@ -26,6 +26,7 @@ import {
   chartAxisProps,
   chartGridProps,
   chartTooltipProps,
+  CHART_FONT,
 } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { ExportButton } from "@/components/export-button";
@@ -405,8 +406,27 @@ function RelatoriosPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="82%"
+                    paddingAngle={2}
                     isAnimationActive={false}
+                    label={({ x, y, value, percent }) => {
+                      const pct = Math.round((percent ?? 0) * 100);
+                      if (pct < 5) return null;
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          fill="#F1F5F9"
+                          fontSize={10}
+                          fontFamily={CHART_FONT}
+                          fontWeight={600}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                        >
+                          {`${formatInt(Number(value))} · ${pct}%`}
+                        </text>
+                      );
+                    }}
                   >
                     {byStatus.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
