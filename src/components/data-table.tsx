@@ -8,6 +8,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
+  type Row,
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
@@ -28,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { RowDetailSheet } from "@/components/row-detail-sheet";
 
 export function DataTable<T>({
   data,
@@ -37,6 +39,8 @@ export function DataTable<T>({
   pageSize = 12,
   rowCriticalKey,
   rowCriticalValue,
+  detailTitle,
+  detailSubtitle,
 }: {
   data: T[];
   columns: ColumnDef<T, unknown>[];
@@ -45,10 +49,14 @@ export function DataTable<T>({
   pageSize?: number;
   rowCriticalKey?: keyof T;
   rowCriticalValue?: unknown;
+  detailTitle?: (row: T) => string;
+  detailSubtitle?: (row: T) => string | undefined;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [q, setQ] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [detailRow, setDetailRow] = useState<Row<T> | null>(null);
+  const hasDetail = Boolean(detailTitle);
 
   const toggleRow = (idx: number) => {
     setExpandedRows((prev) => {
@@ -229,14 +237,16 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row) => (
+               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  onClick={hasDetail ? () => setDetailRow(row) : undefined}
                   className={cn(
                     "border-border/30 text-xs transition-colors",
                     isRowCritical(row.original)
                       ? "table-row-critical neon-glow-pulse"
                       : "hover:bg-primary/[0.04]",
+                    hasDetail && "cursor-pointer",
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -277,6 +287,18 @@ export function DataTable<T>({
           </Button>
         </div>
       </div>
+
+      {hasDetail && (
+        <RowDetailSheet
+          open={Boolean(detailRow)}
+          onOpenChange={(v) => {
+            if (!v) setDetailRow(null);
+          }}
+          row={detailRow}
+          title={detailRow ? detailTitle?.(detailRow.original) : undefined}
+          subtitle={detailRow ? detailSubtitle?.(detailRow.original) : undefined}
+        />
+      )}
     </div>
   );
 }

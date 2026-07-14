@@ -159,6 +159,8 @@ function PassagemPage() {
                 "AssinadoPor",
               ]}
               pageSize={15}
+              detailTitle={(r) => `${r.Data} · ${r.Turno}`}
+              detailSubtitle={(r) => `Supervisor: ${r.Supervisor}`}
             />
           )}
         </Panel>

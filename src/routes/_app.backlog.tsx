@@ -448,7 +448,13 @@ function BacklogPage() {
               Limpar filtros
             </button>
           )}
-          <DataTable data={filtered} columns={columns} pageSize={15} />
+          <DataTable
+            data={filtered}
+            columns={columns}
+            pageSize={15}
+            detailTitle={(r) => r.Identificacao}
+            detailSubtitle={(r) => r.Assunto}
+          />
         </Panel>
       </SectionHeader>
     </div>

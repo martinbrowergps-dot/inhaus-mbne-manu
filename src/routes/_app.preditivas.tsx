@@ -240,7 +240,13 @@ function PreditivasPage() {
         label="Registro"
         insight={`${preditiva.length} ações cadastradas`}
       >
-        <DataTable data={preditiva} columns={columns} pageSize={15} />
+        <DataTable
+          data={preditiva}
+          columns={columns}
+          pageSize={15}
+          detailTitle={(r) => r.CodigoReferencia}
+          detailSubtitle={(r) => r.Titulo}
+        />
       </SectionHeader>
     </div>
   );

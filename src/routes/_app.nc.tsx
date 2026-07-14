@@ -243,6 +243,8 @@ function NcPage() {
             "Status",
           ]}
           searchPlaceholder="Buscar NC por código, ocorrência, responsável, status…"
+          detailTitle={(r) => r.Codigo}
+          detailSubtitle={(r) => r.Ocorrencia}
         />
       </SectionHeader>
     </div>

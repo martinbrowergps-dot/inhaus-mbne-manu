@@ -335,6 +335,8 @@ function ChecklistsPage() {
                   columns={detailCols}
                   searchPlaceholder="Buscar equipamento, TAG, descrição…"
                   pageSize={15}
+                  detailTitle={(r) => r.ID}
+                  detailSubtitle={(r) => r.Local}
                 />
               </Panel>
             </TabsContent>

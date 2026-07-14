@@ -61,6 +61,8 @@ function EquipePage() {
               columns={cols}
               searchPlaceholder="Buscar por nome, cargo, ID…"
               pageSize={20}
+              detailTitle={(r) => r.Nome}
+              detailSubtitle={(r) => r.Cargo}
             />
           )}
         </Panel>

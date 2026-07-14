@@ -523,6 +523,8 @@ function ProgramacaoPage() {
                     columns={fullCols}
                     searchPlaceholder="Refinar nesta tabela…"
                     pageSize={15}
+                    detailTitle={(r) => r.NumeroOS}
+                    detailSubtitle={(r) => r.Descricao}
                   />
                 </Panel>
               </TabsContent>
