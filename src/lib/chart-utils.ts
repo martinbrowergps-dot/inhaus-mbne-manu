@@ -46,7 +46,7 @@ export const CHART_BAR_CURSOR = { fill: "rgba(148,163,184,0.12)" };
 // (sistema, tipo, área, cargo, solicitante, local…).
 export const PBI_COLORS = [
   "#01B8AA", // teal
-  "#374649", // dark slate
+  "#5B9BD5", // blue (substitui o slate escuro #374649, invisível no tema escuro)
   "#FD625E", // coral / red
   "#F2C80F", // yellow
   "#8AD4EB", // light blue

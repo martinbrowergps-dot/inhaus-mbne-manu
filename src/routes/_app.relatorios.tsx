@@ -22,7 +22,6 @@ import {
   CHART_LEGEND_STYLE,
   COLORS,
   SERIES_COLORS,
-  statusColor,
   aggregate,
   chartAxisProps,
   chartGridProps,
@@ -409,8 +408,8 @@ function RelatoriosPage() {
                     outerRadius={80}
                     isAnimationActive={false}
                   >
-                    {byStatus.map((d, i) => (
-                      <Cell key={i} fill={statusColor(d.name) ?? COLORS[i % COLORS.length]} />
+                    {byStatus.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <ReTooltip {...chartTooltipProps} />
