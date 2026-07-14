@@ -44,7 +44,7 @@ const items = [
   { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
   { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
   { title: "NC", url: "/nc", icon: FileWarning },
-  { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
+  { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
   { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
   { title: "Alertas", url: "/alertas", icon: AlertTriangle },
 ] as const;

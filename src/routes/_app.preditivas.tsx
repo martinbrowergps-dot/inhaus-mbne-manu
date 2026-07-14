@@ -141,7 +141,7 @@ function PreditivasPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
+          <h1 className="fade-up text-xl font-bold tracking-tight">Preditiva - SEMEQ</h1>
           <p className="fade-up text-xs text-muted-foreground">
             Ações preditivas e corretivas-preditivas registradas
           </p>
@@ -159,7 +159,7 @@ function PreditivasPage() {
             { header: "Status", value: (r) => r.Status },
             { header: "HH", value: (r) => r.HH },
           ]}
-          pdfTitle="Manutenção Preditiva · Centro de Controle"
+          pdfTitle="Preditiva - SEMEQ"
         />
       </div>
 
@@ -247,7 +247,7 @@ function PreditivasPage() {
             <button type="button" onClick={openFullscreen} className="cursor-pointer focus:outline-none">
               <img
                 src="/newplot.png"
-                alt="Plano de Manutenção Preditiva"
+                alt="Plano Preditiva - SEMEQ"
                 className="max-w-full h-auto rounded-lg border hover:opacity-90 transition-opacity"
               />
             </button>
