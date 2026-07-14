@@ -3,7 +3,7 @@ import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { CHART_FONT, treemapStatusColor, TREEMAP_COLORS } from "@/lib/chart-utils";
 import type { HierarchicalNode } from "@/lib/chart-utils";
 import { Empty } from "@/components/visao-geral/empty";
-import { ChevronRight, ArrowLeft, Hash, Clock, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronRight, ArrowLeft, ZoomIn, ZoomOut, Hash, Clock } from "lucide-react";
 
 // ── Helpers ──
 
@@ -52,7 +52,7 @@ function getAllRawRows(node: HierarchicalNode): Record<string, unknown>[] {
   return rows;
 }
 
-// ── Treemap cell renderer (industrial map style) ──
+// ── Treemap cell (clean industrial) ──
 
 interface CellProps {
   x: number;
@@ -65,128 +65,96 @@ interface CellProps {
   status?: string;
   size?: number;
   totalHH?: number;
-  servicio?: string;
 }
 
-function TreemapCell({ x, y, width, height, name, status, size, totalHH, servicio }: CellProps) {
-  if (width < 24 || height < 16) return null;
+function TreemapCell({ x, y, width, height, name, status, size, totalHH }: CellProps) {
+  if (width < 4 || height < 4) return null;
 
   const bgColor = treemapStatusColor(status);
-  const fontSize = Math.min(13, Math.max(9, width / 9));
-  const subFontSize = Math.max(8, fontSize - 2);
-  const countText = size !== undefined ? `${size}` : "";
-  const hhText = totalHH !== undefined && totalHH > 0 ? `${totalHH.toFixed(1)}h` : "";
+  const pad = 4;
+  const innerW = width - pad * 2;
+  const innerH = height - pad * 2;
 
-  const showTitle = width > 36 && height > 14;
-  const showSubtitle = width > 50 && height > 28 && servicio;
-  const showIndicators = width > 50 && height > 42;
+  if (innerW < 20 || innerH < 12) return null;
+
+  const canShowName = innerW > 30 && innerH > 14;
+  const canShowCount = innerW > 40 && innerH > 28;
+  const canShowHH = innerW > 50 && innerH > 40;
+
+  const nameFontSize = Math.min(13, Math.max(9, innerW / 12));
+  const countFontSize = Math.max(8, nameFontSize - 2);
 
   return (
     <g>
       <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
+        x={x + pad}
+        y={y + pad}
+        width={innerW}
+        height={innerH}
         fill={bgColor}
-        stroke="rgba(0,0,0,0.4)"
-        strokeWidth={1.5}
-        rx={1}
-        ry={1}
+        stroke="rgba(15,23,42,0.6)"
+        strokeWidth={2}
+        rx={3}
+        ry={3}
         style={{ cursor: "pointer" }}
       />
-      {/* Dark overlay for depth effect */}
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={Math.min(height, 3)}
-        fill="rgba(0,0,0,0.2)"
-        rx={1}
-      />
-      {showTitle && (
+      {canShowName && (
         <text
           x={x + width / 2}
-          y={showSubtitle ? y + 14 : y + height / 2}
+          y={canShowCount ? y + pad + 16 : y + height / 2}
           textAnchor="middle"
           dominantBaseline="central"
           fill="#FFFFFF"
-          fontSize={fontSize}
+          fontSize={nameFontSize}
           fontFamily={CHART_FONT}
           fontWeight={700}
-          style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
         >
-          {name}
+          {innerW > 80 ? name : name.substring(0, 8) + (name.length > 8 ? "…" : "")}
         </text>
       )}
-      {showSubtitle && (
+      {canShowCount && (
         <text
           x={x + width / 2}
-          y={y + 28}
+          y={y + pad + 30}
           textAnchor="middle"
           dominantBaseline="central"
-          fill="rgba(255,255,255,0.8)"
-          fontSize={subFontSize}
+          fill="rgba(255,255,255,0.85)"
+          fontSize={countFontSize}
           fontFamily={CHART_FONT}
-          fontWeight={400}
+          fontWeight={500}
         >
-          {servicio}
+          {size} {size === 1 ? "ação" : "ações"}
         </text>
       )}
-      {showIndicators && (
-        <g>
-          {countText && (
-            <text
-              x={x + width / 2 - (hhText ? 16 : 0)}
-              y={y + height - 10}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="rgba(255,255,255,0.9)"
-              fontSize={Math.max(8, subFontSize - 1)}
-              fontFamily={CHART_FONT}
-              fontWeight={600}
-            >
-              {countText} {Number(countText) === 1 ? "ação" : "ações"}
-            </text>
-          )}
-          {hhText && (
-            <text
-              x={x + width / 2 + (countText ? 16 : 0)}
-              y={y + height - 10}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="rgba(255,255,255,0.7)"
-              fontSize={Math.max(8, subFontSize - 1)}
-              fontFamily={CHART_FONT}
-            >
-              {hhText}
-            </text>
-          )}
-        </g>
+      {canShowHH && totalHH !== undefined && totalHH > 0 && (
+        <text
+          x={x + width / 2}
+          y={y + pad + 44}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="rgba(255,255,255,0.65)"
+          fontSize={countFontSize}
+          fontFamily={CHART_FONT}
+        >
+          {totalHH.toFixed(1)}h
+        </text>
       )}
     </g>
   );
 }
 
-// ── Rich Tooltip ──
+// ── Tooltip (clean, dark, structured) ──
 
 interface TooltipPayload {
-  payload: HierarchicalNode & { servicio?: string; rootLabel?: string };
+  payload: HierarchicalNode & { rootLabel?: string };
 }
 
-function TreemapTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: TooltipPayload[];
-}) {
+function TreemapTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayload[] }) {
   if (!active || !payload || payload.length === 0) return null;
   const data = payload[0].payload;
   const total = getNodeSize(data);
   const totalHH = getNodeHH(data);
   const rootLabel = data.rootLabel ?? "Cabo de Santo Agostinho";
-  const path = `${rootLabel} / ${data.name}`;
   const statusCounts = countAllStatuses(data);
   const rows = getAllRawRows(data);
 
@@ -195,44 +163,49 @@ function TreemapTooltip({
       style={{
         background: "#1E293B",
         border: "1px solid #334155",
-        borderRadius: 6,
+        borderRadius: 8,
         fontSize: 11,
         color: "#E2E8F0",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-        padding: "10px 12px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+        padding: 12,
         fontFamily: CHART_FONT,
-        maxWidth: 320,
-        maxHeight: 400,
-        overflowY: "auto",
+        maxWidth: 300,
       }}
     >
-      <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 12, color: "#F8FAFC" }}>
-        {path}
+      <div style={{ fontWeight: 700, fontSize: 13, color: "#F8FAFC", marginBottom: 8 }}>
+        {rootLabel} / {data.name}
       </div>
-      <div style={{ display: "flex", gap: 16, marginBottom: 6 }}>
+
+      <div style={{ display: "flex", gap: 16, marginBottom: 8, fontSize: 12 }}>
         <span>
           <span style={{ color: "#94A3B8" }}>Registros: </span>
-          <span style={{ fontWeight: 600 }}>{total}</span>
+          <span style={{ fontWeight: 700 }}>{total}</span>
         </span>
         {totalHH > 0 && (
           <span>
             <span style={{ color: "#94A3B8" }}>HH: </span>
-            <span style={{ fontWeight: 600 }}>{totalHH.toFixed(1)}h</span>
+            <span style={{ fontWeight: 700 }}>{totalHH.toFixed(1)}h</span>
           </span>
         )}
       </div>
+
       {Object.keys(statusCounts).length > 0 && (
-        <div style={{ borderTop: "1px solid #334155", paddingTop: 6, marginBottom: 6 }}>
+        <div
+          style={{
+            borderTop: "1px solid #334155",
+            paddingTop: 8,
+            marginBottom: 8,
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           {Object.entries(statusCounts)
             .sort((a, b) => b[1] - a[1])
             .map(([st, count]) => (
-              <div
-                key={st}
-                style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}
-              >
+              <span key={st} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
                 <span
                   style={{
-                    display: "inline-block",
                     width: 8,
                     height: 8,
                     borderRadius: 2,
@@ -240,38 +213,38 @@ function TreemapTooltip({
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ color: "#94A3B8" }}>{st}:</span>
-                <span style={{ fontWeight: 600 }}>{count}</span>
-              </div>
+                {st}: {count}
+              </span>
             ))}
         </div>
       )}
-      {rows.length > 0 && rows.length <= 10 && (
-        <div style={{ borderTop: "1px solid #334155", paddingTop: 6 }}>
-          <div style={{ fontWeight: 600, marginBottom: 4, color: "#94A3B8", fontSize: 10 }}>
-            DETALHES
+
+      {rows.length > 0 && (
+        <div style={{ borderTop: "1px solid #334155", paddingTop: 8 }}>
+          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6, fontWeight: 600 }}>
+            ÚLTIMOS REGISTROS
           </div>
-          {rows.slice(0, 5).map((row, i) => (
+          {rows.slice(0, 3).map((row, i) => (
             <div
               key={i}
               style={{
                 background: "rgba(255,255,255,0.05)",
                 borderRadius: 4,
-                padding: "4px 6px",
+                padding: "6px 8px",
                 marginBottom: 4,
                 fontSize: 10,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
                 <span style={{ fontWeight: 600, color: "#F8FAFC" }}>
-                  {String(row.CodigoReferencia || row.Codigo || "—")}
+                  {String(row.CodigoReferencia || "—")}
                 </span>
-                <span style={{ color: treemapStatusColor(String(row.Status || "")) }}>
+                <span style={{ color: treemapStatusColor(String(row.Status || "")), fontWeight: 600 }}>
                   {String(row.Status || "—")}
                 </span>
               </div>
-              <div style={{ color: "#CBD5E1", marginBottom: 1 }}>
-                {String(row.Titulo || row.Categoria || "—")}
+              <div style={{ color: "#CBD5E1", marginBottom: 2 }}>
+                {String(row.Titulo || "—")}
               </div>
               <div style={{ display: "flex", gap: 8, color: "#64748B" }}>
                 {row.Data ? <span>{String(row.Data)}</span> : null}
@@ -280,9 +253,9 @@ function TreemapTooltip({
               </div>
             </div>
           ))}
-          {rows.length > 5 && (
-            <div style={{ color: "#64748B", fontSize: 10, textAlign: "center" }}>
-              +{rows.length - 5} registros
+          {rows.length > 3 && (
+            <div style={{ color: "#64748B", fontSize: 10, textAlign: "center", marginTop: 4 }}>
+              +{rows.length - 3} mais registros
             </div>
           )}
         </div>
@@ -300,30 +273,27 @@ function Breadcrumb({
 }: {
   rootLabel: string;
   path: string[];
-  onNavigate: (index: number) => void;
+  onNavigate: (i: number) => void;
 }) {
   const items = [rootLabel, ...path];
   return (
-    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2 flex-wrap">
-      {items.map((item, i) => {
-        const isLast = i === items.length - 1;
-        return (
-          <span key={i} className="flex items-center gap-1">
-            {i > 0 && <ChevronRight className="h-3 w-3 opacity-50" />}
-            {isLast ? (
-              <span className="font-semibold text-foreground">{item}</span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onNavigate(i)}
-                className="hover:text-primary transition-colors cursor-pointer underline underline-offset-2 decoration-dotted"
-              >
-                {item}
-              </button>
-            )}
-          </span>
-        );
-      })}
+    <div className="flex items-center gap-1 text-xs flex-wrap">
+      {items.map((item, i) => (
+        <span key={i} className="flex items-center gap-1">
+          {i > 0 && <ChevronRight className="h-3 w-3 opacity-40" />}
+          {i === items.length - 1 ? (
+            <span className="font-bold text-white">{item}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onNavigate(i)}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              {item}
+            </button>
+          )}
+        </span>
+      ))}
     </div>
   );
 }
@@ -331,21 +301,20 @@ function Breadcrumb({
 // ── Legend ──
 
 function StatusLegend() {
-  const items = [
-    { label: "Pendente", color: TREEMAP_COLORS.pendente },
-    { label: "Em Andamento", color: TREEMAP_COLORS.emAndamento },
-    { label: "Finalizado", color: TREEMAP_COLORS.finalizado },
-    { label: "Sem Status", color: TREEMAP_COLORS.semStatus },
-  ];
   return (
-    <div className="flex items-center gap-4 text-[10px] text-muted-foreground mb-2">
-      {items.map((item) => (
+    <div className="flex items-center gap-3 text-[11px]">
+      {[
+        { label: "Pendente", color: TREEMAP_COLORS.pendente },
+        { label: "Em Andamento", color: TREEMAP_COLORS.emAndamento },
+        { label: "Finalizado", color: TREEMAP_COLORS.finalizado },
+        { label: "Sem Status", color: TREEMAP_COLORS.semStatus },
+      ].map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           <span
-            className="inline-block w-2.5 h-2.5 rounded-sm"
+            className="inline-block w-3 h-3 rounded"
             style={{ backgroundColor: item.color }}
           />
-          {item.label}
+          <span className="text-slate-400">{item.label}</span>
         </span>
       ))}
     </div>
@@ -362,27 +331,26 @@ function WeightToggle({
   onChange: (v: "count" | "hh") => void;
 }) {
   return (
-    <div className="flex items-center gap-1 text-[10px] mb-2">
-      <span className="text-muted-foreground mr-1">Peso:</span>
+    <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5">
       <button
         type="button"
         onClick={() => onChange("count")}
-        className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer ${
           value === "count"
-            ? "bg-primary/20 text-primary font-semibold"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-blue-600 text-white font-semibold shadow"
+            : "text-slate-400 hover:text-white"
         }`}
       >
         <Hash className="h-3 w-3" />
-        Qtd
+        Quantidade
       </button>
       <button
         type="button"
         onClick={() => onChange("hh")}
-        className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer ${
           value === "hh"
-            ? "bg-primary/20 text-primary font-semibold"
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-blue-600 text-white font-semibold shadow"
+            : "text-slate-400 hover:text-white"
         }`}
       >
         <Clock className="h-3 w-3" />
@@ -428,7 +396,7 @@ export function ChartTreemap({
   const handleDrillDown = useCallback(
     (name: string) => {
       const node = findNode(currentNode.children ?? [], name);
-      if (node && node.children && node.children.length > 0) {
+      if (node?.children && node.children.length > 0) {
         setDrillPath((prev) => [...prev, name]);
         setZoom(1);
       }
@@ -446,61 +414,58 @@ export function ChartTreemap({
     setZoom(1);
   }, []);
 
-  const handleZoomIn = useCallback(() => {
-    setZoom((prev) => Math.min(prev + 0.25, 3));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom((prev) => Math.max(prev - 0.25, 0.5));
-  }, []);
-
-  const canGoBack = drillPath.length > 0;
-
   if (data.length === 0) return <Empty />;
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "#0F172A" }}>
-      <div className="p-3">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-3">
-            <StatusLegend />
-            <WeightToggle value={weightMode} onChange={setWeightMode} />
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className="p-1 rounded hover:bg-white/10 transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
-              title="Zoom out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </button>
-            <span className="text-[10px] text-muted-foreground w-10 text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className="p-1 rounded hover:bg-white/10 transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
-              title="Zoom in"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </button>
-          </div>
+    <div
+      className="rounded-xl overflow-hidden border border-slate-700/50"
+      style={{ background: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)" }}
+    >
+      {/* Header controls */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-700/50">
+        <div className="flex items-center gap-4">
+          <StatusLegend />
+          <WeightToggle value={weightMode} onChange={setWeightMode} />
         </div>
-        <Breadcrumb rootLabel={rootLabel} path={drillPath} onNavigate={handleBreadcrumbNavigate} />
-        {canGoBack && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))}
+            className="p-1.5 rounded-md hover:bg-slate-700 transition-colors cursor-pointer text-slate-400 hover:text-white"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          <span className="text-xs text-slate-500 w-10 text-center font-mono">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.min(z + 0.2, 3))}
+            className="p-1.5 rounded-md hover:bg-slate-700 transition-colors cursor-pointer text-slate-400 hover:text-white"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Breadcrumb + back */}
+      <div className="px-4 py-2 flex items-center gap-3">
+        {drillPath.length > 0 && (
           <button
             type="button"
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors mb-2 cursor-pointer"
+            className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Voltar
           </button>
         )}
+        <Breadcrumb rootLabel={rootLabel} path={drillPath} onNavigate={handleBreadcrumbNavigate} />
       </div>
+
+      {/* Treemap area */}
       <div
+        className="px-2 pb-2"
         style={{
           height: height * zoom,
           minHeight: height,
@@ -512,7 +477,7 @@ export function ChartTreemap({
             const g = target.parentElement;
             const textEl = g?.querySelector("text");
             if (textEl) {
-              const text = textEl.textContent ?? "";
+              const text = textEl.textContent?.replace("…", "") ?? "";
               if (text) handleDrillDown(text);
             }
           }
