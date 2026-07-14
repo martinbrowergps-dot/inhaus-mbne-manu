@@ -54,11 +54,6 @@ const columns: ColumnDef<PreditivaRow>[] = [
     ),
   },
   { accessorKey: "Titulo", header: "Título" },
-  { accessorKey: "Area", header: "Área" },
-  { accessorKey: "Setor", header: "Setor" },
-  { accessorKey: "Conjunto", header: "Conjunto" },
-  { accessorKey: "Servico", header: "Serviço" },
-  { accessorKey: "Objetivo", header: "Objetivo" },
   {
     accessorKey: "Status",
     header: "Status",
@@ -70,20 +65,6 @@ const columns: ColumnDef<PreditivaRow>[] = [
         )}
       >
         {row.original.Status || "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "Situacao",
-    header: "Situação",
-    cell: ({ row }) => (
-      <span
-        className={cn(
-          "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-          statusBadge(row.original.Situacao),
-        )}
-      >
-        {row.original.Situacao || "—"}
       </span>
     ),
   },
@@ -175,13 +156,8 @@ function PreditivasPage() {
             { header: "Categoria", value: (r) => r.Categoria },
             { header: "Prioridade", value: (r) => r.Prioridade },
             { header: "Título", value: (r) => r.Titulo },
-            { header: "Área", value: (r) => r.Area },
-            { header: "Setor", value: (r) => r.Setor },
-            { header: "Conjunto", value: (r) => r.Conjunto },
-            { header: "Serviço", value: (r) => r.Servico },
-            { header: "HH", value: (r) => r.HH },
             { header: "Status", value: (r) => r.Status },
-            { header: "Situação", value: (r) => r.Situacao },
+            { header: "HH", value: (r) => r.HH },
           ]}
           pdfTitle="Manutenção Preditiva · Centro de Controle"
         />
@@ -256,7 +232,7 @@ function PreditivasPage() {
           data={preditiva}
           columns={columns}
           pageSize={15}
-          searchKeys={["CodigoReferencia", "Titulo", "Tipo", "Categoria", "Setor", "Objetivo"]}
+          searchKeys={["CodigoReferencia", "Titulo", "Tipo", "Categoria"]}
           detailTitle={(r) => r.CodigoReferencia}
           detailSubtitle={(r) => r.Titulo}
         />
