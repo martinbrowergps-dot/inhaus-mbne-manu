@@ -124,7 +124,7 @@ function PreditivasPage() {
   }, [preditiva]);
 
   const treemapData = useMemo(
-    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"]),
+    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"], "Status"),
     [preditiva],
   );
 

@@ -195,20 +195,48 @@ export function aggregate<T>(
 export interface HierarchicalNode {
   name: string;
   children?: HierarchicalNode[];
-  value?: number;
   size?: number;
+  status?: string;
+  totalByStatus?: Record<string, number>;
+}
+
+// ── Treemap status colors ──
+export function treemapStatusColor(status?: string): string {
+  if (!status) return "#93C5D8";
+  const s = status.toLowerCase();
+  if (/pendente|aberto|não iniciado|nao iniciado/i.test(s)) return "#EF4444";
+  if (/em andamento|em exec|programada/i.test(s)) return "#F59E0B";
+  if (/finaliz|conclu|fechado/i.test(s)) return "#10B981";
+  if (/cancel/i.test(s)) return "#94A3B8";
+  return "#93C5D8";
 }
 
 export function aggregateHierarchy<T>(
   items: T[],
   keys: (keyof T)[],
+  statusKey?: keyof T,
 ): HierarchicalNode[] {
   if (keys.length === 0) return [];
 
-  function buildLevel(rows: T[], levelKeys: (keyof T)[]): HierarchicalNode[] {
-    if (levelKeys.length === 0) {
-      return [];
+  function countStatus(rows: T[]): Record<string, number> {
+    if (!statusKey) return {};
+    const map: Record<string, number> = {};
+    for (const row of rows) {
+      const s = String(row[statusKey] || "Não informado");
+      map[s] = (map[s] ?? 0) + 1;
     }
+    return map;
+  }
+
+  function dominantStatus(counts: Record<string, number>): string | undefined {
+    const entries = Object.entries(counts);
+    if (entries.length === 0) return undefined;
+    return entries.sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  function buildLevel(rows: T[], levelKeys: (keyof T)[]): HierarchicalNode[] {
+    if (levelKeys.length === 0) return [];
+
     const key = levelKeys[0];
     const remainingKeys = levelKeys.slice(1);
     const groups = new Map<string, T[]>();
@@ -225,13 +253,17 @@ export function aggregateHierarchy<T>(
 
     const result: HierarchicalNode[] = [];
     for (const [name, groupRows] of groups) {
+      const totalByStatus = countStatus(groupRows);
+      const status = dominantStatus(totalByStatus);
+
       if (remainingKeys.length > 0) {
         const children = buildLevel(groupRows, remainingKeys);
         if (children.length > 0) {
-          result.push({ name, children });
+          const totalSize = children.reduce((s, c) => s + (c.size ?? 0), 0);
+          result.push({ name, children, size: totalSize, status, totalByStatus });
         }
       } else {
-        result.push({ name, size: groupRows.length });
+        result.push({ name, size: groupRows.length, status, totalByStatus });
       }
     }
 
