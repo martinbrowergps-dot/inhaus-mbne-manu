@@ -13,16 +13,14 @@ import {
 import { Panel } from "@/components/panel";
 import { formatBRNumber, parseBRDate } from "@/lib/format";
 import {
-  CHART_TOOLTIP_STYLE,
   CHART_LEGEND_STYLE,
-  CHART_AXIS_TICK,
-  CHART_AXIS_STROKE,
-  CHART_GRID_STROKE,
-  CHART_BAR_CURSOR,
-  CHART_LABEL_STYLE,
   SERIES_COLORS,
   brHourFormatter,
   tooltipValueFormatter,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
+  chartLabelProps,
 } from "@/lib/chart-utils";
 import type { EnrichedRow } from "./types";
 
@@ -100,16 +98,14 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={chartByDay} margin={{ top: 24, right: 12, left: -12, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
-                <XAxis dataKey="label" tick={CHART_AXIS_TICK} stroke={CHART_AXIS_STROKE} />
+                <CartesianGrid {...chartGridProps} />
+                <XAxis dataKey="label" {...chartAxisProps} />
                 <YAxis
-                  tick={CHART_AXIS_TICK}
-                  stroke={CHART_AXIS_STROKE}
+                  {...chartAxisProps}
                   tickFormatter={(v) => `${Math.round(Number(v))}h`}
                 />
                 <Tooltip
-                  contentStyle={CHART_TOOLTIP_STYLE}
-                  cursor={CHART_BAR_CURSOR}
+                  {...chartTooltipProps}
                   formatter={(v: number, name) => [
                     tooltipValueFormatter(v, "hh"),
                     labelMap[name as string] ?? name,
@@ -125,11 +121,12 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
                   name="planejado"
                   fill={SERIES_COLORS.planejado}
                   radius={[4, 4, 0, 0]}
+                  isAnimationActive={false}
                 >
                   <LabelList
                     position="top"
                     offset={6}
-                    style={CHART_LABEL_STYLE}
+                    {...chartLabelProps}
                     formatter={(v: number) => (v > 0 ? brHourFormatter(v) : "")}
                   />
                 </Bar>
@@ -138,11 +135,12 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
                   name="executado"
                   fill={SERIES_COLORS.executado}
                   radius={[4, 4, 0, 0]}
+                  isAnimationActive={false}
                 >
                   <LabelList
                     position="top"
                     offset={6}
-                    style={CHART_LABEL_STYLE}
+                    {...chartLabelProps}
                     formatter={(v: number) => (v > 0 ? brHourFormatter(v) : "")}
                   />
                 </Bar>

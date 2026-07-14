@@ -22,7 +22,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
-import { CHART_TOOLTIP_STYLE, COLORS, aggregate } from "@/lib/chart-utils";
+import {
+  CHART_LEGEND_STYLE,
+  COLORS,
+  SERIES_COLORS,
+  aggregate,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
+} from "@/lib/chart-utils";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
@@ -239,24 +247,24 @@ function IndicadoresPage() {
           <div className="h-48">
             <ResponsiveContainer>
               <LineChart data={computed.semanal}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
+                <CartesianGrid {...chartGridProps} />
+                <XAxis dataKey="label" {...chartAxisProps} />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: "#93C5D8" }}
-                  stroke="#93C5D8"
+                  {...chartAxisProps}
                   unit="%"
                 />
                 <ReTooltip
-                  contentStyle={CHART_TOOLTIP_STYLE}
+                  {...chartTooltipProps}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#06B6D4"
+                  stroke={SERIES_COLORS.planejado}
                   strokeWidth={2}
-                  dot={{ fill: "#06B6D4", r: 3 }}
+                  dot={{ fill: SERIES_COLORS.planejado, r: 3 }}
+                  isAnimationActive={false}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -273,26 +281,24 @@ function IndicadoresPage() {
                 layout="vertical"
                 margin={{ left: 20, right: 28, top: 8, bottom: 4 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid {...chartGridProps} horizontal={false} />
                 <XAxis
                   type="number"
                   domain={[0, 100]}
                   unit="%"
-                  tick={{ fontSize: 10, fill: "#93C5D8" }}
-                  stroke="#93C5D8"
+                  {...chartAxisProps}
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fontSize: 10, fill: "#93C5D8" }}
-                  stroke="#93C5D8"
+                  {...chartAxisProps}
                   width={140}
                 />
                 <ReTooltip
-                  contentStyle={CHART_TOOLTIP_STYLE}
+                  {...chartTooltipProps}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
                 />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                   {computed.aderSistema.map((d, i) => (
                     <Cell
                       key={i}
@@ -314,14 +320,14 @@ function IndicadoresPage() {
             <div className="h-72">
               <ResponsiveContainer>
                 <BarChart data={computed.backlogArr} margin={{ top: 10, right: 20, left: 20, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#93C5D8" }} stroke="#93C5D8" />
-                  <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: "#F59E0B" }} stroke="#F59E0B" />
-                  <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                  <CartesianGrid {...chartGridProps} />
+                  <XAxis dataKey="name" {...chartAxisProps} fontSize={11} />
+                  <YAxis yAxisId="left" {...chartAxisProps} allowDecimals={false} />
+                  <YAxis yAxisId="right" orientation="right" {...chartAxisProps} stroke={SERIES_COLORS.hh} />
+                  <ReTooltip {...chartTooltipProps} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar yAxisId="left" dataKey="OS" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="right" dataKey="HH" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="OS" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  <Bar yAxisId="right" dataKey="HH" fill={SERIES_COLORS.hh} radius={[4, 4, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -335,10 +341,10 @@ function IndicadoresPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="OS POR TIPO DE MANUTENÇÃO">
-          <BarH data={byTipo} fill="#06B6D4" />
+          <BarH data={byTipo} fill={SERIES_COLORS.executado} />
         </Panel>
         <Panel title="OS POR LOCAL / MACRO">
-          <BarH data={byLocal} fill="#10B981" />
+          <BarH data={byLocal} fill={SERIES_COLORS.planejado} />
         </Panel>
         <Panel title="OS POR SISTEMA">
           <PieView data={bySistema} />
@@ -352,16 +358,17 @@ function IndicadoresPage() {
         <div className="h-72">
           <ResponsiveContainer>
             <LineChart data={computed.hhDiaArr}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-              <YAxis tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" />
-              <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+              <CartesianGrid {...chartGridProps} />
+              <XAxis dataKey="label" {...chartAxisProps} />
+              <YAxis {...chartAxisProps} />
+              <ReTooltip {...chartTooltipProps} />
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#06B6D4"
+                stroke={SERIES_COLORS.executado}
                 strokeWidth={2}
-                dot={{ fill: "#06B6D4", r: 3 }}
+                dot={{ fill: SERIES_COLORS.executado, r: 3 }}
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -420,22 +427,21 @@ function IndicadoresPage() {
                     layout="vertical"
                     margin={{ left: 20, right: 40, top: 8, bottom: 4 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      tick={{ fontSize: 10, fill: "#93C5D8" }}
-                      stroke="#93C5D8"
-                      width={120}
-                    />
-                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                    <Legend
-                      wrapperStyle={{ fontSize: 11 }}
-                      formatter={(value) => (value === "duracao" ? "Duração real" : "HH Planejado")}
-                    />
-                    <Bar dataKey="duracao" name="duracao" fill="#06B6D4" radius={[0, 4, 4, 0]} />
-                    <Bar dataKey="hhPlan" name="hhPlan" fill="#F59E0B" radius={[0, 4, 4, 0]} />
+                  <CartesianGrid {...chartGridProps} horizontal={false} />
+                  <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    {...chartAxisProps}
+                    width={120}
+                  />
+                  <ReTooltip {...chartTooltipProps} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11 }}
+                    formatter={(value) => (value === "duracao" ? "Duração real" : "HH Planejado")}
+                  />
+                  <Bar dataKey="duracao" name="duracao" fill={SERIES_COLORS.executado} radius={[0, 4, 4, 0]} isAnimationActive={false} />
+                  <Bar dataKey="hhPlan" name="hhPlan" fill={SERIES_COLORS.hh} radius={[0, 4, 4, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -521,17 +527,16 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
     <div className="h-72">
       <ResponsiveContainer>
         <BarChart data={data} layout="vertical" margin={{ left: 20, right: 40, top: 8, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} stroke="#93C5D8" allowDecimals={false} />
+          <CartesianGrid {...chartGridProps} horizontal={false} />
+          <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 10, fill: "#93C5D8" }}
-            stroke="#93C5D8"
+            {...chartAxisProps}
             width={140}
           />
-          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
-          <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} />
+          <ReTooltip {...chartTooltipProps} />
+          <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -557,12 +562,13 @@ function PieView({
             innerRadius={55}
             outerRadius={85}
             paddingAngle={2}
+            isAnimationActive={false}
           >
             {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
-          <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+          <ReTooltip {...chartTooltipProps} />
           <Legend wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>

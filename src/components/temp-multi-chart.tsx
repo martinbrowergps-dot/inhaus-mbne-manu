@@ -12,25 +12,13 @@ import {
 import { buildSeries, filterByRange, type TempRange } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
 import {
-  CHART_TOOLTIP_STYLE,
   CHART_LEGEND_STYLE,
-  CHART_AXIS_TICK,
-  CHART_AXIS_STROKE,
-  CHART_GRID_STROKE,
-  CHART_CURSOR_STYLE,
+  PBI_COLORS,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
 } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
-
-const PALETTE = [
-  "#06B6D4",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#A78BFA",
-  "#2563EB",
-  "#F97316",
-  "#FBBF24",
-];
 
 function fmtX(t: number, range: TempRange): string {
   const d = new Date(t);
@@ -76,42 +64,39 @@ export function TempMultiChart({
   return (
     <div className="h-80">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
-          <XAxis
-            dataKey="t"
-            type="number"
-            domain={["dataMin", "dataMax"]}
-            tickFormatter={(t) => fmtX(t as number, range)}
-            tick={CHART_AXIS_TICK}
-            stroke={CHART_AXIS_STROKE}
-            minTickGap={40}
-          />
-          <YAxis
-            tick={CHART_AXIS_TICK}
-            stroke={CHART_AXIS_STROKE}
-            width={44}
-            tickFormatter={(v) => `${Math.round(Number(v))}°`}
-          />
-          <ReTooltip
-            contentStyle={CHART_TOOLTIP_STYLE}
-            cursor={CHART_CURSOR_STYLE}
-            labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
-            formatter={(v: number, name) => [`${formatBRNumber(v, 1)}°C`, name as string]}
-          />
-          <Legend wrapperStyle={CHART_LEGEND_STYLE} iconType="line" />
-          {keys.map((k, i) => (
-            <Line
-              key={k}
-              type="monotone"
-              dataKey={k}
-              stroke={PALETTE[i % PALETTE.length]}
-              strokeWidth={1.5}
-              dot={false}
-              connectNulls
-              isAnimationActive={false}
-            />
-          ))}
+            <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <CartesianGrid {...chartGridProps} />
+              <XAxis
+                dataKey="t"
+                type="number"
+                domain={["dataMin", "dataMax"]}
+                tickFormatter={(t) => fmtX(t as number, range)}
+                {...chartAxisProps}
+                minTickGap={40}
+              />
+              <YAxis
+                {...chartAxisProps}
+                width={44}
+                tickFormatter={(v) => `${Math.round(Number(v))}°`}
+              />
+              <ReTooltip
+                {...chartTooltipProps}
+                labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
+                formatter={(v: number, name) => [`${formatBRNumber(v, 1)}°C`, name as string]}
+              />
+              <Legend wrapperStyle={CHART_LEGEND_STYLE} iconType="line" />
+              {keys.map((k, i) => (
+                <Line
+                  key={k}
+                  type="monotone"
+                  dataKey={k}
+                  stroke={PBI_COLORS[i % PBI_COLORS.length]}
+                  strokeWidth={1.5}
+                  dot={false}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              ))}
         </LineChart>
       </ResponsiveContainer>
     </div>

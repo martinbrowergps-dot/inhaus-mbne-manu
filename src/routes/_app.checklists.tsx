@@ -32,7 +32,12 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  COLORS,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
+} from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/checklists")({
@@ -233,14 +238,19 @@ function ChecklistsPage() {
                       cx="50%"
                       cy="50%"
                       outerRadius={70}
-                      label={(e) => `${e.name}`}
+                      isAnimationActive={false}
+                      label={({ name, x, y }) => (
+                        <text x={x} y={y} fill="#E2E8F0" fontSize={10} textAnchor="middle">
+                          {name}
+                        </text>
+                      )}
                       labelLine={true}
                     >
                       {distTipo.map((_, i) => (
-                        <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Tooltip {...chartTooltipProps} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -250,28 +260,20 @@ function ChecklistsPage() {
               <div className="h-64">
                 <ResponsiveContainer>
                   <BarChart data={distTipo} margin={{ top: 10, right: 8, left: 8, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 10, fill: "#93C5D8" }}
-                      stroke="#93C5D8"
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10, fill: "#93C5D8" }}
-                      stroke="#93C5D8"
-                      allowDecimals={false}
-                    />
+                    <CartesianGrid {...chartGridProps} />
+                    <XAxis dataKey="name" {...chartAxisProps} />
+                    <YAxis {...chartAxisProps} allowDecimals={false} />
                     <Tooltip
-                      contentStyle={CHART_TOOLTIP_STYLE}
+                      {...chartTooltipProps}
                       formatter={(v: number) => [`${formatBRNumber(v, 1)}h`, "HH"]}
                     />
-                    <Bar dataKey="hh" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="hh" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                       {distTipo.map((_, i) => (
-                        <Cell key={i} fill={["#06B6D4", "#10B981", "#F59E0B"][i]} />
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                       <LabelList
                         position="top"
-                        fill="#fff"
+                        fill="#F1F5F9"
                         fontSize={10}
                         formatter={(v: number) => (v > 0 ? formatBRNumber(v, 1) : "")}
                       />

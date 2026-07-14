@@ -29,7 +29,13 @@ import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { CHART_TOOLTIP_STYLE } from "@/lib/chart-utils";
+import {
+  COLORS,
+  SERIES_COLORS,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
+} from "@/lib/chart-utils";
 import { SectionHeader } from "@/components/section-header";
 import { FilterChip } from "@/components/ui/filter-chip";
 
@@ -476,19 +482,19 @@ return r === 0
         ? "#EF4444"
         : r === 1
           ? "#F59E0B"
-          : "#06B6D4";
+          : SERIES_COLORS.planejado;
     }
     if (colorBy === "age") {
       return (
         [
-          "#06B6D4",
-          "#F59E0B",
-          "#F97316",
-          "#EF4444",
-        ][i] || "#06B6D4"
+          SERIES_COLORS.planejado,
+          "#F2C80F",
+          SERIES_COLORS.hh,
+          "#FD625E",
+        ][i] || SERIES_COLORS.planejado
       );
     }
-    return "#06B6D4";
+    return SERIES_COLORS.executado;
   };
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -497,35 +503,35 @@ return r === 0
         layout={horizontal ? "vertical" : "horizontal"}
         margin={{ top: 8, right: 8, left: horizontal ? 80 : 0, bottom: 8 }}
       >
-        <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" />
+        <CartesianGrid {...chartGridProps} />
         {horizontal ? (
           <>
-            <XAxis type="number" tick={{ fontSize: 10, fill: "#93C5D8" }} allowDecimals={false} />
+            <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 10, fill: "#93C5D8" }}
+              {...chartAxisProps}
               width={80}
             />
           </>
         ) : (
           <>
-<XAxis dataKey="name" tick={{ fontSize: 10, fill: "#93C5D8" }} />
+<XAxis dataKey="name" {...chartAxisProps} />
             <YAxis
-              tick={{ fontSize: 10, fill: "#93C5D8" }}
+              {...chartAxisProps}
               allowDecimals={false}
             />
           </>
         )}
         <Tooltip
-          contentStyle={CHART_TOOLTIP_STYLE}
+          {...chartTooltipProps}
           formatter={(v: number) => [formatBRNumber(v, 0), "OS"]}
         />
-        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+        <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
-<LabelList position={horizontal ? "right" : "top"} fill="#fff" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
+<LabelList position={horizontal ? "right" : "top"} fill="#F1F5F9" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

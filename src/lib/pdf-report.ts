@@ -8,6 +8,7 @@ import {
   resolveMargins,
   type PdfMargins,
 } from "./pdf-css-patch";
+import { waitForChartsReady } from "./chart-utils";
 import { validateLayout, type PdfLayoutOptions } from "./export-pdf";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ const VARIANT_MAP: Record<string, Rgb> = {
 // ─── Chart capture ─────────────────────────────────────────────────
 
 async function captureChartElement(element: HTMLElement): Promise<string> {
+  await waitForChartsReady(element);
   const cleanInline = sanitizeInlineColors(element);
   try {
     return await toPng(element, {

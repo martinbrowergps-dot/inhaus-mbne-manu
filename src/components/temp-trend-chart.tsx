@@ -21,11 +21,9 @@ import {
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
 import {
-  CHART_TOOLTIP_STYLE,
-  CHART_AXIS_TICK,
-  CHART_AXIS_STROKE,
-  CHART_GRID_STROKE,
-  CHART_CURSOR_STYLE,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
 } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
@@ -83,20 +81,18 @@ const lineColor =
         <div className="h-40">
           <ResponsiveContainer>
             <LineChart data={series} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+              <CartesianGrid {...chartGridProps} />
               <XAxis
                 dataKey="t"
                 type="number"
                 domain={["dataMin", "dataMax"]}
                 tickFormatter={(t) => fmtX(t as number, range)}
-                tick={CHART_AXIS_TICK}
-                stroke={CHART_AXIS_STROKE}
+                {...chartAxisProps}
                 minTickGap={30}
               />
               <YAxis
                 domain={[minT, maxT]}
-                tick={CHART_AXIS_TICK}
-                stroke={CHART_AXIS_STROKE}
+                {...chartAxisProps}
                 width={44}
                 tickFormatter={(v) => `${Math.round(Number(v))}°`}
               />
@@ -117,8 +113,7 @@ const lineColor =
                 </>
               )}
               <ReTooltip
-                contentStyle={CHART_TOOLTIP_STYLE}
-                cursor={CHART_CURSOR_STYLE}
+                {...chartTooltipProps}
                 labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
                 formatter={(v: number) => [`${formatBRNumber(v, 1)}°C`, "Temperatura"]}
               />

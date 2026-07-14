@@ -26,11 +26,13 @@ import {
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import {
-  CHART_TOOLTIP_STYLE,
   CHART_LEGEND_STYLE,
-  CHART_CURSOR_STYLE,
   COLORS,
+  SERIES_COLORS,
   aggregate,
+  chartAxisProps,
+  chartGridProps,
+  chartTooltipProps,
 } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
@@ -292,18 +294,10 @@ function VisaoGeral() {
                       barCategoryGap="5%"
                       margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                      <XAxis
-                        dataKey="label"
-                        tick={{ fontSize: 10, fill: "#93C5D8" }}
-                        stroke="#93C5D8"
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: "#93C5D8" }}
-                        stroke="#93C5D8"
-                        allowDecimals={false}
-                      />
-                      <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                      <CartesianGrid {...chartGridProps} />
+                      <XAxis dataKey="label" {...chartAxisProps} />
+                      <YAxis {...chartAxisProps} allowDecimals={false} />
+                      <ReTooltip {...chartTooltipProps} />
                       <Legend
                         wrapperStyle={CHART_LEGEND_STYLE}
                         formatter={(value) =>
@@ -314,15 +308,17 @@ function VisaoGeral() {
                         dataKey="planejado"
                         name="planejado"
                         stackId="a"
-                        fill="#10B981"
+                        fill={SERIES_COLORS.planejado}
                         radius={[4, 4, 0, 0]}
+                        isAnimationActive={false}
                       />
                       <Bar
                         dataKey="naoPlanejado"
                         name="naoPlanejado"
                         stackId="a"
-                        fill="#EF4444"
+                        fill={SERIES_COLORS.naoPlanejado}
                         radius={[4, 4, 0, 0]}
+                        isAnimationActive={false}
                       >
                         <LabelList
                           content={({ x, y, width, index }) => {
@@ -335,7 +331,7 @@ function VisaoGeral() {
                                 x={Number(x) + Number(width) / 2}
                                 y={Number(y) - 6}
                                 textAnchor="middle"
-                                fill="#fff"
+                                fill="#F1F5F9"
                                 fontSize={10}
                               >
                                 {d.planejado}/{d.naoPlanejado}
@@ -356,26 +352,18 @@ function VisaoGeral() {
               <EmptyState className="h-64" />
             ) : (
               <div className="h-72 md:h-64">
-                <ResponsiveContainer>
+                  <ResponsiveContainer>
                     <BarChart
                       data={byDia}
                       barCategoryGap="5%"
                       margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
                     >
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 10, fill: "#93C5D8" }}
-                      stroke="#93C5D8"
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10, fill: "#93C5D8" }}
-                      stroke="#93C5D8"
-                      allowDecimals={false}
-                    />
-                    <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
+                    <CartesianGrid {...chartGridProps} />
+                    <XAxis dataKey="label" {...chartAxisProps} />
+                    <YAxis {...chartAxisProps} allowDecimals={false} />
+                    <ReTooltip {...chartTooltipProps} />
                     <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                    <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                       {byDia.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
@@ -388,7 +376,7 @@ function VisaoGeral() {
                               x={Number(x) + Number(width) / 2}
                               y={Number(y) - 6}
                               textAnchor="middle"
-                              fill="#fff"
+                              fill="#F1F5F9"
                               fontSize={10}
                             >
                               {value}
@@ -455,23 +443,12 @@ function VisaoGeral() {
                       layout="vertical"
                       margin={{ left: 20, right: 40, top: 8, bottom: 4 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                      <XAxis
-                        type="number"
-                        tick={{ fontSize: 10, fill: "#93C5D8" }}
-                        stroke="#93C5D8"
-                        allowDecimals={false}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="name"
-                        tick={{ fontSize: 10, fill: "#93C5D8" }}
-                        stroke="#93C5D8"
-                        width={140}
-                      />
-                      <ReTooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={CHART_CURSOR_STYLE} />
-                      <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]}>
-                        <LabelList position="right" fill="#fff" fontSize={10} offset={8} />
+                      <CartesianGrid {...chartGridProps} horizontal={false} />
+                      <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" {...chartAxisProps} width={140} />
+                      <ReTooltip {...chartTooltipProps} />
+                      <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                        <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>

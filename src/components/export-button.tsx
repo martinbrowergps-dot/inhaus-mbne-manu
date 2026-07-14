@@ -28,6 +28,8 @@ import {
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
+import { installLiveOverride, sanitizeInlineColors } from "@/lib/pdf-css-patch";
+import { waitForChartsReady } from "@/lib/chart-utils";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   exportTableToPdf,
@@ -90,7 +92,21 @@ export function ExportButton<T>({
       return;
     }
     try {
-      const dataUrl = await toPng(el, { quality: 0.95, pixelRatio: 2 });
+      await waitForChartsReady(el);
+      const cleanOverride = installLiveOverride();
+      const cleanInline = sanitizeInlineColors(el);
+      let dataUrl: string;
+      try {
+        dataUrl = await toPng(el, {
+          quality: 0.95,
+          pixelRatio: 2,
+          backgroundColor: "#ffffff",
+          cacheBust: true,
+        });
+      } finally {
+        cleanOverride();
+        cleanInline();
+      }
       const link = document.createElement("a");
       link.download = `${filename}.png`;
       link.href = dataUrl;

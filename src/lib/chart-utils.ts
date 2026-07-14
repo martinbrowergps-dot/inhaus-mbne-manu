@@ -1,43 +1,67 @@
 import type { CSSProperties } from "react";
 import { formatBRNumber, formatInt } from "@/lib/format";
 
+// ── Typography (Power BI style: clean sans-serif) ──
+export const CHART_FONT = "'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
+
 export const CHART_TOOLTIP_STYLE: CSSProperties = {
-  background: "#0C4A6E",
-  border: "1px solid #06B6D455",
-  borderRadius: 8,
+  background: "#FFFFFF",
+  border: "1px solid #E1E5EA",
+  borderRadius: 4,
   fontSize: 12,
-  color: "#FFFFFF",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+  color: "#1F1F1F",
+  boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
   padding: "8px 10px",
-  fontFamily: "'JetBrains Mono', monospace",
+  fontFamily: CHART_FONT,
 };
 
 export const CHART_LEGEND_STYLE: CSSProperties = {
   fontSize: 11,
-  color: "#93C5D8",
+  color: "#C7D2DC",
   paddingTop: 8,
+  fontFamily: CHART_FONT,
 };
 
 export const CHART_AXIS_TICK = {
   fontSize: 10,
   fill: "#93C5D8",
-  fontFamily: "'JetBrains Mono', monospace",
+  fontFamily: CHART_FONT,
 } as const;
 
 export const CHART_LABEL_STYLE = {
   fontSize: 10,
   fill: "#F1F5F9",
-  fontFamily: "'JetBrains Mono', monospace",
+  fontFamily: CHART_FONT,
   fontWeight: 600,
 } as const;
 
 export const CHART_GRID_STROKE = "rgba(255,255,255,0.06)";
 export const CHART_AXIS_STROKE = "#93C5D8";
 
-export const CHART_CURSOR_STYLE = { stroke: "rgba(6,182,212,0.2)" };
-export const CHART_BAR_CURSOR = { fill: "rgba(6,182,212,0.08)" };
+export const CHART_CURSOR_STYLE = { stroke: "rgba(148,163,184,0.35)" };
+export const CHART_BAR_CURSOR = { fill: "rgba(148,163,184,0.12)" };
+
+// ── Categorical palette (Power BI default 10-color sequence) ──
+// Single source of truth for charts with NO inherent semantic meaning
+// (sistema, tipo, área, cargo, solicitante, local…).
+export const PBI_COLORS = [
+  "#01B8AA", // teal
+  "#374649", // dark slate
+  "#FD625E", // coral / red
+  "#F2C80F", // yellow
+  "#8AD4EB", // light blue
+  "#FE9666", // orange
+  "#A66999", // purple
+  "#3599B8", // blue
+  "#DFBFBF", // pink
+  "#4AC5BB", // light teal
+];
+
+// Alias kept for backward-compatibility with existing imports.
+export const COLORS = PBI_COLORS;
 
 // ── Semantic colors (single source of truth across the app) ──
+// Used only where the color carries MEANING (status, criticidade).
 export const STATUS_COLORS: Record<string, string> = {
   Planejado: "#10B981",
   "Não Planejado": "#EF4444",
@@ -55,16 +79,44 @@ export const STATUS_COLORS: Record<string, string> = {
   C: "#10B981",
 };
 
+// ── Comparison series colors (Power BI-aligned) ──
 export const SERIES_COLORS = {
-  planejado: "#06B6D4",
-  executado: "#10B981",
-  meta: "#F59E0B",
-  ref: "#F59E0B",
+  planejado: "#01B8AA",
+  naoPlanejado: "#FD625E",
+  executado: "#3599B8",
+  meta: "#F2C80F",
+  ref: "#F2C80F",
+  hh: "#FE9666",
 } as const;
 
 export function statusColor(name: string): string {
   return STATUS_COLORS[name] ?? "";
 }
+
+// ── Reusable axis / grid / cursor / label / tooltip prop bundles ──
+// Spread into every Recharts chart to keep styling 100% consistent.
+export const chartAxisProps = {
+  tick: CHART_AXIS_TICK,
+  stroke: CHART_AXIS_STROKE,
+} as const;
+
+export const chartGridProps = {
+  stroke: CHART_GRID_STROKE,
+  strokeDasharray: "3 3",
+} as const;
+
+export const chartCursorProps = {
+  cursor: CHART_CURSOR_STYLE,
+} as const;
+
+export const chartTooltipProps = {
+  contentStyle: CHART_TOOLTIP_STYLE,
+  cursor: CHART_CURSOR_STYLE,
+} as const;
+
+export const chartLabelProps = {
+  style: CHART_LABEL_STYLE,
+} as const;
 
 // ── Formatters (BR locale) ──
 export const brTickFormatter = (v: number | string) => formatInt(Number(v));
@@ -99,7 +151,31 @@ export function priorityBadge(priority: string) {
   return cls;
 }
 
-export const COLORS = ["#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#F97316", "#A855F7", "#93C5D8"];
+// ── PDF capture readiness ──
+// Waits until Recharts surfaces have a non-zero size so html-to-image
+// never captures an empty (0px) chart. No-op during SSR / timeout.
+export function waitForChartsReady(root?: HTMLElement, timeoutMs = 1500): Promise<void> {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return Promise.resolve();
+  }
+  const scope = root ?? document;
+  const surfaces = Array.from(
+    scope.querySelectorAll<HTMLElement>(".recharts-surface"),
+  );
+  if (surfaces.length === 0) return Promise.resolve();
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve) => {
+    const check = () => {
+      const pending = surfaces.filter((s) => {
+        const r = s.getBoundingClientRect();
+        return r.height <= 1 || r.width <= 1;
+      });
+      if (pending.length === 0 || Date.now() > deadline) resolve();
+      else requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
 
 export function aggregate<T>(
   items: T[],

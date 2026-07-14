@@ -8,6 +8,7 @@ import {
   resolveMargins,
   type PdfMargins,
 } from "./pdf-css-patch";
+import { waitForChartsReady } from "./chart-utils";
 
 export type { PdfMargins } from "./pdf-css-patch";
 export { DEFAULT_MARGINS, resolveMargins } from "./pdf-css-patch";
@@ -395,6 +396,7 @@ export async function exportVisualPdf(
 
   const cleanLiveOverride = installLiveOverride();
   const cleanLiveInline = sanitizeInlineColors(element);
+  await waitForChartsReady(element);
   const candidatesCss = smartBreaks ? collectBreakCandidates(element) : [];
 
   let dataUrl: string;
