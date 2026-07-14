@@ -124,7 +124,7 @@ function PreditivasPage() {
   }, [preditiva]);
 
   const treemapData = useMemo(
-    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"], "Status"),
+    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"], "Status", "HH"),
     [preditiva],
   );
 
@@ -254,9 +254,7 @@ function PreditivasPage() {
         label="Mapa de Atividades"
         insight="Hierarquia: Área > Setor > Conjunto > Serviço"
       >
-        <Panel title="TREEMAP · ÁREA > SETOR > CONJUNTO > SERVIÇO" dataChart="preditivas-treemap">
-          <ChartTreemap data={treemapData} height={420} />
-        </Panel>
+        <ChartTreemap data={treemapData} height={500} />
       </SectionHeader>
 
       <SectionHeader

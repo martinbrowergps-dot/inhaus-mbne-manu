@@ -196,25 +196,35 @@ export interface HierarchicalNode {
   name: string;
   children?: HierarchicalNode[];
   size?: number;
+  totalHH?: number;
   status?: string;
   totalByStatus?: Record<string, number>;
+  rawRows?: Record<string, unknown>[];
 }
 
-// ── Treemap status colors ──
+// ── Treemap status colors (industrial palette) ──
+export const TREEMAP_COLORS = {
+  pendente: "#C62828",
+  emAndamento: "#F9A825",
+  finalizado: "#2E7D32",
+  semStatus: "#9E9E9E",
+} as const;
+
 export function treemapStatusColor(status?: string): string {
-  if (!status) return "#93C5D8";
+  if (!status) return TREEMAP_COLORS.semStatus;
   const s = status.toLowerCase();
-  if (/pendente|aberto|não iniciado|nao iniciado/i.test(s)) return "#EF4444";
-  if (/em andamento|em exec|programada/i.test(s)) return "#F59E0B";
-  if (/finaliz|conclu|fechado/i.test(s)) return "#10B981";
-  if (/cancel/i.test(s)) return "#94A3B8";
-  return "#93C5D8";
+  if (/pendente|aberto|não iniciado|nao iniciado/i.test(s)) return TREEMAP_COLORS.pendente;
+  if (/em andamento|em exec|programada/i.test(s)) return TREEMAP_COLORS.emAndamento;
+  if (/finaliz|conclu|fechado/i.test(s)) return TREEMAP_COLORS.finalizado;
+  if (/cancel/i.test(s)) return TREEMAP_COLORS.semStatus;
+  return TREEMAP_COLORS.semStatus;
 }
 
 export function aggregateHierarchy<T>(
   items: T[],
-  keys: (keyof T)[],
-  statusKey?: keyof T,
+  keys: (keyof T & string)[],
+  statusKey?: keyof T & string,
+  hhKey?: keyof T & string,
 ): HierarchicalNode[] {
   if (keys.length === 0) return [];
 
@@ -232,6 +242,11 @@ export function aggregateHierarchy<T>(
     const entries = Object.entries(counts);
     if (entries.length === 0) return undefined;
     return entries.sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  function sumHH(rows: T[]): number {
+    if (!hhKey) return 0;
+    return rows.reduce((s, r) => s + Number(r[hhKey] ?? 0), 0);
   }
 
   function buildLevel(rows: T[], levelKeys: (keyof T)[]): HierarchicalNode[] {
@@ -255,15 +270,24 @@ export function aggregateHierarchy<T>(
     for (const [name, groupRows] of groups) {
       const totalByStatus = countStatus(groupRows);
       const status = dominantStatus(totalByStatus);
+      const totalHH = sumHH(groupRows);
 
       if (remainingKeys.length > 0) {
         const children = buildLevel(groupRows, remainingKeys);
         if (children.length > 0) {
           const totalSize = children.reduce((s, c) => s + (c.size ?? 0), 0);
-          result.push({ name, children, size: totalSize, status, totalByStatus });
+          const totalChildrenHH = children.reduce((s, c) => s + (c.totalHH ?? 0), 0);
+          result.push({ name, children, size: totalSize, totalHH: totalChildrenHH, status, totalByStatus });
         }
       } else {
-        result.push({ name, size: groupRows.length, status, totalByStatus });
+        result.push({
+          name,
+          size: groupRows.length,
+          totalHH,
+          status,
+          totalByStatus,
+          rawRows: groupRows as unknown as Record<string, unknown>[],
+        } as HierarchicalNode);
       }
     }
 
