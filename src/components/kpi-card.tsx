@@ -27,7 +27,7 @@ export function KpiCard({
         v.glow,
       )}
     >
-      <div className={cn("flex items-start justify-between gap-3", !Icon && "items-center")}>
+      <div className={cn("flex items-start justify-between gap-5", !Icon && "items-center")}>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             {label}
