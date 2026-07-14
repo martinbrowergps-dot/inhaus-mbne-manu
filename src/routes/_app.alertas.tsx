@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertOctagon,
@@ -315,8 +315,18 @@ function SummaryChip({
   );
 }
 
+function alertHref(id: string): string | undefined {
+  if (id.startsWith("temp")) return "/temperaturas";
+  if (id.startsWith("hh")) return "/hh-semanal";
+  if (id.startsWith("os-aa") || id.startsWith("os-late")) return "/programacao";
+  if (id === "no-checklist") return "/checklists";
+  if (id === "no-passagem") return "/passagem-turno";
+  return undefined;
+}
+
 function AlertItem({ alert }: { alert: Alerta }) {
   const Icon = alert.icon;
+  const href = alertHref(alert.id);
   const styles = {
     alta: "border-destructive/40 bg-destructive/10",
     media: "border-warning/40 bg-warning/10",
@@ -328,8 +338,8 @@ function AlertItem({ alert }: { alert: Alerta }) {
     baixa: "text-primary",
   }[alert.prio];
 
-  return (
-    <li className={cn("flex items-start gap-3 rounded-lg border p-3", styles)}>
+  const body = (
+    <>
       <Icon className={cn("h-5 w-5 shrink-0 mt-0.5", iconColor)} />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
@@ -340,6 +350,29 @@ function AlertItem({ alert }: { alert: Alerta }) {
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">{alert.desc}</p>
       </div>
-    </li>
+      {href && (
+        <span className="shrink-0 self-center text-[10px] font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100">
+          Ver →
+        </span>
+      )}
+    </>
   );
+
+  if (href) {
+    return (
+      <li>
+        <Link
+          to={href}
+          className={cn(
+            "group flex items-start gap-3 rounded-lg border p-3 transition-colors hover:border-primary/60 hover:bg-primary/[0.04]",
+            styles,
+          )}
+        >
+          {body}
+        </Link>
+      </li>
+    );
+  }
+
+  return <li className={cn("flex items-start gap-3 rounded-lg border p-3", styles)}>{body}</li>;
 }

@@ -25,6 +25,17 @@ export function TopHeader() {
   };
 
   const lastUpdate = data ? new Date(data.fetchedAt) : null;
+  const minutesAgo = lastUpdate
+    ? Math.max(0, Math.floor((Date.now() - lastUpdate.getTime()) / 60_000))
+    : null;
+  const relLabel =
+    lastUpdate === null
+      ? "—"
+      : (minutesAgo ?? 0) < 1
+        ? "agora"
+        : (minutesAgo ?? 0) < 60
+          ? `há ${minutesAgo ?? 0} min`
+          : lastUpdate.toLocaleDateString("pt-BR");
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl">
@@ -38,11 +49,9 @@ export function TopHeader() {
         </p>
       </div>
 
-      <div className="hidden items-center gap-2 sm:flex">
-<span className="num text-[10px] text-muted-foreground/70">
-          {lastUpdate ? lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
-        </span>
+      <div className="hidden items-center gap-2 sm:flex" title={lastUpdate ? formatBRDateTime(lastUpdate) : undefined}>
         <Circle className="h-1.5 w-1.5 animate-pulse fill-success text-success" />
+        <span className="num text-[10px] text-muted-foreground/70">Atualizado {relLabel}</span>
       </div>
 
       <Popover>
