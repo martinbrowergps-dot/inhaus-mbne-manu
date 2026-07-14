@@ -265,17 +265,9 @@ function PreditivasPage() {
         <Panel title="PLANO DE MANUTENÇÃO PREDITIVA">
           <div className="flex justify-center">
             <img
-              src="https://drive.google.com/uc?export=view&id=1I_57cGe3t_dJG1Ru5GUd3Q-ofVh6hm8K"
+              src="/newplot.png"
               alt="Plano de Manutenção Preditiva"
               className="max-w-full h-auto rounded-lg border"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                const fallback = document.createElement("p");
-                fallback.className = "text-sm text-muted-foreground text-center py-4";
-                fallback.textContent = "Não foi possível carregar a imagem. Verifique o link do Google Drive.";
-                target.parentElement?.appendChild(fallback);
-              }}
             />
           </div>
         </Panel>

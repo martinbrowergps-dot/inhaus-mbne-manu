@@ -15,7 +15,7 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import { ClipboardList, Clock, CheckCircle2, AlertOctagon, Calendar } from "lucide-react";
+import { ClipboardList, Clock, CheckCircle2, AlertOctagon, Calendar, Play, PauseCircle } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import {
@@ -30,7 +30,7 @@ import {
 } from "@/lib/chart-utils";
 import { Panel } from "@/components/panel";
 import { ExportButton } from "@/components/export-button";
-import { KpiCard } from "@/components/kpi-card";
+import { KpiStrip } from "@/components/kpi-carousel";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { deriveExecStatus } from "@/lib/status";
@@ -214,50 +214,52 @@ function RelatoriosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-        <KpiCard
-          label="Total de OS"
-          value={formatInt(totalOS)}
-          icon={ClipboardList}
-          variant="primary"
-        />
-        <KpiCard
-          label="HH Total"
-          value={`${formatBRNumber(totalHH, 1)}h`}
-          icon={Clock}
-          variant="primary"
-        />
-        <KpiCard
-          label="Planejadas"
-          value={formatInt(periods.reduce((s, p) => s + p.planejadas, 0))}
-          icon={CheckCircle2}
-          variant="success"
-        />
-        <KpiCard
-          label="Não Planejadas"
-          value={formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0))}
-          icon={AlertOctagon}
-          variant="danger"
-        />
-        <KpiCard
-          label="Finalizadas"
-          value={formatInt(totalFinalizadas)}
-          icon={CheckCircle2}
-          variant="success"
-        />
-        <KpiCard
-          label="Canceladas"
-          value={formatInt(totalCanceladas)}
-          icon={AlertOctagon}
-          variant="neutral"
-        />
-        <KpiCard
-          label="Períodos"
-          value={formatInt(periods.length)}
-          icon={Calendar}
-          variant="neutral"
-        />
-      </div>
+      <KpiStrip
+        items={[
+          {
+            label: "Total de OS",
+            value: formatInt(totalOS),
+            icon: ClipboardList,
+            variant: "primary",
+          },
+          {
+            label: "HH Total",
+            value: `${formatBRNumber(totalHH, 1)}h`,
+            icon: Clock,
+            variant: "primary",
+          },
+          {
+            label: "Planejadas",
+            value: formatInt(periods.reduce((s, p) => s + p.planejadas, 0)),
+            icon: CheckCircle2,
+            variant: "success",
+          },
+          {
+            label: "Não Planejadas",
+            value: formatInt(periods.reduce((s, p) => s + p.naoPlanejadas, 0)),
+            icon: AlertOctagon,
+            variant: "danger",
+          },
+          {
+            label: "Finalizadas",
+            value: formatInt(totalFinalizadas),
+            icon: Play,
+            variant: "success",
+          },
+          {
+            label: "Canceladas",
+            value: formatInt(totalCanceladas),
+            icon: PauseCircle,
+            variant: "neutral",
+          },
+          {
+            label: "Períodos",
+            value: formatInt(periods.length),
+            icon: Calendar,
+            variant: "neutral",
+          },
+        ]}
+      />
 
       <SectionHeader label="Dados Agregados" insight={`${formatInt(periods.length)} períodos`}>
         <Panel title={`${visao === "semanal" ? "SEMANAS" : visao === "mensal" ? "MESES" : "DIAS"}`}>
