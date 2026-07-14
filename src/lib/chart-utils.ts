@@ -48,6 +48,11 @@ export const STATUS_COLORS: Record<string, string> = {
   Pendente: "#93C5D8",
   Aberto: "#F59E0B",
   Concluído: "#10B981",
+  // Criticidade
+  AA: "#EF4444",
+  A: "#F97316",
+  B: "#F59E0B",
+  C: "#10B981",
 };
 
 export const SERIES_COLORS = {
@@ -58,7 +63,7 @@ export const SERIES_COLORS = {
 } as const;
 
 export function statusColor(name: string): string {
-  return STATUS_COLORS[name] ?? "#93C5D8";
+  return STATUS_COLORS[name] ?? "";
 }
 
 // ── Formatters (BR locale) ──
