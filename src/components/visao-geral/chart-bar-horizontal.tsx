@@ -25,15 +25,18 @@ export function ChartBarHorizontal({
   data,
   refLine,
   color = SERIES_COLORS.executado,
+  height,
 }: {
   data: { name: string; value: number }[];
   refLine?: { value: number; label: string };
   color?: string;
+  height?: number;
 }) {
   if (data.length === 0) return <Empty />;
   const sorted = [...data].sort((a, b) => a.value - b.value);
+  const resolvedHeight = height ?? Math.max(200, sorted.length * 38 + 40);
   return (
-    <div className="h-64">
+    <div style={{ height: resolvedHeight }}>
       <ResponsiveContainer>
         <BarChart data={sorted} layout="vertical" margin={{ left: 115, right: 40, top: 8, bottom: 4 }}>
           <CartesianGrid {...chartGridProps} horizontal={false} />

@@ -94,22 +94,29 @@ function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const preditiva = useMemo(() => data?.preditiva ?? [], [data?.preditiva]);
 
-  const byTipo = useMemo(() => aggregate(preditiva, (r) => r.Tipo), [preditiva]);
-  const byArea = useMemo(() => aggregate(preditiva, (r) => r.Area), [preditiva]);
+  const byCategoria = useMemo(() => aggregate(preditiva, (r) => r.Categoria), [preditiva]);
+  const bySetor = useMemo(() => aggregate(preditiva, (r) => r.Setor), [preditiva]);
   const byStatus = useMemo(() => aggregate(preditiva, (r) => r.Status), [preditiva]);
-  const byPrioridade = useMemo(() => aggregate(preditiva, (r) => r.Prioridade), [preditiva]);
 
-  const sumByTipoHH = useMemo(() => {
+  const sumByCategoriaHH = useMemo(() => {
     const map = new Map<string, number>();
-    preditiva.forEach((r) => map.set(r.Tipo, (map.get(r.Tipo) ?? 0) + Number(r.HH || 0)));
+    preditiva.forEach((r) => map.set(r.Categoria, (map.get(r.Categoria) ?? 0) + Number(r.HH || 0)));
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [preditiva]);
 
-  const sumByAreaHH = useMemo(() => {
+  const sumBySetorHH = useMemo(() => {
     const map = new Map<string, number>();
-    preditiva.forEach((r) => map.set(r.Area, (map.get(r.Area) ?? 0) + Number(r.HH || 0)));
+    preditiva.forEach((r) => map.set(r.Setor, (map.get(r.Setor) ?? 0) + Number(r.HH || 0)));
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [preditiva]);
+
+  const sumByStatusHH = useMemo(() => {
+    const map = new Map<string, number>();
+    preditiva.forEach((r) => map.set(r.Status, (map.get(r.Status) ?? 0) + Number(r.HH || 0)));
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
@@ -178,7 +185,7 @@ function PreditivasPage() {
 
       <SectionHeader
         label="Panorama"
-        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byTipo.length} tipos`}
+        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byCategoria.length} categorias`}
       >
         <div className="grid gap-3 sm:grid-cols-4">
           <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
@@ -200,14 +207,14 @@ function PreditivasPage() {
 
       <SectionHeader
         label="Distribuição"
-        insight={`${byTipo.length} tipos · ${byArea.length} áreas`}
+        insight={`${byCategoria.length} categorias · ${bySetor.length} setores`}
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="AÇÕES POR TIPO" dataChart="preditivas-tipo">
-            <ChartBarHorizontal data={byTipo} color={SERIES_COLORS.executado} />
+          <Panel title="AÇÕES POR CATEGORIA" dataChart="preditivas-categoria">
+            <ChartBarHorizontal data={byCategoria} color={SERIES_COLORS.executado} height={140} />
           </Panel>
-          <Panel title="AÇÕES POR ÁREA" dataChart="preditivas-area">
-            <ChartBarHorizontal data={byArea} color={SERIES_COLORS.planejado} />
+          <Panel title="AÇÕES POR SETOR" dataChart="preditivas-setor">
+            <ChartBarHorizontal data={bySetor} color={SERIES_COLORS.planejado} />
           </Panel>
         </div>
       </SectionHeader>
@@ -217,22 +224,22 @@ function PreditivasPage() {
         insight={`${formatBRNumber(totalHH, 1)}h distribuídos`}
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel title="HH POR TIPO" dataChart="preditivas-hh-tipo">
-            <ChartBarHorizontal data={sumByTipoHH} color={SERIES_COLORS.hh} />
+          <Panel title="HH POR CATEGORIA" dataChart="preditivas-hh-categoria">
+            <ChartBarHorizontal data={sumByCategoriaHH} color={SERIES_COLORS.hh} height={140} />
           </Panel>
-          <Panel title="HH POR ÁREA" dataChart="preditivas-hh-area">
-            <ChartBarHorizontal data={sumByAreaHH} color={SERIES_COLORS.hh} />
+          <Panel title="HH POR SETOR" dataChart="preditivas-hh-setor">
+            <ChartBarHorizontal data={sumBySetorHH} color={SERIES_COLORS.hh} />
           </Panel>
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Situação" insight="Status e prioridade das ações">
+      <SectionHeader label="Situação" insight="Status de execução das ações">
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="AÇÕES POR STATUS" dataChart="preditivas-status">
             <ChartDonut data={byStatus} />
           </Panel>
-          <Panel title="PRIORIDADE" dataChart="preditivas-prioridade">
-            <ChartDonut data={byPrioridade} />
+          <Panel title="HH POR STATUS" dataChart="preditivas-hh-status">
+            <ChartBarHorizontal data={sumByStatusHH} color={SERIES_COLORS.ref} height={140} />
           </Panel>
         </div>
       </SectionHeader>
@@ -241,13 +248,15 @@ function PreditivasPage() {
         label="Registro"
         insight={`${preditiva.length} ações cadastradas`}
       >
-        <DataTable
-          data={preditiva}
-          columns={columns}
-          pageSize={15}
-          detailTitle={(r) => r.CodigoReferencia}
-          detailSubtitle={(r) => r.Titulo}
-        />
+        <Panel title={`REGISTRO DE AÇÕES · ${preditiva.length}`}>
+          <DataTable
+            data={preditiva}
+            columns={columns}
+            pageSize={15}
+            detailTitle={(r) => r.CodigoReferencia}
+            detailSubtitle={(r) => r.Titulo}
+          />
+        </Panel>
       </SectionHeader>
     </div>
   );
