@@ -234,7 +234,7 @@ function PreditivasPage() {
           pageSize={15}
           searchKeys={["CodigoReferencia", "Titulo", "Tipo", "Categoria"]}
           detailTitle={(r) => r.CodigoReferencia}
-          detailSubtitle={(r) => r.Titulo}
+          detailSubtitle={(r) => `${r.Titulo} — ${r.Objetivo}`}
         />
       </SectionHeader>
 
