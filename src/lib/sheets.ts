@@ -163,13 +163,20 @@ const EXPECTED_HEADERS: Record<string, string[]> = {
   ],
   preditiva: [
     "Código Referência",
+    "Data",
     "Tipo",
     "Categoria",
     "Prioridade",
     "Título",
     "Objetivo",
+    "Área",
+    "Setor",
+    "Conjunto",
+    "Serviço",
     "Descrição da Atividade",
     "HH",
+    "Status",
+    "Situação",
   ],
 };
 
@@ -348,13 +355,20 @@ export async function fetchSheetsData(): Promise<SheetsData> {
 
   const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({
     CodigoReferencia: pick(r, "Código Referência", "CodigoReferencia"),
+    Data: pick(r, "Data"),
     Tipo: pick(r, "Tipo"),
     Categoria: pick(r, "Categoria"),
     Prioridade: pick(r, "Prioridade"),
     Titulo: pick(r, "Título", "Titulo"),
     Objetivo: pick(r, "Objetivo"),
+    Area: pick(r, "Área", "Area"),
+    Setor: pick(r, "Setor"),
+    Conjunto: pick(r, "Conjunto"),
+    Servico: pick(r, "Serviço", "Servico"),
     DescricaoAtividade: pick(r, "Descrição da Atividade", "DescricaoAtividade"),
     HH: pick(r, "HH"),
+    Status: pick(r, "Status"),
+    Situacao: pick(r, "Situação", "Situacao"),
   }));
 
   return {

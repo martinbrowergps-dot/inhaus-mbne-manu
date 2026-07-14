@@ -108,13 +108,20 @@ export interface NcRow {
 
 export interface PreditivaRow {
   CodigoReferencia: string;
+  Data: string;
   Tipo: string;
   Categoria: string;
   Prioridade: string;
   Titulo: string;
   Objetivo: string;
+  Area: string;
+  Setor: string;
+  Conjunto: string;
+  Servico: string;
   DescricaoAtividade: string;
   HH: string;
+  Status: string;
+  Situacao: string;
 }
 
 export interface SheetsData {
