@@ -1,5 +1,5 @@
 import { Calendar, Play, CheckCircle2, Ban, AlertOctagon, Clock } from "lucide-react";
-import { KpiCard } from "@/components/kpi-card";
+import { KpiStrip } from "@/components/kpi-carousel";
 import { formatBRNumber } from "@/lib/format";
 import type { EnrichedRow } from "./types";
 
@@ -17,23 +17,25 @@ export function SummaryCards({
   const can = filtered.filter((r) => r._status === "Cancelada").length;
   const hh = sumHH(filtered);
   return (
-    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-      <KpiCard label="Programadas" value={prog} icon={Calendar} variant="primary" />
-      <KpiCard label="Em Execução" value={exec} icon={Play} variant="warning" />
-      <KpiCard
-        label="Atrasadas"
-        value={atr}
-        icon={AlertOctagon}
-        variant={atr > 0 ? "danger" : "neutral"}
-      />
-      <KpiCard label="Finalizadas" value={fin} icon={CheckCircle2} variant="success" />
-      <KpiCard label="Canceladas" value={can} icon={Ban} variant="neutral" />
-      <KpiCard
-        label="HH Total"
-        value={`${formatBRNumber(hh, 1)}h`}
-        icon={Clock}
-        variant="neutral"
-      />
-    </div>
+    <KpiStrip
+      items={[
+        { label: "Programadas", value: prog, icon: Calendar, variant: "primary" },
+        { label: "Em Execução", value: exec, icon: Play, variant: "warning" },
+        {
+          label: "Atrasadas",
+          value: atr,
+          icon: AlertOctagon,
+          variant: atr > 0 ? "danger" : "neutral",
+        },
+        { label: "Finalizadas", value: fin, icon: CheckCircle2, variant: "success" },
+        { label: "Canceladas", value: can, icon: Ban, variant: "neutral" },
+        {
+          label: "HH Total",
+          value: `${formatBRNumber(hh, 1)}h`,
+          icon: Clock,
+          variant: "neutral",
+        },
+      ]}
+    />
   );
 }
