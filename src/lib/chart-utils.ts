@@ -191,6 +191,56 @@ export function aggregate<T>(
     .sort((a, b) => b.value - a.value);
 }
 
+// ── Hierarchical aggregation for treemap ──
+export interface HierarchicalNode {
+  name: string;
+  children?: HierarchicalNode[];
+  value?: number;
+  size?: number;
+}
+
+export function aggregateHierarchy<T>(
+  items: T[],
+  keys: (keyof T)[],
+): HierarchicalNode[] {
+  if (keys.length === 0) return [];
+
+  function buildLevel(rows: T[], levelKeys: (keyof T)[]): HierarchicalNode[] {
+    if (levelKeys.length === 0) {
+      return [];
+    }
+    const key = levelKeys[0];
+    const remainingKeys = levelKeys.slice(1);
+    const groups = new Map<string, T[]>();
+
+    for (const row of rows) {
+      const k = String(row[key] || "—");
+      const existing = groups.get(k);
+      if (existing) {
+        existing.push(row);
+      } else {
+        groups.set(k, [row]);
+      }
+    }
+
+    const result: HierarchicalNode[] = [];
+    for (const [name, groupRows] of groups) {
+      if (remainingKeys.length > 0) {
+        const children = buildLevel(groupRows, remainingKeys);
+        if (children.length > 0) {
+          result.push({ name, children });
+        }
+      } else {
+        result.push({ name, size: groupRows.length });
+      }
+    }
+
+    return result.sort((a, b) => (b.size ?? 0) - (a.size ?? 0));
+  }
+
+  return buildLevel(items, keys);
+}
+
 export function statusBadge(status: string) {
   const s = (status || "").toLowerCase();
   if (/aberto|pendente/i.test(s)) return "border-warning/40 bg-warning/15 text-warning";

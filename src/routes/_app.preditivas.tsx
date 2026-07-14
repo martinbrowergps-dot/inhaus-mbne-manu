@@ -6,9 +6,10 @@ import { Activity, Clock, ListFilter, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
-import { priorityBadge, statusBadge, aggregate, SERIES_COLORS } from "@/lib/chart-utils";
+import { priorityBadge, statusBadge, aggregate, SERIES_COLORS, aggregateHierarchy } from "@/lib/chart-utils";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
+import { ChartTreemap } from "@/components/chart-treemap";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -121,6 +122,11 @@ function PreditivasPage() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [preditiva]);
+
+  const treemapData = useMemo(
+    () => aggregateHierarchy(preditiva, ["Area", "Setor", "Conjunto", "Servico"]),
+    [preditiva],
+  );
 
   if (isLoading)
     return (
@@ -242,6 +248,15 @@ function PreditivasPage() {
             <ChartBarHorizontal data={sumByStatusHH} color={SERIES_COLORS.ref} height={140} />
           </Panel>
         </div>
+      </SectionHeader>
+
+      <SectionHeader
+        label="Mapa de Atividades"
+        insight="Hierarquia: Área > Setor > Conjunto > Serviço"
+      >
+        <Panel title="TREEMAP · ÁREA > SETOR > CONJUNTO > SERVIÇO" dataChart="preditivas-treemap">
+          <ChartTreemap data={treemapData} height={420} />
+        </Panel>
       </SectionHeader>
 
       <SectionHeader
