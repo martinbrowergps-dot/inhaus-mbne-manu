@@ -8,24 +8,36 @@ import {
   ResponsiveContainer,
   ReferenceArea,
   ReferenceLine,
+  Legend,
 } from "recharts";
 import { Thermometer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  buildSeries,
   classifyLocal,
-  computeRangeKpis,
+  computeMultiRangeKpis,
   filterByRange,
   getFaixa,
+  buildMultiSeries,
+  SENSOR_KEYS,
   type TempRange,
+  type SensorKey,
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
 import {
   chartAxisProps,
   chartGridProps,
   chartTooltipProps,
+  CHART_LEGEND_STYLE,
+  PBI_COLORS,
 } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
+
+const SENSOR_LABEL: Record<SensorKey, string> = {
+  TEMPERATURA_01: "Sensor 01",
+  TEMPERATURA_02: "Sensor 02",
+  TEMPERATURA_03: "Sensor 03",
+  TEMPERATURA_04: "Sensor 04",
+};
 
 function fmtX(t: number, range: TempRange): string {
   const d = new Date(t);
@@ -45,19 +57,17 @@ export function TempTrendChart({
   const tipo = classifyLocal(local);
   const faixa = getFaixa(tipo);
   const filtered = filterByRange(medicoes, range);
-  const series = buildSeries(filtered, local, tipo);
-  const kpis = computeRangeKpis(series, faixa);
+  const multiSeries = buildMultiSeries(filtered, local);
+  const kpis = computeMultiRangeKpis(multiSeries, tipo);
 
-const lineColor =
-    kpis.criticos > 0
-      ? "#EF4444"
-      : kpis.pctNaFaixa < 100
-        ? "#F59E0B"
-        : "#10B981";
-
-  const temps = series.map((s) => s.temp);
-  const minT = faixa ? Math.min(faixa.min - 2, ...temps) : Math.min(...temps, 0);
-  const maxT = faixa ? Math.max(faixa.max + 2, ...temps) : Math.max(...temps, 1);
+  const allTemps: number[] = [];
+  for (const p of multiSeries) {
+    for (const sk of SENSOR_KEYS) {
+      if (p[sk] !== null) allTemps.push(p[sk]!);
+    }
+  }
+  const minT = faixa ? Math.min(faixa.min - 2, ...allTemps) : Math.min(...allTemps, 0);
+  const maxT = faixa ? Math.max(faixa.max + 2, ...allTemps) : Math.max(...allTemps, 1);
 
   return (
     <div className="panel fade-up rounded-xl p-4">
@@ -73,14 +83,14 @@ const lineColor =
         )}
       </div>
 
-      {series.length === 0 ? (
+      {multiSeries.length === 0 ? (
         <div className="flex h-40 items-center justify-center text-xs text-muted-foreground">
           Sem leituras nesta janela
         </div>
       ) : (
-        <div className="h-40">
+        <div className="h-44">
           <ResponsiveContainer>
-            <LineChart data={series} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+            <LineChart data={multiSeries} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid {...chartGridProps} />
               <XAxis
                 dataKey="t"
@@ -115,17 +125,33 @@ const lineColor =
               <ReTooltip
                 {...chartTooltipProps}
                 labelFormatter={(t) => new Date(t as number).toLocaleString("pt-BR")}
-                formatter={(v: number) => [`${formatBRNumber(v, 1)}°C`, "Temperatura"]}
+                formatter={(v: number, name: string) => {
+                  const sk = name as SensorKey;
+                  const label = SENSOR_LABEL[sk] ?? sk;
+                  return [`${formatBRNumber(v, 1)}°C`, label];
+                }}
               />
-              <Line
-                type="monotone"
-                dataKey="temp"
-                stroke={lineColor}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-                isAnimationActive={false}
+              <Legend
+                wrapperStyle={CHART_LEGEND_STYLE}
+                iconType="line"
+                formatter={(value: string) => {
+                  const sk = value as SensorKey;
+                  return SENSOR_LABEL[sk] ?? sk;
+                }}
               />
+              {SENSOR_KEYS.map((sk, i) => (
+                <Line
+                  key={sk}
+                  type="monotone"
+                  dataKey={sk}
+                  stroke={PBI_COLORS[i % PBI_COLORS.length]}
+                  strokeWidth={1.5}
+                  dot={false}
+                  activeDot={{ r: 3 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>

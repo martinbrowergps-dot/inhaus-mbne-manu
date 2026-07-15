@@ -4,6 +4,8 @@ import { parseBRDate } from "./format";
 export type LocalTipo = "ANTECAMARA" | "CONGELADOS" | "RESFRIADOS" | "OUTRO";
 export type TempStatus = "normal" | "alerta" | "critico";
 export type TempRange = "24h" | "7d" | "30d";
+export type SensorKey = "TEMPERATURA_01" | "TEMPERATURA_02" | "TEMPERATURA_03" | "TEMPERATURA_04";
+export const SENSOR_KEYS: SensorKey[] = ["TEMPERATURA_01", "TEMPERATURA_02", "TEMPERATURA_03", "TEMPERATURA_04"];
 
 const FAIXAS: Record<Exclude<LocalTipo, "OUTRO">, { min: number; max: number }> = {
   ANTECAMARA: { min: 1, max: 7 },
@@ -48,6 +50,14 @@ export function latestTemp(r: MedicaoRow): number | null {
   return r.TEMPERATURA_01 ?? r.TEMPERATURA_02 ?? r.TEMPERATURA_03 ?? r.TEMPERATURA_04;
 }
 
+export function allReadings(r: MedicaoRow): { key: SensorKey; temp: number | null }[] {
+  return SENSOR_KEYS.map((k) => ({ key: k, temp: r[k] }));
+}
+
+export function allValidTemps(r: MedicaoRow): number[] {
+  return SENSOR_KEYS.map((k) => r[k]).filter((t): t is number => t !== null);
+}
+
 export interface LocalSummary {
   local: string;
   tipo: LocalTipo;
@@ -56,6 +66,7 @@ export interface LocalSummary {
   tecnico: string;
   timestamp: Date | null;
   outlier?: boolean;
+  readings: { key: SensorKey; temp: number | null; status: TempStatus }[];
 }
 
 export function computeOutlierMap(medicoes: MedicaoRow[]): Map<string, boolean> {
@@ -110,12 +121,22 @@ export function summarizeLocais(medicoes: MedicaoRow[]): LocalSummary[] {
   const outlierMap = computeOutlierMap(medicoes);
   return Array.from(byLocal.values()).map((m) => {
     const tipo = classifyLocal(m.LOCAL);
-    const temp = latestTemp(m);
+    const readings = allReadings(m).map((r) => ({
+      ...r,
+      status: tempStatus(r.temp, tipo),
+    }));
+    // pick worst reading as representative
+    const worst = readings.reduce<{ key: SensorKey; temp: number | null; status: TempStatus }>((w, r) => {
+      if (r.status === "critico") return r;
+      if (r.status === "alerta" && w.status !== "critico") return r;
+      return w;
+    }, readings[0] ?? { key: "TEMPERATURA_01" as SensorKey, temp: null, status: "normal" as TempStatus });
     return {
       local: m.LOCAL,
       tipo,
-      temperatura: temp,
-      status: tempStatus(temp, tipo),
+      temperatura: worst.temp,
+      status: worst.status,
+      readings,
       tecnico: m.TECNICO,
       timestamp: getRowTimestamp(m),
       outlier: outlierMap.get(m.LOCAL) ?? false,
@@ -165,6 +186,97 @@ export function buildSeries(
     })
     .filter((x): x is SeriesPoint => x !== null)
     .sort((a, b) => a.t - b.t);
+}
+
+export interface MultiSeriesPoint {
+  t: number;
+  tecnico: string;
+  TEMPERATURA_01: number | null;
+  TEMPERATURA_02: number | null;
+  TEMPERATURA_03: number | null;
+  TEMPERATURA_04: number | null;
+}
+
+export function buildMultiSeries(
+  medicoes: MedicaoRow[],
+  local: string,
+): MultiSeriesPoint[] {
+  return medicoes
+    .filter((m) => m.LOCAL === local)
+    .map((m) => {
+      const t = getRowTimestamp(m);
+      if (!t) return null;
+      return {
+        t: t.getTime(),
+        tecnico: m.TECNICO,
+        TEMPERATURA_01: m.TEMPERATURA_01,
+        TEMPERATURA_02: m.TEMPERATURA_02,
+        TEMPERATURA_03: m.TEMPERATURA_03,
+        TEMPERATURA_04: m.TEMPERATURA_04,
+      } as MultiSeriesPoint;
+    })
+    .filter((x): x is MultiSeriesPoint => x !== null)
+    .sort((a, b) => a.t - b.t);
+}
+
+export function buildSensorSeries(
+  medicoes: MedicaoRow[],
+  local: string,
+  sensorKey: SensorKey,
+  tipo?: LocalTipo,
+): SeriesPoint[] {
+  const lt = tipo ?? classifyLocal(local);
+  return medicoes
+    .filter((m) => m.LOCAL === local)
+    .map((m) => {
+      const t = getRowTimestamp(m);
+      const temp = m[sensorKey];
+      if (!t || temp === null) return null;
+      return {
+        t: t.getTime(),
+        temp,
+        tecnico: m.TECNICO,
+        status: tempStatus(temp, lt),
+      } as SeriesPoint;
+    })
+    .filter((x): x is SeriesPoint => x !== null)
+    .sort((a, b) => a.t - b.t);
+}
+
+export function computeMultiRangeKpis(
+  series: MultiSeriesPoint[],
+  tipo: LocalTipo,
+) {
+  const faixa = getFaixa(tipo);
+  if (series.length === 0 || !faixa) {
+    return { count: 0, pctNaFaixa: 0, criticos: 0, desvioMax: 0, media: null };
+  }
+  let dentro = 0;
+  let criticos = 0;
+  let desvioMax = 0;
+  let soma = 0;
+  let total = 0;
+  for (const p of series) {
+    for (const sk of SENSOR_KEYS) {
+      const temp = p[sk];
+      if (temp === null) continue;
+      total++;
+      soma += temp;
+      const st = tempStatus(temp, tipo);
+      if (st === "critico") criticos++;
+      if (temp >= faixa.min && temp <= faixa.max) dentro++;
+      const desvio =
+        temp < faixa.min ? faixa.min - temp : temp > faixa.max ? temp - faixa.max : 0;
+      if (desvio > desvioMax) desvioMax = desvio;
+    }
+  }
+  return {
+    count: total,
+    pctNaFaixa: total > 0 ? (dentro / total) * 100 : 0,
+    criticos,
+    desvioMax,
+    media: total > 0 ? soma / total : null,
+  };
 }
 
 export interface RangeKpis {
@@ -276,8 +388,21 @@ export function computeDurationAlerts(
     const tipo = classifyLocal(local);
     const faixa = getFaixa(tipo);
     if (!faixa) continue;
-    const series = buildSeries(medicoes, local, tipo);
-    map.set(local, computeOutOfRangeDuration(series, faixa));
+    const multi = buildMultiSeries(medicoes, local);
+    let worst: DurationAlert = { currentDurationMs: 0, currentDurationLabel: "0min", violations: 0, isViolation: false };
+    for (const sk of SENSOR_KEYS) {
+      const sensorSeries: SeriesPoint[] = multi
+        .map((p) => {
+          const temp = p[sk];
+          if (temp === null) return null;
+          return { t: p.t, temp, tecnico: p.tecnico, status: tempStatus(temp, tipo) } as SeriesPoint;
+        })
+        .filter((x): x is SeriesPoint => x !== null);
+      if (sensorSeries.length === 0) continue;
+      const alert = computeOutOfRangeDuration(sensorSeries, faixa);
+      if (alert.currentDurationMs > worst.currentDurationMs) worst = alert;
+    }
+    map.set(local, worst);
   }
   return map;
 }
