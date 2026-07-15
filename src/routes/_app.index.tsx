@@ -147,7 +147,7 @@ function VisaoGeral() {
         { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
         { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
         { label: "OS Pendentes", value: formatInt(programadas), variant: "neutral" },
-        { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
+        { label: "HH Programado",  value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
         { label: "Técnicos Ativos", value: formatInt(tecnicos.length), variant: "neutral" },
         {
           label: "Temp. em Alerta",
