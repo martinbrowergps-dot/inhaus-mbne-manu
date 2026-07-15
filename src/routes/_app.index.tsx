@@ -146,7 +146,7 @@ function VisaoGeral() {
         { label: "Em Andamento", value: formatInt(emAndamento), variant: "warning" },
         { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
         { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
-        { label: "OS Programadas", value: formatInt(programadas), variant: "neutral" },
+        { label: "OS Pendentes", value: formatInt(programadas), variant: "neutral" },
         { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
         { label: "Técnicos Ativos", value: formatInt(tecnicos.length), variant: "neutral" },
         {
@@ -219,7 +219,7 @@ function VisaoGeral() {
               variant: "primary",
             },
             {
-              label: "OS Programadas",
+              label: "OS Pendentes",
               value: formatInt(programadas),
               icon: Calendar,
               variant: "neutral",
