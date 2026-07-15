@@ -35,8 +35,6 @@ import { formatBRNumber } from "@/lib/format";
 const SENSOR_LABEL: Record<SensorKey, string> = {
   TEMPERATURA_01: "Sensor 01",
   TEMPERATURA_02: "Sensor 02",
-  TEMPERATURA_03: "Sensor 03",
-  TEMPERATURA_04: "Sensor 04",
 };
 
 function fmtX(t: number, range: TempRange): string {

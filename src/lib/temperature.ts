@@ -4,8 +4,8 @@ import { parseBRDate } from "./format";
 export type LocalTipo = "ANTECAMARA" | "CONGELADOS" | "RESFRIADOS" | "OUTRO";
 export type TempStatus = "normal" | "alerta" | "critico";
 export type TempRange = "24h" | "7d" | "30d";
-export type SensorKey = "TEMPERATURA_01" | "TEMPERATURA_02" | "TEMPERATURA_03" | "TEMPERATURA_04";
-export const SENSOR_KEYS: SensorKey[] = ["TEMPERATURA_01", "TEMPERATURA_02", "TEMPERATURA_03", "TEMPERATURA_04"];
+export type SensorKey = "TEMPERATURA_01" | "TEMPERATURA_02";
+export const SENSOR_KEYS: SensorKey[] = ["TEMPERATURA_01", "TEMPERATURA_02"];
 
 const FAIXAS: Record<Exclude<LocalTipo, "OUTRO">, { min: number; max: number }> = {
   ANTECAMARA: { min: 1, max: 7 },
@@ -47,7 +47,7 @@ export function getRowTimestamp(r: MedicaoRow): Date | null {
 }
 
 export function latestTemp(r: MedicaoRow): number | null {
-  return r.TEMPERATURA_01 ?? r.TEMPERATURA_02 ?? r.TEMPERATURA_03 ?? r.TEMPERATURA_04;
+  return r.TEMPERATURA_01 ?? r.TEMPERATURA_02;
 }
 
 export function allReadings(r: MedicaoRow): { key: SensorKey; temp: number | null }[] {
@@ -193,8 +193,6 @@ export interface MultiSeriesPoint {
   tecnico: string;
   TEMPERATURA_01: number | null;
   TEMPERATURA_02: number | null;
-  TEMPERATURA_03: number | null;
-  TEMPERATURA_04: number | null;
 }
 
 export function buildMultiSeries(
@@ -211,8 +209,6 @@ export function buildMultiSeries(
         tecnico: m.TECNICO,
         TEMPERATURA_01: m.TEMPERATURA_01,
         TEMPERATURA_02: m.TEMPERATURA_02,
-        TEMPERATURA_03: m.TEMPERATURA_03,
-        TEMPERATURA_04: m.TEMPERATURA_04,
       } as MultiSeriesPoint;
     })
     .filter((x): x is MultiSeriesPoint => x !== null)

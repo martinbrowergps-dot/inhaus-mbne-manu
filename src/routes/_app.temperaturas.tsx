@@ -73,8 +73,7 @@ function TemperaturasPage() {
               { header: "Hora", value: (r) => r.HORA },
               { header: "Temperatura 01", value: (r) => r.TEMPERATURA_01 ?? "" },
               { header: "Temperatura 02", value: (r) => r.TEMPERATURA_02 ?? "" },
-              { header: "Temperatura 03", value: (r) => r.TEMPERATURA_03 ?? "" },
-              { header: "Temperatura 04", value: (r) => r.TEMPERATURA_04 ?? "" },
+
               { header: "Técnico", value: (r) => r.TECNICO },
             ]}
             pdfTitle="Temperaturas · Centro de Controle"

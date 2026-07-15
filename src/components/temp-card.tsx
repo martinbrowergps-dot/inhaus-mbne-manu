@@ -7,8 +7,6 @@ import { formatBRDateTime, formatBRNumber } from "@/lib/format";
 const SENSOR_LABEL: Record<string, string> = {
   TEMPERATURA_01: "01",
   TEMPERATURA_02: "02",
-  TEMPERATURA_03: "03",
-  TEMPERATURA_04: "04",
 };
 
 function sensorStatusConfig(status: TempStatus) {

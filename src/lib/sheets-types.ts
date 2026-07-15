@@ -31,8 +31,7 @@ export interface MedicaoRow {
   HORA: string;
   TEMPERATURA_01: number | null;
   TEMPERATURA_02: number | null;
-  TEMPERATURA_03: number | null;
-  TEMPERATURA_04: number | null;
+
   TECNICO: string;
 }
 

@@ -286,8 +286,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     HORA: pick(r, "HORA", "Hora"),
     TEMPERATURA_01: parseBRNumberOrNull(r["TEMPERATURA 01"]),
     TEMPERATURA_02: parseBRNumberOrNull(r["TEMPERATURA 02"]),
-    TEMPERATURA_03: parseBRNumberOrNull(r["TEMPERATURA 03"]),
-    TEMPERATURA_04: parseBRNumberOrNull(r["TEMPERATURA 04"]),
+
     TECNICO: pick(r, "TECNICO", "Tecnico"),
   }));
 
