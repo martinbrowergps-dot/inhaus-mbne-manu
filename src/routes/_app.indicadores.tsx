@@ -201,7 +201,7 @@ function IndicadoresPage() {
 
   const bySistema = aggregate(data.programacao, (p) => p.Sistema || "—");
   const byTipo = aggregate(data.programacao, (p) => p.Tipo || "—");
-  const byLocal = aggregate(data.programacao, (p) => p.LocalMacro || p.Localidade || "—");
+  const byLocal = aggregate(data.programacao, (p) => p.LocalMacro || p.Localidade || "—").slice(0, 10);
 
   const locais = summarizeLocais(data.medicoes);
   const statusTemp = [
