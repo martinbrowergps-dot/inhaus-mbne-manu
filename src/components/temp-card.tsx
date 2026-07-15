@@ -1,4 +1,4 @@
-import { Thermometer, AlertTriangle, AlertOctagon, CheckCircle2, Timer } from "lucide-react";
+import { Thermometer, AlertTriangle, AlertOctagon, CheckCircle2, Timer, Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LocalSummary, DurationAlert } from "@/lib/temperature";
 import { getFaixa } from "@/lib/temperature";
@@ -58,9 +58,10 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
       </div>
 
       <div className="mt-3 flex items-end justify-between">
-        <div className={cn("num text-4xl font-bold", statusConfig.color)}>
+        <div className={cn("num text-4xl font-bold flex items-center gap-2", statusConfig.color)}>
           {summary.temperatura !== null ? `${formatBRNumber(summary.temperatura, 1)}°` : "—"}
-          <span className="ml-0.5 text-sm font-normal text-muted-foreground">C</span>
+          <span className="text-sm font-normal text-muted-foreground">C</span>
+          {summary.outlier && <Bug className="h-4 w-4 text-warning" />}
         </div>
         {faixa && (
           <div className="text-right text-[10px] text-muted-foreground">
@@ -76,6 +77,13 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
         <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[10px] font-bold tracking-wider text-destructive">
           <Timer className="h-3 w-3" />
           HÁ {durationInfo.currentDurationLabel} FORA DA FAIXA
+        </div>
+      )}
+
+      {summary.outlier && (
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-bold tracking-wider text-warning">
+          <Bug className="h-3 w-3" />
+          MEDIÇÃO SUSPEITA — VERIFICAR LEITURA
         </div>
       )}
 

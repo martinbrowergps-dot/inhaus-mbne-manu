@@ -55,6 +55,47 @@ export interface LocalSummary {
   status: TempStatus;
   tecnico: string;
   timestamp: Date | null;
+  outlier?: boolean;
+}
+
+export function computeOutlierMap(medicoes: MedicaoRow[]): Map<string, boolean> {
+  const byLocal = new Map<string, number[]>();
+  for (const m of medicoes) {
+    if (!m.LOCAL) continue;
+    const arr = byLocal.get(m.LOCAL) ?? [];
+    const t = latestTemp(m);
+    if (t !== null) arr.push(t);
+    byLocal.set(m.LOCAL, arr);
+  }
+
+  const result = new Map<string, boolean>();
+  for (const [local, temps] of byLocal) {
+    if (temps.length < 3) { result.set(local, false); continue; }
+
+    const faixa = getFaixa(classifyLocal(local));
+    let has = false;
+
+    for (const t of temps) {
+      if (faixa) {
+        const rw = faixa.max - faixa.min || 1;
+        if (t < faixa.min - rw * 3 || t > faixa.max + rw * 3) { has = true; break; }
+      }
+    }
+
+    if (!has && temps.length >= 5) {
+      const mean = temps.reduce((s, v) => s + v, 0) / temps.length;
+      const variance = temps.reduce((s, v) => s + (v - mean) ** 2, 0) / temps.length;
+      const stddev = Math.sqrt(variance);
+      if (stddev > 0.5) {
+        for (const t of temps) {
+          if (Math.abs(t - mean) > 3 * stddev) { has = true; break; }
+        }
+      }
+    }
+
+    result.set(local, has);
+  }
+  return result;
 }
 
 export function summarizeLocais(medicoes: MedicaoRow[]): LocalSummary[] {
@@ -66,6 +107,7 @@ export function summarizeLocais(medicoes: MedicaoRow[]): LocalSummary[] {
     const prevT = prev ? getRowTimestamp(prev) : null;
     if (!prev || (t && (!prevT || t > prevT))) byLocal.set(m.LOCAL, m);
   }
+  const outlierMap = computeOutlierMap(medicoes);
   return Array.from(byLocal.values()).map((m) => {
     const tipo = classifyLocal(m.LOCAL);
     const temp = latestTemp(m);
@@ -76,6 +118,7 @@ export function summarizeLocais(medicoes: MedicaoRow[]): LocalSummary[] {
       status: tempStatus(temp, tipo),
       tecnico: m.TECNICO,
       timestamp: getRowTimestamp(m),
+      outlier: outlierMap.get(m.LOCAL) ?? false,
     };
   });
 }
