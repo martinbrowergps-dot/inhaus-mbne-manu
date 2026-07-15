@@ -39,12 +39,12 @@ const items = [
   { title: "Relatórios", url: "/relatorios", icon: FileText },
   { title: "Indicadores", url: "/indicadores", icon: Activity },
   { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
+  { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
   { title: "Backlog", url: "/backlog", icon: Inbox },
   { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
   { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
   { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
   { title: "NC", url: "/nc", icon: FileWarning },
-  { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
   { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
   { title: "Alertas", url: "/alertas", icon: AlertTriangle },
 ] as const;
