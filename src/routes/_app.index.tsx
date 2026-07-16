@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Play,
   CheckCircle2,
+  XCircle,
   Calendar,
   AlertOctagon,
   Clock,
@@ -91,6 +92,7 @@ function VisaoGeral() {
   const programadas = enriched.filter((p) => p._execStatus === "Programada").length;
   const emAndamento = enriched.filter((p) => p._execStatus === "Em execução").length;
   const finalizadas = enriched.filter((p) => p._execStatus === "Finalizada").length;
+  const canceladas = enriched.filter((p) => p._execStatus === "Cancelada").length;
   const aa = programacaoFiltrada.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
   const totalHH = programacaoFiltrada.reduce((s, p) => s + (p.HH || 0), 0);
 
@@ -145,6 +147,7 @@ function VisaoGeral() {
         { label: "Total de OS", value: formatInt(total), variant: "primary" },
         { label: "Em Andamento", value: formatInt(emAndamento), variant: "warning" },
         { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
+        { label: "Canceladas", value: formatInt(canceladas), variant: "danger" },
         { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
         { label: "OS Pendentes", value: formatInt(programadas), variant: "neutral" },
         { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
@@ -235,6 +238,12 @@ function VisaoGeral() {
               value: formatInt(finalizadas),
               icon: CheckCircle2,
               variant: "success",
+            },
+            {
+              label: "Canceladas",
+              value: formatInt(canceladas),
+              icon: XCircle,
+              variant: "danger",
             },
             {
               label: "Criticidade AA",

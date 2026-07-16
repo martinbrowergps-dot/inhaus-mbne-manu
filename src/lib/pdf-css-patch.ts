@@ -74,7 +74,7 @@ export function installLiveOverride(tag?: string): () => void {
   styleEl.setAttribute(`data-${attr}`, "true");
   styleEl.textContent = [
     `.glass, .panel-glass { backdrop-filter: none !important; background: #0C4A6E !important; }`,
-    `.panel { isolation: auto !important; }`,
+    `.panel { background: #0C4A6E !important; isolation: auto !important; }`,
   ].join("\n");
   document.head.appendChild(styleEl);
   restored.push(() => {
