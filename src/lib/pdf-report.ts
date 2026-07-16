@@ -78,18 +78,99 @@ const VARIANT_MAP: Record<string, Rgb> = {
 
 // ─── Chart capture ─────────────────────────────────────────────────
 
+function loadImage(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * html-to-image renders Recharts bars/slices fine but silently drops
+ * SVG <text> labels (numbers). Fix: capture the panel normally for
+ * background/title/legend/geometry, then overlay the chart SVG with
+ * geometry made transparent so only the numeric labels paint on top.
+ */
 async function captureChartElement(element: HTMLElement): Promise<string> {
   await waitForChartsReady(element);
+
   const cleanInline = sanitizeInlineColors(element);
+  let panelDataUrl: string;
   try {
-    return await toPng(element, {
+    panelDataUrl = await toPng(element, {
       pixelRatio: 1.5,
-      backgroundColor: "#ffffff",
+      backgroundColor: "#0C4A6E",
       cacheBust: true,
     });
   } finally {
     cleanInline();
   }
+
+  const svg = element.querySelector<SVGSVGElement>("svg.recharts-surface");
+  if (!svg) return panelDataUrl;
+
+  const panelRect = element.getBoundingClientRect();
+  const svgRect = svg.getBoundingClientRect();
+  const scale = 1.5;
+
+  // Clone SVG, inline text styles, hide geometry so only labels remain.
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+  inlineSvgTextStyles(clone);
+  clone
+    .querySelectorAll<SVGElement>("path, rect, circle, line, polygon, polyline, .recharts-sector")
+    .forEach((el) => el.setAttribute("opacity", "0"));
+  clone.setAttribute("width", String(Math.round(svgRect.width)));
+  clone.setAttribute("height", String(Math.round(svgRect.height)));
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const encoded = btoa(unescape(encodeURIComponent(xml)));
+  const svgDataUrl = `data:image/svg+xml;base64,${encoded}`;
+
+  const panelImg = await loadImage(panelDataUrl);
+  const svgImg = await loadImage(svgDataUrl);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(panelRect.width * scale));
+  canvas.height = Math.max(1, Math.round(panelRect.height * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return panelDataUrl;
+
+  ctx.drawImage(panelImg, 0, 0, canvas.width, canvas.height);
+
+  const offsetX = (svgRect.left - panelRect.left) * scale;
+  const offsetY = (svgRect.top - panelRect.top) * scale;
+  const svgW = svgRect.width * scale;
+  const svgH = svgRect.height * scale;
+  ctx.drawImage(svgImg, offsetX, offsetY, svgW, svgH);
+
+  return canvas.toDataURL("image/png");
+}
+
+/** Inline only text-relevant computed styles so the standalone SVG labels render. */
+function inlineSvgTextStyles(svg: SVGSVGElement) {
+  const keep = [
+    "fill",
+    "stroke",
+    "stroke-width",
+    "font-size",
+    "font-family",
+    "font-weight",
+    "text-anchor",
+    "dominant-baseline",
+    "opacity",
+  ];
+  svg.querySelectorAll<SVGElement>("*").forEach((el) => {
+    const computed = window.getComputedStyle(el);
+    let style = "";
+    for (const prop of keep) {
+      const value = computed.getPropertyValue(prop);
+      if (value) style += `${prop}:${value};`;
+    }
+    if (style) el.setAttribute("style", style);
+  });
 }
 
 // ─── PDF building ──────────────────────────────────────────────────
@@ -357,14 +438,19 @@ export async function renderReportPdf(
 
   // ── Chart pages ──
   if (chartDataUrls.length > 0) {
-    // drawPageHeader with subtitle "Gráficos" consumes ~33mm from margins.top
+    const chartTitles = chartElements.map((el) => {
+      const h = el.querySelector("h2");
+      const t = h?.textContent?.trim();
+      return t && t.length > 0 ? t : "Gráficos";
+    });
+    // drawPageHeader with subtitle consumes ~33mm from margins.top
     const chartHeaderEndY = showHeader ? margins.top + 5 + 4 + 9 + 5 : margins.top;
     const imgStartY = chartHeaderEndY + 2;
     const imgAvailH = pageH - imgStartY - margins.bottom - (showFooter ? 6 : 0);
 
     for (let i = 0; i < chartDataUrls.length; i++) {
       pdf.addPage();
-      if (showHeader) drawPageHeader(pdf, data.title, "Gráficos", margins);
+      if (showHeader) drawPageHeader(pdf, data.title, chartTitles[i] ?? "Gráficos", margins);
 
       const img = new Image();
       img.src = chartDataUrls[i];
