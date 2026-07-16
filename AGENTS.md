@@ -48,6 +48,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - PDF branding: header "MARTIN BROWER · IN HAUS INDUSTRIAL" + timestamp + footer with page numbers
 - Fixed oklch/oklab color parsing in html2canvas by using `onclone` callback: reads all CSS rules, patches oklch/oklab to hex, injects into cloned document, removes external stylesheets — applied to both exportVisualPdf and exportExecutiveSummary
 - Created RELATÓRIOS page (`/relatorios`) with visão semanal/mensal: KPIs, tabela agregada (OS, HH, planejadas, finalizadas, etc.), gráficos de OS/HH por período, status pie chart, quebras por solicitante; respeita filtro de data global; export CSV + PDF Visual + PDF Tabela
+- Refatoração arquitetural (Fase 1-3): domínio puro (`lib/domain/` + Zod schema + vitest 42 testes), PageHeader component, PageHeader migrado em 11 páginas (ativos, index, indicadores, relatorios, equipe, passagem-turno, hh-semanal, nc, backlog, checklists, preditivas, programacao). Alertas manteve header custom.
 
 ### In Progress
 
@@ -86,8 +87,11 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - `src/routes/_app.preditivas.tsx`: PREDITIVAS page reading from "PREDITIVA" sheet
 - `src/routes/_app.hh-semanal.tsx`: default to current week, respects date filter if active
 - `src/components/aderencia-card.tsx`: computeAderencia with new formula + breakdown display
-- `src/components/export-button.tsx`: CSV / PDF Tabela / PDF Visual + optional Resumo Executivo
+- `src/components/page-header.tsx`: componente compartilhado para título/subtítulo/export de páginas
+- `src/lib/domain/`: camada de domínio pura (programacao-filter, tag-map, observations, aggregates)
+- `src/lib/sheets-schema.ts`: validação Zod na borda do Sheets
 - `src/lib/export-pdf.ts`: exportTableToPdf, exportVisualPdf (html2canvas), exportExecutiveSummary — both html2canvas calls use `onclone` for oklch/oklab patching
 - `src/lib/export-csv.ts`: CSV builder with BOM for Excel BR
+- `src/components/export-button.tsx`: CSV / PDF Tabela / PDF Visual + optional Resumo Executivo
 - `src/components/app-sidebar.tsx`: navigation links (Planos de Manutenção, NC, Preditivas, Relatórios)
 - `src/routes/_app.relatorios.tsx`: Relatórios page with weekly/monthly aggregation, KPIs, charts, and export
