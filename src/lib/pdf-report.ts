@@ -96,6 +96,15 @@ function loadImage(dataUrl: string): Promise<HTMLImageElement> {
 async function captureChartElement(element: HTMLElement): Promise<string> {
   await waitForChartsReady(element);
 
+  const svg = element.querySelector<SVGSVGElement>("svg.recharts-surface");
+
+  // Hide live SVG text so the panel image carries ZERO numbers;
+  // the overlay below supplies exactly one aligned set (no overlap).
+  const liveText = svg
+    ? Array.from(svg.querySelectorAll<SVGElement>("text, tspan"))
+    : [];
+  liveText.forEach((t) => t.setAttribute("opacity", "0"));
+
   const cleanInline = sanitizeInlineColors(element);
   let panelDataUrl: string;
   try {
@@ -106,9 +115,9 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
     });
   } finally {
     cleanInline();
+    liveText.forEach((t) => t.removeAttribute("opacity"));
   }
 
-  const svg = element.querySelector<SVGSVGElement>("svg.recharts-surface");
   if (!svg) return panelDataUrl;
 
   const panelRect = element.getBoundingClientRect();
