@@ -105,6 +105,24 @@ export interface NcRow {
   Status: string;
 }
 
+export interface PlanoManutencaoRow {
+  Item: string;
+  Unidade: string;
+  CodigoUnidade: string;
+  LocalInstalacao: string;
+  EquipamentoMaquina: string;
+  DescricaoAtividade: string;
+  Sistema: string;
+  TAG: string;
+  Criticidade: string;
+  Tipo: string;
+  Periodicidade: string;
+  Start: string;
+  Cargo: string;
+  HHEstimado: string;
+  HHEquivalenteTempo: string;
+}
+
 export interface PreditivaRow {
   CodigoReferencia: string;
   Data: string;
@@ -135,6 +153,7 @@ export interface SheetsData {
   backlog: BacklogRow[];
   nc: NcRow[];
   preditiva: PreditivaRow[];
+  planoManutencao: PlanoManutencaoRow[];
   fetchedAt: number;
   errors?: string[];
 }

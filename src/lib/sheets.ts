@@ -7,6 +7,7 @@ import type {
   NcRow,
   ParametroHHRow,
   PassagemTurnoRow,
+  PlanoManutencaoRow,
   PreditivaRow,
   ProgramacaoRow,
   SheetsData,
@@ -28,6 +29,7 @@ const SHEETS = {
   backlog: "BACKLOG",
   nc: "NC",
   preditiva: "PREDITIVA",
+  planoManutencao: "PLANO DE MANUTENÇÃO",
 } as const;
 
 function csvUrl(sheet: string): string {
@@ -219,6 +221,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     backlogRaw,
     ncRows,
     preditivaRaw,
+    planoRaw,
   ] = await Promise.all([
     fetchCsv(SHEETS.programacao),
     fetchCsv(SHEETS.medicoes),
@@ -241,6 +244,11 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     fetchCsv(SHEETS.preditiva).catch((e) => {
       logSheetError(SHEETS.preditiva, e);
       errors.push(`PREDITIVA: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
+    fetchCsv(SHEETS.planoManutencao).catch((e) => {
+      logSheetError(SHEETS.planoManutencao, e);
+      errors.push(`PLANO DE MANUTENÇÃO: falha ao carregar`);
       return [] as Record<string, string>[];
     }),
   ]);
@@ -352,6 +360,24 @@ export async function fetchSheetsData(): Promise<SheetsData> {
 
   const nc: NcRow[] = ncRows;
 
+  const planoManutencao: PlanoManutencaoRow[] = planoRaw.map((r) => ({
+    Item: pick(r, "Item"),
+    Unidade: pick(r, "Unidade"),
+    CodigoUnidade: pick(r, "Código Unidade", "Codigo Unidade"),
+    LocalInstalacao: pick(r, "Local de Instalação", "Local de Instalacao"),
+    EquipamentoMaquina: pick(r, "Equipamento/Máquina", "Equipamento/Maquina"),
+    DescricaoAtividade: pick(r, "Descrição da Atividade", "Descricao da Atividade"),
+    Sistema: pick(r, "Sistema"),
+    TAG: pick(r, "TAG"),
+    Criticidade: pick(r, "Criticidade"),
+    Tipo: pick(r, "Tipo"),
+    Periodicidade: pick(r, "Periodicidade"),
+    Start: pick(r, "Start", "Início", "Inicio"),
+    Cargo: pick(r, "Cargo"),
+    HHEstimado: pick(r, "HH_Estimado", "HH Estimado"),
+    HHEquivalenteTempo: pick(r, "HH_Equivalente_Tempo", "HH Equivalente Tempo"),
+  }));
+
   const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({
     CodigoReferencia: pick(r, "Código Referência", "CodigoReferencia"),
     Data: pick(r, "Data"),
@@ -382,6 +408,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     backlog,
     nc,
     preditiva,
+    planoManutencao,
     fetchedAt: Date.now(),
     errors: errors.length ? errors : undefined,
   };

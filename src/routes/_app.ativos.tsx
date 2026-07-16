@@ -50,7 +50,9 @@ export const Route = createFileRoute("/_app/ativos")({
   component: AtivosPage,
 });
 
-const columns: ColumnDef<ProgramacaoRow>[] = [
+type AtivoRow = ProgramacaoRow & { _exec: string; _equip: string };
+
+const columns: ColumnDef<AtivoRow>[] = [
   {
     accessorKey: "NumeroOS",
     header: "Nº OS",
@@ -66,6 +68,11 @@ const columns: ColumnDef<ProgramacaoRow>[] = [
   },
   { accessorKey: "Sistema", header: "Sistema" },
   { accessorKey: "Descricao", header: "Descrição" },
+  {
+    accessorKey: "_equip",
+    header: "Equipamento/Máquina",
+    cell: ({ getValue }) => <span>{getValue() as string}</span>,
+  },
   {
     accessorKey: "Criticidade",
     header: "Crit.",
@@ -122,6 +129,23 @@ function AtivosPage() {
   const [selectedTag, setSelectedTag] = useState<string>("__all__");
 
   const allProgramacao = data?.programacao ?? [];
+  const plano = data?.planoManutencao ?? [];
+
+  // TAG -> Equipamento/Máquina (do plano de manutenção)
+  const tagMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of plano) {
+      const t = (r.TAG || "").trim();
+      const e = (r.EquipamentoMaquina || "").trim();
+      if (t && e && !map.has(t)) map.set(t, e);
+    }
+    return map;
+  }, [plano]);
+
+  const assetLabel = (tag: string) => {
+    const e = tagMap.get(tag);
+    return e ? `${e} (${tag})` : tag;
+  };
 
   const tags = useMemo(() => {
     const set = new Set<string>();
@@ -129,8 +153,10 @@ function AtivosPage() {
       const t = (p.TAG || "").trim();
       if (t) set.add(t);
     }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [allProgramacao]);
+    return Array.from(set).sort((a, b) =>
+      assetLabel(a).localeCompare(assetLabel(b), "pt-BR", { sensitivity: "base" }),
+    );
+  }, [allProgramacao, tagMap]);
 
   const ativos = useMemo(() => {
     const filtered = allProgramacao.filter((p) =>
@@ -153,8 +179,13 @@ function AtivosPage() {
   if (!data) return null;
 
   const currentTag = selectedTag === "__all__" ? null : selectedTag;
+  const currentLabel = currentTag ? assetLabel(currentTag) : null;
 
-  const enriched = ativos.map((p) => ({ ...p, _exec: deriveExecStatus(p) }));
+  const enriched = ativos.map((p) => ({
+    ...p,
+    _exec: deriveExecStatus(p),
+    _equip: tagMap.get((p.TAG || "").trim()) || "—",
+  }));
   const total = enriched.length;
   const finalizadas = enriched.filter((p) => p._exec === "Finalizada").length;
   const programadas = enriched.filter(
@@ -214,7 +245,7 @@ function AtivosPage() {
   );
 
   const subtitle =
-    (currentTag ? `Ativo ${currentTag} · ` : "Todos os ativos · ") +
+    (currentLabel ? `Ativo ${currentLabel} · ` : "Todos os ativos · ") +
     (dateFilter.isActive
       ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
       : "período completo");
@@ -233,6 +264,7 @@ function AtivosPage() {
           rows={ativos}
           columns={[
             { header: "Nº OS", value: (r) => r.NumeroOS },
+            { header: "Equipamento/Máquina", value: (r) => tagMap.get((r.TAG || "").trim()) || "—" },
             { header: "TAG", value: (r) => r.TAG },
             { header: "Data", value: (r) => r.DataProgramada },
             { header: "Sistema", value: (r) => r.Sistema },
@@ -251,14 +283,14 @@ function AtivosPage() {
       <Panel title="SELEÇÃO DE ATIVO" glass>
         <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-full max-w-xs">
-              <SelectValue placeholder="Selecione um ativo (TAG)" />
+            <SelectTrigger className="w-full max-w-md">
+              <SelectValue placeholder="Selecione um equipamento/máquina (TAG)" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">Todos os ativos</SelectItem>
               {tags.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {t}
+                  {assetLabel(t)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -274,8 +306,8 @@ function AtivosPage() {
           icon={Boxes}
           title="Nenhuma OS encontrada"
           description={
-            currentTag
-              ? `Não há ordens de serviço para o ativo ${currentTag} no período selecionado.`
+            currentLabel
+              ? `Não há ordens de serviço para o ativo ${currentLabel} no período selecionado.`
               : "Não há ordens de serviço no período selecionado."
           }
         />
@@ -283,7 +315,7 @@ function AtivosPage() {
         <>
           <SectionHeader
             label="Panorama"
-            insight={`${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)}h HH · ${formatInt(finalizadas)} finalizadas${currentTag ? ` · ativo ${currentTag}` : ""}`}
+            insight={`${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)}h HH · ${formatInt(finalizadas)} finalizadas${currentLabel ? ` · ativo ${currentLabel}` : ""}`}
           >
             <div className="grid gap-3 sm:grid-cols-4">
               <KpiCard label="Total de OS" value={total} icon={ClipboardList} variant="primary" />
@@ -362,13 +394,13 @@ function AtivosPage() {
 
           <SectionHeader
             label="Histórico de OS"
-            insight={`${ativos.length} ordens de serviço${currentTag ? ` do ativo ${currentTag}` : ""}`}
+            insight={`${enriched.length} ordens de serviço${currentLabel ? ` do ativo ${currentLabel}` : ""}`}
           >
             <DataTable
-              data={ativos}
+              data={enriched}
               columns={columns}
               pageSize={15}
-              searchKeys={["NumeroOS", "TAG", "Descricao", "Sistema", "Executante", "Cargo"]}
+              searchKeys={["NumeroOS", "TAG", "Descricao", "Sistema", "Executante", "Cargo", "_equip"]}
               detailTitle={(r) => r.NumeroOS}
               detailSubtitle={(r) => `${r.Descricao} — ${r.Sistema}`}
             />
