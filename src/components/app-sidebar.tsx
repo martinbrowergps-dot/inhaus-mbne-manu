@@ -15,6 +15,7 @@ import {
   Calendar,
   FileText,
   LayoutGrid,
+  Boxes,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,6 +46,7 @@ const items = [
   { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
   { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
   { title: "NC", url: "/nc", icon: FileWarning },
+  { title: "Ativos", url: "/ativos", icon: Boxes },
   { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
   { title: "Alertas", url: "/alertas", icon: AlertTriangle },
 ] as const;

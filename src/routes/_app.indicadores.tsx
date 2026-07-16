@@ -36,7 +36,6 @@ import {
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { deriveExecStatus } from "@/lib/status";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/indicadores")({
   component: IndicadoresPage,
@@ -118,27 +117,6 @@ function IndicadoresPage() {
       .map(([name, v]) => ({ name, OS: v.count, HH: Number(v.hh.toFixed(1)) }))
       .sort((a, b) => (a.name === "AA" ? -1 : b.name === "AA" ? 1 : a.name.localeCompare(b.name)));
 
-    // Heatmap 30 dias: checklist + passagem
-    const days: { date: Date; key: string; label: string }[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      days.push({
-        date: d,
-        key: d.toLocaleDateString("pt-BR"),
-        label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-      });
-    }
-    const docasSet = new Set(data.checklistDocas.map((c) => (c.Data || "").slice(0, 10)));
-    const geralSet = new Set(data.checklistGeral.map((c) => (c.Data || "").slice(0, 10)));
-    const portasSet = new Set(data.checklistPortas.map((c) => (c.Data || "").slice(0, 10)));
-    const heatmap = days.map((d) => ({
-      ...d,
-      docas: docasSet.has(d.key),
-      geral: geralSet.has(d.key),
-      portas: portasSet.has(d.key),
-    }));
-
     // HH por dia
     const hhDia = new Map<string, { value: number; ts: number }>();
     for (const p of programacaoFiltrada) {
@@ -187,7 +165,6 @@ function IndicadoresPage() {
       aderSistema,
       semanal,
       backlogArr,
-      heatmap,
       hhDiaArr,
       duracaoMedia,
       hhPlanMedio,
@@ -354,10 +331,6 @@ function IndicadoresPage() {
         </Panel>
       </div>
 
-      <Panel title="CHECKLISTS & PASSAGEM DE TURNO · ÚLTIMOS 30 DIAS">
-        <Heatmap rows={computed.heatmap} />
-      </Panel>
-
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="OS POR TIPO DE MANUTENÇÃO">
           <BarH data={byTipo} fill={SERIES_COLORS.executado} />
@@ -468,74 +441,6 @@ function IndicadoresPage() {
           </Panel>
         </div>
       )}
-    </div>
-  );
-}
-
-function Heatmap({
-  rows,
-}: {
-  rows: { label: string; docas: boolean; geral: boolean; portas: boolean }[];
-}) {
-  const tracks = [
-    { key: "docas" as const, label: "Docas" },
-    { key: "geral" as const, label: "Geral" },
-    { key: "portas" as const, label: "Portas" },
-  ];
-  return (
-    <div className="space-y-1">
-      {/* Date labels every 5 days */}
-      <div className="flex items-center gap-2">
-        <span className="w-20 shrink-0" />
-        <div
-          className="grid flex-1 gap-0.5"
-          style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}
-        >
-          {rows.map((r, i) => (
-            <span
-              key={r.label}
-              className={cn(
-                "text-center text-[8px] text-muted-foreground/50",
-                i % 5 === 0 ? "visible" : "invisible",
-              )}
-            >
-              {r.label}
-            </span>
-          ))}
-        </div>
-      </div>
-      {tracks.map((t) => (
-        <div key={t.key} className="flex items-center gap-2">
-          <span className="w-20 shrink-0 text-[10px] tracking-wider text-muted-foreground uppercase">
-            {t.label}
-          </span>
-          <div
-            className="grid flex-1 gap-0.5"
-            style={{ gridTemplateColumns: "repeat(30, minmax(0, 1fr))" }}
-          >
-            {rows.map((r) => (
-              <div
-                key={r.label}
-                title={`${t.label} · ${r.label} · ${r[t.key] ? "OK" : "Faltou"}`}
-                className={cn(
-                  "aspect-square rounded-sm",
-                  r[t.key]
-                    ? "bg-success/70 hover:bg-success"
-                    : "bg-destructive/30 hover:bg-destructive/60",
-                )}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-      <div className="flex items-center justify-end gap-3 pt-1 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-success/70" /> Cumprido
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-destructive/30" /> Faltou
-        </span>
-      </div>
     </div>
   );
 }
