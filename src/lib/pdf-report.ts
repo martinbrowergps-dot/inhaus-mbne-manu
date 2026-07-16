@@ -115,6 +115,13 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
   const svgRect = svg.getBoundingClientRect();
   const scale = 1.5;
 
+  // Crop the panel's outer padding so the chart fills the image.
+  const cs = window.getComputedStyle(element);
+  const padL = parseFloat(cs.paddingLeft) || 0;
+  const padT = parseFloat(cs.paddingTop) || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  const padB = parseFloat(cs.paddingBottom) || 0;
+
   // Clone SVG, inline text styles, hide geometry so only labels remain.
   const clone = svg.cloneNode(true) as SVGSVGElement;
   inlineSvgTextStyles(clone);
@@ -132,16 +139,25 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
   const panelImg = await loadImage(panelDataUrl);
   const svgImg = await loadImage(svgDataUrl);
 
+  // Output canvas = panel minus padding, at scale.
+  const outW = Math.max(1, Math.round((panelRect.width - padL - padR) * scale));
+  const outH = Math.max(1, Math.round((panelRect.height - padT - padB) * scale));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(panelRect.width * scale));
-  canvas.height = Math.max(1, Math.round(panelRect.height * scale));
+  canvas.width = outW;
+  canvas.height = outH;
   const ctx = canvas.getContext("2d");
   if (!ctx) return panelDataUrl;
 
-  ctx.drawImage(panelImg, 0, 0, canvas.width, canvas.height);
+  // Source crop region inside the full panel image.
+  const sx = padL * scale;
+  const sy = padT * scale;
+  const sw = Math.max(1, Math.round((panelRect.width - padL - padR) * scale));
+  const sh = Math.max(1, Math.round((panelRect.height - padT - padB) * scale));
+  ctx.drawImage(panelImg, sx, sy, sw, sh, 0, 0, outW, outH);
 
-  const offsetX = (svgRect.left - panelRect.left) * scale;
-  const offsetY = (svgRect.top - panelRect.top) * scale;
+  // SVG overlay: relative to panel, also shifted by padding crop.
+  const offsetX = (svgRect.left - panelRect.left - padL) * scale;
+  const offsetY = (svgRect.top - panelRect.top - padT) * scale;
   const svgW = svgRect.width * scale;
   const svgH = svgRect.height * scale;
   ctx.drawImage(svgImg, offsetX, offsetY, svgW, svgH);
@@ -459,20 +475,16 @@ export async function renderReportPdf(
       const imgW = img.naturalWidth;
       const imgH = img.naturalHeight;
       const ratio = imgW / imgH;
-      const maxW = contentW;
-      const maxH = imgAvailH;
-      let renderW: number;
-      let renderH: number;
-      if (ratio > maxW / maxH) {
-        renderW = maxW;
-        renderH = maxW / ratio;
-      } else {
-        renderH = maxH;
-        renderW = maxH * ratio;
+      // Fill full width (charts read best wide); cap only by height.
+      let renderW = contentW;
+      let renderH = contentW / ratio;
+      if (renderH > imgAvailH) {
+        renderH = imgAvailH;
+        renderW = imgAvailH * ratio;
       }
-
       const cx = margins.left + (contentW - renderW) / 2;
-      pdf.addImage(chartDataUrls[i], "PNG", cx, imgStartY, renderW, renderH);
+      const cy = imgStartY + (imgAvailH - renderH) / 2;
+      pdf.addImage(chartDataUrls[i], "PNG", cx, cy, renderW, renderH);
     }
   }
 
