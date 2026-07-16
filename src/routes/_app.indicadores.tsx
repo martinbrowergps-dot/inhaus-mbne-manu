@@ -35,6 +35,7 @@ import {
 } from "@/lib/chart-utils";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
+import { PageHeader } from "@/components/page-header";
 import { deriveExecStatus } from "@/lib/status";
 
 export const Route = createFileRoute("/_app/indicadores")({
@@ -194,29 +195,27 @@ function IndicadoresPage() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Indicadores Operacionais</h1>
-          <p className="text-xs text-muted-foreground">
-            Análise consolidada do plano de manutenção
-          </p>
-        </div>
-        <ExportButton
-          filename="indicadores"
-          rows={computed.aderSistema}
-          columns={[
-            { header: "Sistema", value: (r) => r.name },
-            { header: "Aderência (%)", value: (r) => Number(r.value.toFixed(2)) },
-          ]}
-          pdfTargetRef={pdfRef}
-          pdfTitle="Indicadores Operacionais"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="Indicadores Operacionais"
+        subtitle="Análise consolidada do plano de manutenção"
+        exportButton={
+          <ExportButton
+            filename="indicadores"
+            rows={computed.aderSistema}
+            columns={[
+              { header: "Sistema", value: (r) => r.name },
+              { header: "Aderência (%)", value: (r) => Number(r.value.toFixed(2)) },
+            ]}
+            pdfTargetRef={pdfRef}
+            pdfTitle="Indicadores Operacionais"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                : undefined
+            }
+          />
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <AderenciaCard

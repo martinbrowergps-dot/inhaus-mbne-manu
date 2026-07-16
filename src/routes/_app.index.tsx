@@ -51,6 +51,8 @@ import { SectionHeader } from "@/components/section-header";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
+import { PageHeader } from "@/components/page-header";
+import { aggregateQuebrasBySolicitante } from "@/lib/domain/aggregates";
 import {
   aggregateHH,
   aggregateByDay,
@@ -123,16 +125,7 @@ function VisaoGeral() {
   const byPlanejamentoDia = aggregateByDayAndStatus(programacaoFiltrada);
 
   // Quebra de Programação por solicitante
-  const quebras = programacaoFiltrada
-    .filter((p) => (p.Tipo || "").toUpperCase() === "QUEBRA DE PROGRAMAÇÃO")
-    .reduce<{ name: string; value: number }[]>((acc, p) => {
-      const name = p.SolicitanteQuebra || "Não informado";
-      const existing = acc.find((a) => a.name === name);
-      if (existing) existing.value++;
-      else acc.push({ name, value: 1 });
-      return acc;
-    }, [])
-    .sort((a, b) => b.value - a.value);
+  const quebras = aggregateQuebrasBySolicitante(programacaoFiltrada);
 
   const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
@@ -179,37 +172,35 @@ function VisaoGeral() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight text-foreground">Visão Geral</h1>
-          <p className="fade-up text-xs text-muted-foreground">
-            Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos
-          </p>
-        </div>
-        <ExportButton
-          filename="visao-geral"
-          rows={programacaoFiltrada}
-          columns={[
-            { header: "Nº OS", value: (r) => r.NumeroOS },
-            { header: "Data", value: (r) => r.DataProgramada },
-            { header: "Sistema", value: (r) => r.Sistema },
-            { header: "Descrição", value: (r) => r.Descricao },
-            { header: "Criticidade", value: (r) => r.Criticidade },
-            { header: "Cargo", value: (r) => r.Cargo },
-            { header: "HH", value: (r) => r.HH },
-            { header: "Executante", value: (r) => r.Executante },
-            { header: "Status", value: (r) => r.StatusExecucao || r.Status },
-          ]}
-          pdfTargetRef={pdfRef}
-          pdfTitle="Visão Geral · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
-              : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
-          }
-          onExecutiveSummary={handleExecutiveSummary}
-        />
-      </div>
+      <PageHeader
+        title="Visão Geral"
+        subtitle="Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos"
+        exportButton={
+          <ExportButton
+            filename="visao-geral"
+            rows={programacaoFiltrada}
+            columns={[
+              { header: "Nº OS", value: (r) => r.NumeroOS },
+              { header: "Data", value: (r) => r.DataProgramada },
+              { header: "Sistema", value: (r) => r.Sistema },
+              { header: "Descrição", value: (r) => r.Descricao },
+              { header: "Criticidade", value: (r) => r.Criticidade },
+              { header: "Cargo", value: (r) => r.Cargo },
+              { header: "HH", value: (r) => r.HH },
+              { header: "Executante", value: (r) => r.Executante },
+              { header: "Status", value: (r) => r.StatusExecucao || r.Status },
+            ]}
+            pdfTargetRef={pdfRef}
+            pdfTitle="Visão Geral · Centro de Controle"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+                : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+            }
+            onExecutiveSummary={handleExecutiveSummary}
+          />
+        }
+      />
 
       <div ref={chartRef} className="space-y-6">
         {/* ═══════════ HERO DE KPIs ═══════════ */}

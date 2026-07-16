@@ -35,6 +35,7 @@ import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { deriveExecStatus } from "@/lib/status";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { renderReportPdf } from "@/lib/pdf-report";
@@ -160,59 +161,55 @@ function RelatoriosPage() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Relatório de Programação</h1>
-          <p className="text-xs text-muted-foreground">
-            {visao === "semanal"
-              ? "Agrupado por semana"
-              : visao === "mensal"
-                ? "Agrupado por mês"
-                : "Agrupado por dia"}
-            {dateFilter.isActive && (
-              <>
-                {" "}
-                · {formatDateBR(dateFilter.startDate)} a {formatDateBR(dateFilter.endDate)}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <SegmentedControl
-            value={visao}
-            onChange={setVisao}
-            options={[
-              { value: "dia", label: "Dia" },
-              { value: "semanal", label: "Semana" },
-              { value: "mensal", label: "Mês" },
-            ]}
-          />
-          <ExportButton
-            filename={`relatorio-programacao-${visao}`}
-            rows={periods}
-            columns={[
-              { header: "Período", value: (r) => r.periodLabel },
-              { header: "Total OS", value: (r) => r.totalOS },
-              { header: "HH", value: (r) => r.totalHH },
-              { header: "Planejadas", value: (r) => r.planejadas },
-              { header: "Não Planejadas", value: (r) => r.naoPlanejadas },
-              { header: "Finalizadas", value: (r) => r.finalizadas },
-              { header: "Canceladas", value: (r) => r.canceladas },
-              { header: "Em Andamento", value: (r) => r.emAndamento },
-              { header: "Atrasadas", value: (r) => r.atrasadas },
-              { header: "Quebras", value: (r) => r.quebras },
-            ]}
-            pdfTargetRef={pdfRef}
-            pdfTitle={`Relatório de Programação · ${visao === "semanal" ? "Semanal" : visao === "mensal" ? "Mensal" : "Diário"}`}
-            pdfSubtitle={
-              dateFilter.isActive
-                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(totalOS)} OS`
-                : `${formatInt(totalOS)} OS no total`
-            }
-            onExecutiveSummary={handleExportReport}
-          />
-        </div>
-      </div>
+      <PageHeader
+        title="Relat\u00f3rio de Programa\u00e7\u00e3o"
+        subtitle={
+          (visao === "semanal"
+            ? "Agrupado por semana"
+            : visao === "mensal"
+              ? "Agrupado por m\u00eas"
+              : "Agrupado por dia") +
+          (dateFilter.isActive
+            ? " \u00b7 " + formatDateBR(dateFilter.startDate) + " a " + formatDateBR(dateFilter.endDate)
+            : "")
+        }
+        exportButton={
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              value={visao}
+              onChange={setVisao}
+              options={[
+                { value: "dia", label: "Dia" },
+                { value: "semanal", label: "Semana" },
+                { value: "mensal", label: "M\u00eas" },
+              ]}
+            />
+            <ExportButton
+              filename={`relatorio-programacao-${visao}`}
+              rows={periods}
+              columns={[
+                { header: "Per\u00edodo", value: (r) => r.periodLabel },
+                { header: "Total OS", value: (r) => r.totalOS },
+                { header: "HH", value: (r) => r.totalHH },
+                { header: "Planejadas", value: (r) => r.planejadas },
+                { header: "N\u00e3o Planejadas", value: (r) => r.naoPlanejadas },
+                { header: "Finalizadas", value: (r) => r.finalizadas },
+                { header: "Canceladas", value: (r) => r.canceladas },
+                { header: "Em Andamento", value: (r) => r.emAndamento },
+                { header: "Atrasadas", value: (r) => r.atrasadas },
+                { header: "Quebras", value: (r) => r.quebras },
+              ]}
+              pdfTargetRef={pdfRef}
+              pdfTitle={`Relat\u00f3rio de Programa\u00e7\u00e3o \u00b7 ${visao === "semanal" ? "Semanal" : visao === "mensal" ? "Mensal" : "Di\u00e1rio"}`}
+              pdfSubtitle={
+                dateFilter.isActive
+                  ? formatDateBR(dateFilter.startDate) + " a " + formatDateBR(dateFilter.endDate) + " \u00b7 " + formatInt(totalOS) + " OS"
+                  : formatInt(totalOS) + " OS no total"
+              }
+            />
+          </div>
+        }
+      />
 
       <KpiStrip
         items={[

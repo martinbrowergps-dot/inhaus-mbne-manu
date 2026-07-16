@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Boxes,
@@ -11,13 +10,18 @@ import {
   Clock,
   AlertOctagon,
   AlertTriangle,
-  History,
   MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sheetsQueryOptions } from "@/lib/sheets";
 import type { ProgramacaoRow } from "@/lib/sheets-types";
-import { aggregate, SERIES_COLORS, STATUS_COLORS } from "@/lib/chart-utils";
+import { SERIES_COLORS, STATUS_COLORS } from "@/lib/chart-utils";
+import { useProgramacaoFilter } from "@/lib/domain/programacao-filter";
+import { assetLabel } from "@/lib/domain/tag-map";
+import {
+  aggregateByMonth,
+  aggregateHHByCargo,
+} from "@/lib/domain/aggregates";
+import { extractObservations } from "@/lib/domain/observations";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { DataTable } from "@/components/data-table";
@@ -28,7 +32,7 @@ import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { SectionHeader } from "@/components/section-header";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
 import {
   Select,
   SelectContent,
@@ -36,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deriveExecStatus } from "@/lib/status";
 import {
   formatBRNumber,
   formatInt,
@@ -44,7 +47,6 @@ import {
   parseBRDate,
   formatBRDate,
 } from "@/lib/format";
-import { useDateFilter } from "@/hooks/use-date-filter";
 
 export const Route = createFileRoute("/_app/ativos")({
   component: AtivosPage,
@@ -105,7 +107,7 @@ const columns: ColumnDef<AtivoRow>[] = [
     id: "statusExec",
     header: "Status",
     cell: ({ row }) => {
-      const s = deriveExecStatus(row.original);
+      const s = row.original._exec;
       const cls =
         s === "Finalizada"
           ? "border-success/40 bg-success/15 text-success"
@@ -124,49 +126,35 @@ const columns: ColumnDef<AtivoRow>[] = [
 ];
 
 function AtivosPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const dateFilter = useDateFilter();
+  const { isLoading, raw, filtered, enriched, tagMap, dateFilter } = useProgramacaoFilter();
   const [selectedTag, setSelectedTag] = useState<string>("__all__");
-
-  const allProgramacao = data?.programacao ?? [];
-  const plano = data?.planoManutencao ?? [];
-
-  // TAG -> Equipamento/Máquina (do plano de manutenção)
-  const tagMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const r of plano) {
-      const t = (r.TAG || "").trim();
-      const e = (r.EquipamentoMaquina || "").trim();
-      if (t && e && !map.has(t)) map.set(t, e);
-    }
-    return map;
-  }, [plano]);
-
-  const assetLabel = (tag: string) => {
-    const e = tagMap.get(tag);
-    return e ? `${e} (${tag})` : tag;
-  };
 
   const tags = useMemo(() => {
     const set = new Set<string>();
-    for (const p of allProgramacao) {
+    for (const p of raw) {
       const t = (p.TAG || "").trim();
       if (t) set.add(t);
     }
     return Array.from(set).sort((a, b) =>
-      assetLabel(a).localeCompare(assetLabel(b), "pt-BR", { sensitivity: "base" }),
+      assetLabel(a, tagMap).localeCompare(assetLabel(b, tagMap), "pt-BR", { sensitivity: "base" }),
     );
-  }, [allProgramacao, tagMap]);
+  }, [raw, tagMap]);
 
-  const ativos = useMemo(() => {
-    const filtered = allProgramacao.filter((p) =>
-      dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
-    );
-    const byTag = filtered.filter(
-      (p) => selectedTag === "__all__" || (p.TAG || "").trim() === selectedTag,
-    );
-    return byTag;
-  }, [allProgramacao, dateFilter, selectedTag]);
+  const rows = useMemo(
+    () =>
+      selectedTag === "__all__"
+        ? enriched
+        : enriched.filter((p) => (p.TAG || "").trim() === selectedTag),
+    [enriched, selectedTag],
+  );
+
+  const rowsRaw = useMemo(
+    () =>
+      selectedTag === "__all__"
+        ? filtered
+        : filtered.filter((p) => (p.TAG || "").trim() === selectedTag),
+    [filtered, selectedTag],
+  );
 
   if (isLoading)
     return (
@@ -176,73 +164,45 @@ function AtivosPage() {
       </div>
     );
 
-  if (!data) return null;
-
   const currentTag = selectedTag === "__all__" ? null : selectedTag;
-  const currentLabel = currentTag ? assetLabel(currentTag) : null;
+  const currentLabel = currentTag ? assetLabel(currentTag, tagMap) : null;
 
-  const enriched = ativos.map((p) => ({
-    ...p,
-    _exec: deriveExecStatus(p),
-    _equip: tagMap.get((p.TAG || "").trim()) || "—",
-  }));
-  const total = enriched.length;
-  const finalizadas = enriched.filter((p) => p._exec === "Finalizada").length;
-  const programadas = enriched.filter(
-    (p) => p._exec === "Programada" || p._exec === "Em execução" || p._exec === "Atrasada" || p._exec === "Reprogramada" || p._exec === "Pausada",
+  const total = rows.length;
+  const finalizadas = rows.filter((p) => p._exec === "Finalizada").length;
+  const programadas = rows.filter(
+    (p) =>
+      p._exec === "Programada" ||
+      p._exec === "Em execução" ||
+      p._exec === "Atrasada" ||
+      p._exec === "Reprogramada" ||
+      p._exec === "Pausada",
   ).length;
-  const canceladas = enriched.filter((p) => p._exec === "Cancelada").length;
-  const aa = enriched.filter((p) => (p.Criticidade || "").toUpperCase() === "AA").length;
-  const totalHH = enriched.reduce((s, p) => s + (p.HH || 0), 0);
-  const quebras = enriched.filter(
+  const canceladas = rows.filter((p) => p._exec === "Cancelada").length;
+  const aa = rows.filter((p) => (p.Criticidade || "").toUpperCase() === "AA").length;
+  const totalHH = rows.reduce((s, p) => s + (p.HH || 0), 0);
+  const quebras = rows.filter(
     (p) => (p.Tipo || "").toUpperCase() === "QUEBRA DE PROGRAMAÇÃO",
   ).length;
 
-  // Gráficos
-  const byExec = aggregate(enriched, (p) => p._exec);
-  const byCrit = aggregate(enriched, (p) => p.Criticidade || "—");
-  const byCargoHH = useMemo(() => {
+  const byExec = useMemo(() => {
     const map = new Map<string, number>();
-    enriched.forEach((p) => map.set(p.Cargo || "—", (map.get(p.Cargo || "—") ?? 0) + (p.HH || 0)));
-    return Array.from(map.entries())
-      .map(([name, value]) => ({ name, value: Number(value.toFixed(1)) }))
-      .sort((a, b) => b.value - a.value);
-  }, [enriched]);
-
-  const byMes = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const p of enriched) {
-      const d = parseBRDate(p.DataProgramada);
-      if (!d) continue;
-      const key = `${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-      map.set(key, (map.get(key) ?? 0) + 1);
-    }
+    rows.forEach((p) => map.set(p._exec, (map.get(p._exec) ?? 0) + 1));
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => {
-        const [ma, ya] = a.name.split("/").map(Number);
-        const [mb, yb] = b.name.split("/").map(Number);
-        return ya !== yb ? ya - yb : ma - mb;
-      });
-  }, [enriched]);
+      .sort((a, b) => b.value - a.value);
+  }, [rows]);
 
-  // Observações pertinentes
-  const observacoes = useMemo(
-    () =>
-      enriched
-        .filter((p) => {
-          const obs = (p.ObservacoesExecucao || "").trim();
-          const nc = (p.DescricaoNaoConformidade || "").trim();
-          return obs || (nc && /sim|s|não conform/i.test(p.TemNaoConformidade || "sim"));
-        })
-        .map((p) => ({
-          os: p.NumeroOS,
-          data: p.DataProgramada,
-          obs: (p.ObservacoesExecucao || "").trim(),
-          nc: (p.DescricaoNaoConformidade || "").trim(),
-        })),
-    [enriched],
-  );
+  const byCrit = useMemo(() => {
+    const map = new Map<string, number>();
+    rows.forEach((p) => map.set(p.Criticidade || "—", (map.get(p.Criticidade || "—") ?? 0) + 1));
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [rows]);
+
+  const byCargoHH = useMemo(() => aggregateHHByCargo(rows), [rows]);
+  const byMes = useMemo(() => aggregateByMonth(rows), [rows]);
+  const observacoes = useMemo(() => extractObservations(rowsRaw), [rowsRaw]);
 
   const subtitle =
     (currentLabel ? `Ativo ${currentLabel} · ` : "Todos os ativos · ") +
@@ -252,33 +212,31 @@ function AtivosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Ativos</h1>
-          <p className="fade-up text-xs text-muted-foreground">
-            Histórico e indicadores de manutenção por equipamento/máquina (TAG)
-          </p>
-        </div>
-        <ExportButton
-          filename="ativos"
-          rows={ativos}
-          columns={[
-            { header: "Nº OS", value: (r) => r.NumeroOS },
-            { header: "Equipamento/Máquina", value: (r) => tagMap.get((r.TAG || "").trim()) || "—" },
-            { header: "TAG", value: (r) => r.TAG },
-            { header: "Data", value: (r) => r.DataProgramada },
-            { header: "Sistema", value: (r) => r.Sistema },
-            { header: "Descrição", value: (r) => r.Descricao },
-            { header: "Criticidade", value: (r) => r.Criticidade },
-            { header: "Cargo", value: (r) => r.Cargo },
-            { header: "HH", value: (r) => r.HH },
-            { header: "Executante", value: (r) => r.Executante },
-            { header: "Status", value: (r) => r.StatusExecucao || r.Status },
-          ]}
-          pdfTitle="Ativos · Histórico por Equipamento"
-          pdfSubtitle={subtitle}
-        />
-      </div>
+      <PageHeader
+        title="Ativos"
+        subtitle="Histórico e indicadores de manutenção por equipamento/máquina (TAG)"
+        exportButton={
+          <ExportButton
+            filename="ativos"
+            rows={rowsRaw}
+            columns={[
+              { header: "Nº OS", value: (r) => r.NumeroOS },
+              { header: "Equipamento/Máquina", value: (r) => tagMap.get((r.TAG || "").trim()) || "—" },
+              { header: "TAG", value: (r) => r.TAG },
+              { header: "Data", value: (r) => r.DataProgramada },
+              { header: "Sistema", value: (r) => r.Sistema },
+              { header: "Descrição", value: (r) => r.Descricao },
+              { header: "Criticidade", value: (r) => r.Criticidade },
+              { header: "Cargo", value: (r) => r.Cargo },
+              { header: "HH", value: (r) => r.HH },
+              { header: "Executante", value: (r) => r.Executante },
+              { header: "Status", value: (r) => r.StatusExecucao || r.Status },
+            ]}
+            pdfTitle="Ativos · Histórico por Equipamento"
+            pdfSubtitle={subtitle}
+          />
+        }
+      />
 
       <Panel title="SELEÇÃO DE ATIVO" glass>
         <div className="flex flex-wrap items-center gap-3">
@@ -290,7 +248,7 @@ function AtivosPage() {
               <SelectItem value="__all__">Todos os ativos</SelectItem>
               {tags.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {assetLabel(t)}
+                  {assetLabel(t, tagMap)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -376,7 +334,7 @@ function AtivosPage() {
                     <div key={i} className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <span className="id font-semibold text-foreground">{o.os}</span>
-                        {o.data && <span className="num text-muted-foreground">{formatBRDate(parseBRDate(o.data) ?? new Date())}</span>}
+                        {o.data && <span className="num text-muted-foreground">{o.dataFormatted}</span>}
                       </div>
                       {o.obs && <p className="text-foreground/90">{o.obs}</p>}
                       {o.nc && (
@@ -394,13 +352,13 @@ function AtivosPage() {
 
           <SectionHeader
             label="Histórico de OS"
-            insight={`${enriched.length} ordens de serviço${currentLabel ? ` do ativo ${currentLabel}` : ""}`}
+            insight={`${rows.length} ordens de serviço${currentLabel ? ` do ativo ${currentLabel}` : ""}`}
           >
             <DataTable
-              data={enriched}
+              data={rows}
               columns={columns}
               pageSize={15}
-              searchKeys={["NumeroOS", "TAG", "Descricao", "Sistema", "Executante", "Cargo", "_equip"]}
+              searchKeys={["NumeroOS", "TAG", "_equip", "Descricao", "Sistema", "Executante", "Cargo"]}
               detailTitle={(r) => r.NumeroOS}
               detailSubtitle={(r) => `${r.Descricao} — ${r.Sistema}`}
             />
