@@ -10,6 +10,7 @@ import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { SectionHeader } from "@/components/section-header";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_app/hh-semanal")({
   component: HHPage,
@@ -77,37 +78,37 @@ function HHPage() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">HH Semanal</h1>
-          <p className="text-xs text-muted-foreground">
-            Capacidade vs alocação de horas-homem por cargo
-          </p>
-          {dateFilter.isActive && (
-            <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              Filtro ativo
-            </span>
-          )}
-        </div>
-        <ExportButton
-          filename="hh-semanal"
-          rows={rows}
-          columns={[
-            { header: "Cargo", value: (r) => r.cargo },
-            { header: "Disponível (h)", value: (r) => Number(r.disponivel.toFixed(2)) },
-            { header: "Alocado (h)", value: (r) => Number(r.alocado.toFixed(2)) },
-            { header: "Saldo (h)", value: (r) => Number(r.saldo.toFixed(2)) },
-            { header: "Ocupação (%)", value: (r) => Number(r.ocupacao.toFixed(2)) },
-          ]}
-          pdfTargetRef={pdfRef}
-          pdfTitle="HH Semanal · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="HH Semanal"
+        subtitle="Capacidade vs alocação de horas-homem por cargo"
+        exportButton={
+          <div className="flex flex-wrap items-center gap-2">
+            {dateFilter.isActive && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                Filtro ativo
+              </span>
+            )}
+            <ExportButton
+              filename="hh-semanal"
+              rows={rows}
+              columns={[
+                { header: "Cargo", value: (r) => r.cargo },
+                { header: "Disponível (h)", value: (r) => Number(r.disponivel.toFixed(2)) },
+                { header: "Alocado (h)", value: (r) => Number(r.alocado.toFixed(2)) },
+                { header: "Saldo (h)", value: (r) => Number(r.saldo.toFixed(2)) },
+                { header: "Ocupação (%)", value: (r) => Number(r.ocupacao.toFixed(2)) },
+              ]}
+              pdfTargetRef={pdfRef}
+              pdfTitle="HH Semanal · Centro de Controle"
+              pdfSubtitle={
+                dateFilter.isActive
+                  ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                  : undefined
+              }
+            />
+          </div>
+        }
+      />
 
       <SectionHeader
         label="Capacidade Global"

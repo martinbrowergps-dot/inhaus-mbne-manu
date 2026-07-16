@@ -14,6 +14,7 @@ import { KpiCard } from "@/components/kpi-card";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { EmptyState } from "@/components/empty-state";
 import { SectionHeader } from "@/components/section-header";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_app/equipe")({
   component: EquipePage,
@@ -42,24 +43,22 @@ function EquipePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Equipe</h1>
-          <p className="text-xs text-muted-foreground">
-            Técnicos cadastrados no plano de manutenção
-          </p>
-        </div>
-        <ExportButton
-          filename="equipe"
-          rows={tecnicos}
-          columns={[
-            { header: "ID", value: (r) => r.ID },
-            { header: "Nome", value: (r) => r.Nome },
-            { header: "Cargo", value: (r) => r.Cargo },
-          ]}
-          pdfTitle="Equipe · Centro de Controle"
-        />
-      </div>
+      <PageHeader
+        title="Equipe"
+        subtitle="Técnicos cadastrados no plano de manutenção"
+        exportButton={
+          <ExportButton
+            filename="equipe"
+            rows={tecnicos}
+            columns={[
+              { header: "ID", value: (r) => r.ID },
+              { header: "Nome", value: (r) => r.Nome },
+              { header: "Cargo", value: (r) => r.Cargo },
+            ]}
+            pdfTitle="Equipe · Centro de Controle"
+          />
+        }
+      />
 
       <SectionHeader
         label="Panorama"

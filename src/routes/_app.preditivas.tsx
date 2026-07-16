@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
+import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import { formatBRNumber, parseBRDate, formatBRDate, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
@@ -145,34 +146,32 @@ function PreditivasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Preditiva - SEMEQ</h1>
-          <p className="fade-up text-xs text-muted-foreground">
-            Ações preditivas e corretivas-preditivas registradas
-          </p>
-        </div>
-        <ExportButton
-          filename="preditivas"
-          rows={preditiva}
-          columns={[
-            { header: "Código", value: (r) => r.CodigoReferencia },
-            { header: "Data", value: (r) => r.Data },
-            { header: "Tipo", value: (r) => r.Tipo },
-            { header: "Categoria", value: (r) => r.Categoria },
-            { header: "Prioridade", value: (r) => r.Prioridade },
-            { header: "Título", value: (r) => r.Titulo },
-            { header: "Status", value: (r) => r.Status },
-            { header: "HH", value: (r) => r.HH },
-          ]}
-          pdfTitle="Preditiva - SEMEQ"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="Preditiva - SEMEQ"
+        subtitle="Ações preditivas e corretivas-preditivas registradas"
+        exportButton={
+          <ExportButton
+            filename="preditivas"
+            rows={preditiva}
+            columns={[
+              { header: "Código", value: (r) => r.CodigoReferencia },
+              { header: "Data", value: (r) => r.Data },
+              { header: "Tipo", value: (r) => r.Tipo },
+              { header: "Categoria", value: (r) => r.Categoria },
+              { header: "Prioridade", value: (r) => r.Prioridade },
+              { header: "Título", value: (r) => r.Titulo },
+              { header: "Status", value: (r) => r.Status },
+              { header: "HH", value: (r) => r.HH },
+            ]}
+            pdfTitle="Preditiva - SEMEQ"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                : undefined
+            }
+          />
+        }
+      />
 
       <SectionHeader
         label="Panorama"

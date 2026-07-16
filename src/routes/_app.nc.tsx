@@ -17,6 +17,7 @@ import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { SectionHeader } from "@/components/section-header";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_app/nc")({
   component: NcPage,
@@ -147,29 +148,27 @@ function NcPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Não Conformidades</h1>
-          <p className="fade-up text-xs text-muted-foreground">
-            Registro de não conformidades com análise de causa raiz
-          </p>
-        </div>
-        <ExportButton
-          filename="nao-conformidades"
-          rows={nc}
-          columns={[
-            { header: "Nº NC", value: (r) => r.Codigo },
-            { header: "Ocorrência", value: (r) => r.Ocorrencia },
-            { header: "Medidas Corretivas", value: (r) => r.MedidasCorretivas },
-            { header: "Resp. Medida", value: (r) => r.Responsavel },
-            { header: "Data Conclusão", value: (r) => r.DataConclusao },
-            { header: "Andamento", value: (r) => r.Andamento },
-            { header: "O que fazer", value: (r) => r.OQueFazer },
-            { header: "Status", value: (r) => r.Status },
-          ]}
-          pdfTitle="Não Conformidades · Centro de Controle"
-        />
-      </div>
+      <PageHeader
+        title="Não Conformidades"
+        subtitle="Registro de não conformidades com análise de causa raiz"
+        exportButton={
+          <ExportButton
+            filename="nao-conformidades"
+            rows={nc}
+            columns={[
+              { header: "Nº NC", value: (r) => r.Codigo },
+              { header: "Ocorrência", value: (r) => r.Ocorrencia },
+              { header: "Medidas Corretivas", value: (r) => r.MedidasCorretivas },
+              { header: "Resp. Medida", value: (r) => r.Responsavel },
+              { header: "Data Conclusão", value: (r) => r.DataConclusao },
+              { header: "Andamento", value: (r) => r.Andamento },
+              { header: "O que fazer", value: (r) => r.OQueFazer },
+              { header: "Status", value: (r) => r.Status },
+            ]}
+            pdfTitle="Não Conformidades · Centro de Controle"
+          />
+        }
+      />
 
       <SectionHeader
         label="Panorama"

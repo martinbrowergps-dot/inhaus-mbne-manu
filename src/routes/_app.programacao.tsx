@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatBRNumber, parseBRDate, getWeekStart, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import {
   deriveExecStatus,
@@ -249,39 +250,37 @@ function ProgramacaoPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Programação</h1>
-          <p className="text-xs text-muted-foreground">
-            Visões diária, semanal e mensal — comparativo programado vs executado
-          </p>
-        </div>
-        <ExportButton
-          filename="programacao"
-          rows={filtered}
-          columns={[
-            { header: "Nº OS", value: (r) => r.NumeroOS },
-            { header: "Data Programada", value: (r) => r.DataProgramada },
-            { header: "Data Reprogramada", value: (r) => r.DataReprogramada },
-            { header: "TAG", value: (r) => r.TAG },
-            { header: "Sistema", value: (r) => r.Sistema },
-            { header: "Descrição", value: (r) => r.Descricao },
-            { header: "Criticidade", value: (r) => r.Criticidade },
-            { header: "Cargo", value: (r) => r.Cargo },
-            { header: "HH", value: (r) => r.HH },
-            { header: "Executante", value: (r) => r.Executante },
-            { header: "Tipo", value: (r) => r.Tipo ?? "" },
-            { header: "Local", value: (r) => r.LocalMacro ?? r.Localidade ?? "" },
-            { header: "Status", value: (r) => r._status },
-          ]}
-          pdfTitle="Programação · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
-              : `${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
-          }
-        />
-      </div>
+      <PageHeader
+        title="Programação"
+        subtitle="Visões diária, semanal e mensal — comparativo programado vs executado"
+        exportButton={
+          <ExportButton
+            filename="programacao"
+            rows={filtered}
+            columns={[
+              { header: "Nº OS", value: (r) => r.NumeroOS },
+              { header: "Data Programada", value: (r) => r.DataProgramada },
+              { header: "Data Reprogramada", value: (r) => r.DataReprogramada },
+              { header: "TAG", value: (r) => r.TAG },
+              { header: "Sistema", value: (r) => r.Sistema },
+              { header: "Descrição", value: (r) => r.Descricao },
+              { header: "Criticidade", value: (r) => r.Criticidade },
+              { header: "Cargo", value: (r) => r.Cargo },
+              { header: "HH", value: (r) => r.HH },
+              { header: "Executante", value: (r) => r.Executante },
+              { header: "Tipo", value: (r) => r.Tipo ?? "" },
+              { header: "Local", value: (r) => r.LocalMacro ?? r.Localidade ?? "" },
+              { header: "Status", value: (r) => r._status },
+            ]}
+            pdfTitle="Programação · Centro de Controle"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
+                : `${filtered.length} OS · ${formatBRNumber(sumHH(filtered), 1)} HH`
+            }
+          />
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-4">

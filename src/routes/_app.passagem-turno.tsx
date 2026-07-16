@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { formatDateBR } from "@/lib/format";
 import { SectionHeader } from "@/components/section-header";
+import { PageHeader } from "@/components/page-header";
 
 export const Route = createFileRoute("/_app/passagem-turno")({
   component: PassagemPage,
@@ -96,43 +97,41 @@ function PassagemPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Passagem de Turno</h1>
-          <p className="text-xs text-muted-foreground">
-            Registros de troca de turno • supervisores, equipes e pendências
-          </p>
-        </div>
-        <ExportButton
-          filename="passagem-turno"
-          rows={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
-          columns={[
-            { header: "Data", value: (r) => r.Data },
-            { header: "Turno", value: (r) => r.Turno },
-            { header: "Supervisor", value: (r) => r.Supervisor },
-            { header: "Equipe Saída", value: (r) => r.EquipeSaida },
-            { header: "Equipe Entrada", value: (r) => r.EquipeEntrada },
-            { header: "Técnico Passa", value: (r) => r.TecnicoPassa },
-            { header: "Técnico Recebe", value: (r) => r.TecnicoRecebe },
-            { header: "Horário Início", value: (r) => r.HorarioInicio ?? "" },
-            { header: "Horário Término", value: (r) => r.HorarioTermino ?? "" },
-            { header: "Aprovador", value: (r) => r.Aprovador ?? "" },
-            { header: "Status", value: (r) => r.StatusGeral },
-            { header: "Pendências", value: (r) => r.Pendencias },
-            { header: "Ocorrências", value: (r) => r.ResumoOcorrencias ?? "" },
-            { header: "OS Abertas", value: (r) => r.ResumoOSAbertas ?? "" },
-            { header: "OS Concluídas", value: (r) => r.ResumoOSConcluidas ?? "" },
-            { header: "Assinado Por", value: (r) => r.AssinadoPor ?? "" },
-            { header: "Observações", value: (r) => r.Observacoes },
-          ]}
-          pdfTitle="Passagem de Turno · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="Passagem de Turno"
+        subtitle="Registros de troca de turno • supervisores, equipes e pendências"
+        exportButton={
+          <ExportButton
+            filename="passagem-turno"
+            rows={(data?.passagemTurno ?? []).filter((r) => dateFilter.filterByDateRange(r.Data))}
+            columns={[
+              { header: "Data", value: (r) => r.Data },
+              { header: "Turno", value: (r) => r.Turno },
+              { header: "Supervisor", value: (r) => r.Supervisor },
+              { header: "Equipe Saída", value: (r) => r.EquipeSaida },
+              { header: "Equipe Entrada", value: (r) => r.EquipeEntrada },
+              { header: "Técnico Passa", value: (r) => r.TecnicoPassa },
+              { header: "Técnico Recebe", value: (r) => r.TecnicoRecebe },
+              { header: "Horário Início", value: (r) => r.HorarioInicio ?? "" },
+              { header: "Horário Término", value: (r) => r.HorarioTermino ?? "" },
+              { header: "Aprovador", value: (r) => r.Aprovador ?? "" },
+              { header: "Status", value: (r) => r.StatusGeral },
+              { header: "Pendências", value: (r) => r.Pendencias },
+              { header: "Ocorrências", value: (r) => r.ResumoOcorrencias ?? "" },
+              { header: "OS Abertas", value: (r) => r.ResumoOSAbertas ?? "" },
+              { header: "OS Concluídas", value: (r) => r.ResumoOSConcluidas ?? "" },
+              { header: "Assinado Por", value: (r) => r.AssinadoPor ?? "" },
+              { header: "Observações", value: (r) => r.Observacoes },
+            ]}
+            pdfTitle="Passagem de Turno · Centro de Controle"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                : undefined
+            }
+          />
+        }
+      />
       <SectionHeader
         label="Registro"
         insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}

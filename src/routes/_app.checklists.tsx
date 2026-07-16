@@ -17,6 +17,7 @@ import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import {
   BarChart,
@@ -192,32 +193,30 @@ function ChecklistsPage() {
 
   return (
     <div data-page="checklists" className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Planos de Manutenção</h1>
-          <p className="text-xs text-muted-foreground">
-            Planos preventivos — docas, áreas gerais e portas
-          </p>
-        </div>
-        <ExportButton
-          filename="checklists"
-          rows={allRows}
-          columns={[
-            { header: "Tipo", value: (r) => r._tipo },
-            { header: "Item", value: (r) => r.raw["Item"] ?? "" },
-            { header: "Equipamento", value: (r) => r._equipamento },
-            { header: "Atividade", value: (r) => r._descricao },
-            { header: "Sistema", value: (r) => r._sistema },
-            { header: "TAG", value: (r) => r._tag },
-            { header: "Criticidade", value: (r) => r._criticidade },
-            { header: "Tipo", value: (r) => r._tipoAtividade },
-            { header: "Periodicidade", value: (r) => r._periodicidade },
-            { header: "Cargo", value: (r) => r._cargo },
-            { header: "HH Estimado", value: (r) => r._hh },
-          ]}
-          onExecutiveSummary={handleExportReport}
-        />
-      </div>
+      <PageHeader
+        title="Planos de Manutenção"
+        subtitle="Planos preventivos — docas, áreas gerais e portas"
+        exportButton={
+          <ExportButton
+            filename="checklists"
+            rows={allRows}
+            columns={[
+              { header: "Tipo", value: (r) => r._tipo },
+              { header: "Item", value: (r) => r.raw["Item"] ?? "" },
+              { header: "Equipamento", value: (r) => r._equipamento },
+              { header: "Atividade", value: (r) => r._descricao },
+              { header: "Sistema", value: (r) => r._sistema },
+              { header: "TAG", value: (r) => r._tag },
+              { header: "Criticidade", value: (r) => r._criticidade },
+              { header: "Tipo", value: (r) => r._tipoAtividade },
+              { header: "Periodicidade", value: (r) => r._periodicidade },
+              { header: "Cargo", value: (r) => r._cargo },
+              { header: "HH Estimado", value: (r) => r._hh },
+            ]}
+            onExecutiveSummary={handleExportReport}
+          />
+        }
+      />
 
       <SectionHeader
         label="Distribuição por Tipo"

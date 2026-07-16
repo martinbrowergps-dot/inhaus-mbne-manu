@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
+import { PageHeader } from "@/components/page-header";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
@@ -327,33 +328,31 @@ function BacklogPage() {
 
   return (
     <div data-page="backlog" className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Backlog de Solicitações</h1>
-          <p className="text-xs text-muted-foreground">
-            Solicitações em aberto na aba BACKLOG da planilha
-          </p>
-        </div>
-        <ExportButton
-          filename="backlog"
-          rows={filtered}
-          columns={[
-            { header: "Número", value: (r) => r.Numero },
-            { header: "Identificação", value: (r) => r.Identificacao },
-            { header: "Solicitante", value: (r) => r.Solicitante },
-            { header: "Data Criação", value: (r) => r.DataCriacao },
-            { header: "Assunto", value: (r) => r.Assunto },
-            { header: "O que precisa", value: (r) => r.OQuePrecisa ?? "" },
-            { header: "Técnico", value: (r) => r.Tecnico },
-            { header: "Prioridade", value: (r) => r.Prioridade },
-            { header: "Vencimento", value: (r) => r.DataVencimento },
-            { header: "Estado", value: (r) => r.Estado },
-            { header: "Grupo", value: (r) => r.Grupo },
-            { header: "HH Estimado", value: (r) => r.HHEstimado },
-          ]}
-          onExecutiveSummary={handleExportReport}
-        />
-      </div>
+      <PageHeader
+        title="Backlog de Solicitações"
+        subtitle="Solicitações em aberto na aba BACKLOG da planilha"
+        exportButton={
+          <ExportButton
+            filename="backlog"
+            rows={filtered}
+            columns={[
+              { header: "Número", value: (r) => r.Numero },
+              { header: "Identificação", value: (r) => r.Identificacao },
+              { header: "Solicitante", value: (r) => r.Solicitante },
+              { header: "Data Criação", value: (r) => r.DataCriacao },
+              { header: "Assunto", value: (r) => r.Assunto },
+              { header: "O que precisa", value: (r) => r.OQuePrecisa ?? "" },
+              { header: "Técnico", value: (r) => r.Tecnico },
+              { header: "Prioridade", value: (r) => r.Prioridade },
+              { header: "Vencimento", value: (r) => r.DataVencimento },
+              { header: "Estado", value: (r) => r.Estado },
+              { header: "Grupo", value: (r) => r.Grupo },
+              { header: "HH Estimado", value: (r) => r.HHEstimado },
+            ]}
+            onExecutiveSummary={handleExportReport}
+          />
+        }
+      />
 
       <SectionHeader
         label="Panorama"
