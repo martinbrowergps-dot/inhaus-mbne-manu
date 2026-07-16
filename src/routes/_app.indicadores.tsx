@@ -48,11 +48,16 @@ function IndicadoresPage() {
 
   const dateFilter = useDateFilter();
 
+  const programacaoFiltrada = useMemo(
+    () =>
+      (data?.programacao ?? []).filter((p) =>
+        dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
+      ),
+    [data, dateFilter],
+  );
+
   const computed = useMemo(() => {
     if (!data) return null;
-    const programacaoFiltrada = data.programacao.filter((p) =>
-      dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
-    );
     const aderencia = computeAderencia(programacaoFiltrada);
 
     // Aderência por sistema
@@ -199,9 +204,9 @@ function IndicadoresPage() {
       </div>
     );
 
-  const bySistema = aggregate(data.programacao, (p) => p.Sistema || "—");
-  const byTipo = aggregate(data.programacao, (p) => p.Tipo || "—");
-  const byLocal = aggregate(data.programacao, (p) => p.LocalMacro || p.Localidade || "—").slice(0, 10);
+  const bySistema = aggregate(programacaoFiltrada, (p) => p.Sistema || "—");
+  const byTipo = aggregate(programacaoFiltrada, (p) => p.Tipo || "—");
+  const byLocal = aggregate(programacaoFiltrada, (p) => p.LocalMacro || p.Localidade || "—").slice(0, 10);
 
   const locais = summarizeLocais(data.medicoes);
   const statusTemp = [
