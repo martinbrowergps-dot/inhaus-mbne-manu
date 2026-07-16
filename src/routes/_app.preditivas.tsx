@@ -17,7 +17,8 @@ import { ExportButton } from "@/components/export-button";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { SectionHeader } from "@/components/section-header";
-import { formatBRNumber, parseBRDate, formatBRDate } from "@/lib/format";
+import { formatBRNumber, parseBRDate, formatBRDate, formatDateBR } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
 
 export const Route = createFileRoute("/_app/preditivas")({
   component: PreditivasPage,
@@ -73,7 +74,12 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const preditiva = useMemo(() => data?.preditiva ?? [], [data?.preditiva]);
+  const dateFilter = useDateFilter();
+  const preditiva = useMemo(
+    () =>
+      (data?.preditiva ?? []).filter((r) => dateFilter.filterByDateRange(r.Data)),
+    [data?.preditiva, dateFilter],
+  );
 
   const byCategoria = useMemo(() => aggregate(preditiva, (r) => r.Categoria), [preditiva]);
   const bySetor = useMemo(() => aggregate(preditiva, (r) => r.Setor), [preditiva]);
@@ -160,12 +166,17 @@ function PreditivasPage() {
             { header: "HH", value: (r) => r.HH },
           ]}
           pdfTitle="Preditiva - SEMEQ"
+          pdfSubtitle={
+            dateFilter.isActive
+              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+              : undefined
+          }
         />
       </div>
 
       <SectionHeader
         label="Panorama"
-        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byCategoria.length} categorias`}
+        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byCategoria.length} categorias${dateFilter.isActive ? ` · ${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}` : ""}`}
       >
         <div className="grid gap-3 sm:grid-cols-4">
           <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
