@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -49,7 +49,15 @@ function AppLayout() {
           <TopHeader />
           <main className="flex-1 p-4 md:p-6">
             <div key={pathname} className="page-enter">
-              <Outlet />
+              <Suspense fallback={
+                <div className="grid gap-4 md:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-28 animate-pulse rounded-xl bg-card/40 border border-border/30" />
+                  ))}
+                </div>
+              }>
+                <Outlet />
+              </Suspense>
             </div>
           </main>
         </SidebarInset>

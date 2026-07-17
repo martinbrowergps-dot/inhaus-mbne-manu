@@ -26,20 +26,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { toPng } from "html-to-image";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
-import { installLiveOverride, sanitizeInlineColors } from "@/lib/pdf-css-patch";
+import { installLiveOverride, sanitizeInlineColors, DEFAULT_MARGINS } from "@/lib/pdf-css-patch";
 import { waitForChartsReady } from "@/lib/chart-utils";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import {
-  exportTableToPdf,
-  exportVisualPdf,
-  DEFAULT_MARGINS,
-  validateLayout,
-  type VisualPdfQuality,
-  type PdfMargins,
-  type PdfLayoutOptions,
-  type ValidationResult,
+import { validateLayout } from "@/lib/export-pdf";
+import type {
+  VisualPdfQuality,
+  PdfMargins,
+  PdfLayoutOptions,
+  ValidationResult,
 } from "@/lib/export-pdf";
 
 interface Props<T> {
@@ -97,6 +93,7 @@ export function ExportButton<T>({
       const cleanInline = sanitizeInlineColors(el);
       let dataUrl: string;
       try {
+        const { toPng } = await import("html-to-image");
         dataUrl = await toPng(el, {
           quality: 0.95,
           pixelRatio: 2,
@@ -118,7 +115,8 @@ export function ExportButton<T>({
     }
   };
 
-  const runTable = () =>
+  const runTable = async () => {
+    const { exportTableToPdf } = await import("@/lib/export-pdf");
     exportTableToPdf({
       filename,
       title: pdfTitle ?? filename,
@@ -127,6 +125,7 @@ export function ExportButton<T>({
       columns,
       layout: { margins, showHeader, showFooter, showPageNumbers },
     });
+  };
 
   const runVisual = async (q: VisualPdfQuality = quality) => {
     const el = pdfTargetRef?.current;
@@ -134,6 +133,7 @@ export function ExportButton<T>({
       toast.error("Nada para exportar");
       return;
     }
+    const { exportVisualPdf } = await import("@/lib/export-pdf");
     await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle, {
       quality: q,
       margins,
@@ -143,9 +143,9 @@ export function ExportButton<T>({
     });
   };
 
-  const handlePdfTable = () => {
+  const handlePdfTable = async () => {
     if (rows.length === 0) return;
-    // Reset margins to defaults for quick action
+    const { exportTableToPdf } = await import("@/lib/export-pdf");
     exportTableToPdf({
       filename,
       title: pdfTitle ?? filename,
@@ -162,6 +162,7 @@ export function ExportButton<T>({
       return;
     }
     try {
+      const { exportVisualPdf } = await import("@/lib/export-pdf");
       await exportVisualPdf(el, filename, pdfTitle ?? filename, pdfSubtitle, { quality: q });
       toast.success(`PDF visual (${q}) exportado`);
     } catch (err) {
@@ -170,6 +171,7 @@ export function ExportButton<T>({
       if (rows.length > 0) {
         toast.warning(`PDF visual falhou: ${msg}. Gerando PDF tabular…`);
         try {
+          const { exportTableToPdf } = await import("@/lib/export-pdf");
           exportTableToPdf({
             filename,
             title: pdfTitle ?? filename,
@@ -193,7 +195,7 @@ export function ExportButton<T>({
           toast.error("Sem registros para exportar");
           return;
         }
-        runTable();
+        await runTable();
         toast.success("PDF tabular exportado");
       } else {
         await runVisual();

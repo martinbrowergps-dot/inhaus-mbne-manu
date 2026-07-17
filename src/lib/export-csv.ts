@@ -5,7 +5,10 @@ export type CsvColumn<T> = {
 
 function escapeCell(v: string | number | null | undefined): string {
   if (v === null || v === undefined) return "";
-  const s = String(v).replace(/\r?\n/g, " ").trim();
+  let s = String(v).replace(/\r?\n/g, " ").trim();
+  // CSV injection prevention: prefix ' when value starts with dangerous chars
+  // Prevents Excel formula injection (=CMD, +DDE, -autoexec, @hyperlink)
+  if (/^[=+\-@]/.test(s)) s = "'" + s;
   if (/[;"\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }

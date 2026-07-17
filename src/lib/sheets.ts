@@ -52,10 +52,23 @@ async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
   return parsed.data.filter((r) => Object.values(r).some((v) => v && String(v).trim() !== ""));
 }
 
-// A aba NC foi reestruturada em um layout de relatório: a primeira linha do
-// CSV do gviz vem com o rótulo concatenado ao conteúdo do primeiro registro, e
-// os dados úteis ficam numa tabela de 8 colunas nas linhas seguintes. Por isso
-// parseamos por posição de coluna em vez de nome de cabeçalho.
+// NC aba usa layout relatório: primeira linha do CSV do gviz concatena
+// rótulo + conteúdo, dados ficam em tabela de 8 colunas posicionais.
+// Colunas esperadas: [NUMERO DE NC, OCORRÊNCIA, MEDIDAS CORRETIVAS,
+// RESP PELA MEDIDA CORRETIVA, DATA CONCLUSÃO, ANDAMENTO, O QUE FAZER, STATUS].
+// Se layout mudar, atualizar mapeamento abaixo E EXPECTED_HEADERS.nc.
+const NC_COL_INDEX = {
+  Codigo: 0,
+  Ocorrencia: 1,
+  MedidasCorretivas: 2,
+  Responsavel: 3,
+  DataConclusao: 4,
+  Andamento: 5,
+  OQueFazer: 6,
+  Status: 7,
+} as const;
+const NC_EXPECTED_COLS = 8;
+
 async function fetchNcRows(): Promise<NcRow[]> {
   const res = await fetch(csvUrl(SHEETS.nc), { cache: "no-store" });
   if (!res.ok) throw new Error(`Falha ao ler aba "NC" (${res.status})`);
@@ -65,24 +78,27 @@ async function fetchNcRows(): Promise<NcRow[]> {
     skipEmptyLines: "greedy",
   });
   const rows = parsed.data as string[][];
-  if (rows.length > 0 && (rows[0] ?? []).length < 8) {
-    console.warn(
-      `[NC] Esperadas >= 8 colunas por linha; cabeçalho detectado com ${(rows[0] ?? []).length}. O parser por posição pode estar desatualizado.`,
+  if (rows.length > 0 && (rows[0] ?? []).length < NC_EXPECTED_COLS) {
+    console.error(
+      `[NC] Esperadas >= ${NC_EXPECTED_COLS} colunas; detectado ${(rows[0] ?? []).length}. Parser posicional desatualizado.`,
+    );
+    throw new Error(
+      `Aba NC: esperadas ${NC_EXPECTED_COLS} colunas, recebidas ${(rows[0] ?? []).length}. Verifique layout da planilha.`,
     );
   }
   const result: NcRow[] = [];
   for (let i = 1; i < rows.length; i++) {
     const c = rows[i] ?? [];
-    if (c.length < 8) continue;
-    const numero = (c[0] ?? "").trim();
-    const ocorrencia = (c[1] ?? "").trim();
-    const medidas = (c[2] ?? "").trim();
-    const resp = (c[3] ?? "").trim();
-    const dataConc = (c[4] ?? "").trim();
-    const andamento = (c[5] ?? "").trim();
-    const oQueFazer = (c[6] ?? "").trim();
-    const status = (c[7] ?? "").trim();
-    // Pula a linha de cabeçalho/rótulo e a "NC em destaque" (formato formulário)
+    if (c.length < NC_EXPECTED_COLS) continue;
+    const numero = (c[NC_COL_INDEX.Codigo] ?? "").trim();
+    const ocorrencia = (c[NC_COL_INDEX.Ocorrencia] ?? "").trim();
+    const medidas = (c[NC_COL_INDEX.MedidasCorretivas] ?? "").trim();
+    const resp = (c[NC_COL_INDEX.Responsavel] ?? "").trim();
+    const dataConc = (c[NC_COL_INDEX.DataConclusao] ?? "").trim();
+    const andamento = (c[NC_COL_INDEX.Andamento] ?? "").trim();
+    const oQueFazer = (c[NC_COL_INDEX.OQueFazer] ?? "").trim();
+    const status = (c[NC_COL_INDEX.Status] ?? "").trim();
+    // Pula cabeçalho/rótulo e "NC em destaque" (formato formulário)
     if (!ocorrencia) continue;
     if (
       ocorrencia.toUpperCase().startsWith("OCORRÊNCIA") ||
@@ -100,6 +116,10 @@ async function fetchNcRows(): Promise<NcRow[]> {
       OQueFazer: oQueFazer,
       Status: status || andamento,
     });
+  }
+  if (result.length === 0) {
+    console.error("[NC] Nenhuma linha válida extraída. Parser pode estar desatualizado.");
+    throw new Error("Aba NC: nenhum registro extraído. Verifique layout da planilha.");
   }
   return result;
 }
