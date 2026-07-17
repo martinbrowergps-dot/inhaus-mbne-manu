@@ -1,8 +1,7 @@
 import { useRef } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ClipboardList,
   Play,
   CheckCircle2,
   AlertOctagon,
@@ -42,7 +41,7 @@ import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
-import { KpiStrip, type KpiItem } from "@/components/kpi-carousel";
+
 import { EmptyState } from "@/components/empty-state";
 import { SectionHeader } from "@/components/section-header";
 import { ChartPie } from "@/components/visao-geral/chart-pie";
@@ -285,287 +284,229 @@ function VisaoGeral() {
       />
 
       <div ref={chartRef} className="space-y-6">
-        {/* ═══════════ ALERT BAR ═══════════ */}
-        {(aa > 0 || tempAlerta > 0 || atrasadas > 0) && (
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.03] px-4 py-2.5 text-xs">
+        {/* ═══════════ COMMAND BAR ═══════════ */}
+        <div className="flex flex-wrap items-stretch gap-3 rounded-lg border border-border/60 bg-card/30 p-3">
+          <div className="flex flex-wrap items-center gap-1.5">
             {aa > 0 && (
-              <button
-                onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1.5 rounded-md bg-destructive/15 px-2 py-1 font-semibold text-destructive transition-colors hover:bg-destructive/25"
-              >
+              <button onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[11px] font-bold text-destructive transition-colors hover:bg-destructive/25">
                 <AlertOctagon className="h-3 w-3" />
-                {aa} OS criticidade AA
+                {aa} AA
               </button>
             )}
             {atrasadas > 0 && (
-              <button
-                onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1.5 rounded-md bg-warning/15 px-2 py-1 font-semibold text-warning transition-colors hover:bg-warning/25"
-              >
+              <button onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-1 text-[11px] font-bold text-warning transition-colors hover:bg-warning/25">
                 <CalendarX className="h-3 w-3" />
                 {atrasadas} atrasadas
               </button>
             )}
             {tempAlerta > 0 && (
-              <button
-                onClick={() => navigate({ to: "/temperaturas" })}
-                className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 font-semibold text-rose-400 transition-colors hover:bg-rose-500/25"
-              >
+              <button onClick={() => navigate({ to: "/temperaturas" })}
+                className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:bg-rose-500/25">
                 <Thermometer className="h-3 w-3" />
-                {tempAlerta} alertas térmicos
+                {tempAlerta} térmicos
               </button>
             )}
-            <span className="ml-auto hidden text-muted-foreground sm:inline">Itens que requerem atenção</span>
           </div>
-        )}
-
-        {/* ═══════════ HERO KPIs ═══════════ */}
-        <KpiStrip
-          items={[
-            {
-              label: "Total de OS",
-              value: formatInt(total),
-              icon: ClipboardList,
-              variant: "primary",
-              trend: trendOS,
-            },
-            {
-              label: "Em Andamento",
-              value: formatInt(emAndamento),
-              icon: Play,
-              variant: "warning",
-            },
-            {
-              label: "Finalizadas",
-              value: formatInt(finalizadas),
-              icon: CheckCircle2,
-              variant: "success",
-              trend: trendFinalizadas,
-            },
-            {
-              label: "Atrasadas",
-              value: formatInt(atrasadas),
-              icon: CalendarX,
-              variant: "danger",
-              trend: trendAtrasadas,
-            },
-          ]}
-        />
-
-        {/* ═══════════ GRADE ASSIMÉTRICA ═══════════ */}
-        <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-          {/* ────── ESQUERDA ────── */}
-          <div className="space-y-6">
-            {/* PLANEJAMENTO */}
-            <SectionHeader
-              label="Planejamento"
-              insight={`${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH no período`}
-              icon={ClipboardList}
-              colorIndex={0}
-            >
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
-                  <ChartPie data={byPlanejamento} onCellClick={chartClick} />
-                </Panel>
-                <Panel
-                  dataChart="planejamento-dia"
-                  title="PLANEJADO vs NÃO PLANEJADO POR DIA"
-                  subtitle="Últimos 14 dias"
-                  className="lg:col-span-2"
-                  glass
-                >
-                  {byPlanejamentoDia.length === 0 ? (
-                    <EmptyState className="h-64" />
-                  ) : (
-                    <div className="h-72 md:h-64">
-                      <ResponsiveContainer>
-                        <BarChart
-                          data={byPlanejamentoDia}
-                          barCategoryGap="5%"
-                          margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
-                        >
-                          <CartesianGrid {...chartGridProps} />
-                          <XAxis dataKey="label" {...chartAxisProps} />
-                          <YAxis {...chartAxisProps} allowDecimals={false} />
-                          <ReTooltip {...chartTooltipProps} />
-                          <Legend
-                            wrapperStyle={CHART_LEGEND_STYLE}
-                            formatter={(value) =>
-                              value === "planejado" ? "Planejado" : "Não Planejado"
-                            }
-                          />
-                          <Bar dataKey="planejado" name="planejado" stackId="a" fill={SERIES_COLORS.planejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                          <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                            <LabelList
-                              content={({ x, y, width, index }) => {
-                                const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
-                                if (!d) return null;
-                                if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
-                                return (
-                                  <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>
-                                    {d.planejado}/{d.naoPlanejado}
-                                  </text>
-                                );
-                              }}
-                            />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </Panel>
-              </div>
-
-              <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
-                {byDia.length === 0 ? (
-                  <EmptyState className="h-64" />
-                ) : (
-                  <div className="h-72 md:h-64">
-                    <ResponsiveContainer>
-                      <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 30, right: 20, left: 20, bottom: 4 }}>
-                        <CartesianGrid {...chartGridProps} />
-                        <XAxis dataKey="label" {...chartAxisProps} />
-                        <YAxis {...chartAxisProps} allowDecimals={false} />
-                        <ReTooltip {...chartTooltipProps} />
-                        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                        <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                          {byDia.map((_, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                          ))}
-                          <LabelList
-                            content={({ x, y, width, value }) => {
-                              const numVal = Number(value);
-                              if (!numVal || numVal <= 0) return null;
-                              return (
-                                <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>{value}</text>
-                              );
-                            }}
-                          />
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </Panel>
-            </SectionHeader>
-
-            {/* EXECUÇÃO */}
-            <SectionHeader
-              label="Execução"
-              insight={`${formatBRNumber(aderencia.pct, 1)}% de aderência · ${formatInt(finalizadas)} finalizadas · ${formatInt(emAndamento)} em andamento`}
-              icon={CheckCircle2}
-              colorIndex={1}
-            >
-              <AderenciaCard
-                pct={aderencia.pct}
-                finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
-                finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
-                canceladas={aderencia.canceladas}
-                pendentes={aderencia.pendentes}
-                totalProgramadas={aderencia.totalProgramadas}
-              />
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-                  <ChartDonut data={byStatus} onCellClick={chartClick} />
-                </Panel>
-                <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
-                  <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
-                </Panel>
-              </div>
-            </SectionHeader>
-          </div>
-
-          {/* ────── DIREITA ────── */}
-          <div className="space-y-6">
-            {/* ATENÇÃO */}
-            <SectionHeader
-              label="Atenção"
-              insight={`${formatInt(aa)} criticidade AA · ${quebras.length} quebras · ${formatInt(tempAlerta)} alertas`}
-              icon={AlertOctagon}
-              colorIndex={3}
-            >
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
-                  <ChartDonut data={byCriticidade} onCellClick={chartClick} />
-                </Panel>
-                <Panel dataChart="quebras" title="QUEBRAS POR SOLICITANTE" subtitle="OS tipo quebra">
-                  {quebras.length === 0 ? (
-                    <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-40" />
-                  ) : (
-                    <div className="h-48">
-                      <ResponsiveContainer>
-                        <BarChart data={quebras} layout="vertical" margin={{ left: 16, right: 32, top: 4, bottom: 4 }}>
-                          <CartesianGrid {...chartGridProps} horizontal={false} />
-                          <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-                          <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
-                          <ReTooltip {...chartTooltipProps} />
-                          <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                            <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </Panel>
-              </div>
-            </SectionHeader>
-
-            {/* RECURSOS */}
-            <SectionHeader
-              label="Recursos"
-              insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${formatBRNumber(totalHH, 1)}h HH`}
-              icon={Users}
-              colorIndex={2}
-            >
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <Panel dataChart="hh-cargo" title="HH POR CARGO">
-                  {(() => {
-                    const hhData = aggregateHH(programacaoFiltrada);
-                    const avg = hhData.length > 0
-                      ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
-                      : 0;
-                    return (
-                      <ChartBarHorizontal
-                        data={hhData}
-                        refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
-                      />
-                    );
-                  })()}
-                </Panel>
-                <div className="grid grid-cols-2 gap-2">
-                  <Panel title="TÉCNICOS" glass>
-                    <div className="num text-2xl font-bold text-foreground">{formatInt(tecnicos.length)}</div>
-                    <p className="mt-1 text-xs text-muted-foreground">Ativos na plataforma</p>
-                  </Panel>
-                  <Panel title="HH TOTAL" glass>
-                    <div className="num text-2xl font-bold text-foreground">{formatBRNumber(totalHH, 1)}<span className="text-xs font-normal text-muted-foreground">h</span></div>
-                    <p className="mt-1 text-xs text-muted-foreground">Horas-homem programadas</p>
-                  </Panel>
-                </div>
-              </div>
-            </SectionHeader>
-
-            {/* NAVEGAÇÃO RÁPIDA */}
-            <Panel title="NAVEGAÇÃO" glass>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {[
-                  { url: "/programacao", label: "Programação Semanal" },
-                  { url: "/temperaturas", label: "Monitor Térmico" },
-                  { url: "/hh-semanal", label: "Capacidade HH" },
-                  { url: "/planos-manutencao", label: "Planos de Manutenção" },
-                ].map((s) => (
-                  <Link
-                    key={s.url}
-                    to={s.url}
-                    className="rounded-lg border border-border/60 bg-card/40 p-2.5 text-xs text-foreground/80 transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    {s.label}
-                  </Link>
-                ))}
-              </div>
-            </Panel>
+          <div className="ml-auto flex items-center divide-x divide-border/30">
+            <div className="px-3 text-center">
+              <div className="num text-lg font-bold text-foreground leading-none">{formatInt(total)}</div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Total OS</div>
+            </div>
+            <div className="px-3 text-center">
+              <div className="num text-lg font-bold text-warning leading-none">{formatInt(emAndamento)}</div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Execução</div>
+            </div>
+            <div className="px-3 text-center">
+              <div className="num text-lg font-bold text-success leading-none">{formatInt(finalizadas)}</div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Finalizadas</div>
+            </div>
+            <div className="px-3 text-center">
+              <div className="num text-lg font-bold text-destructive leading-none">{formatInt(atrasadas)}</div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Atrasadas</div>
+            </div>
           </div>
         </div>
+
+        {/* ═══════════ ATIVIDADE ═══════════ */}
+        <SectionHeader
+          label="Atividade"
+          insight={`${formatInt(total)} OS no período · ${formatInt(emAndamento)} em execução · ${formatInt(finalizadas)} finalizadas`}
+          icon={Play}
+          colorIndex={0}
+        >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas" className="lg:col-span-2">
+              {byDia.length === 0 ? (
+                <EmptyState className="h-64" />
+              ) : (
+                <div className="h-72 md:h-64">
+                  <ResponsiveContainer>
+                    <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 30, right: 20, left: 20, bottom: 4 }}>
+                      <CartesianGrid {...chartGridProps} />
+                      <XAxis dataKey="label" {...chartAxisProps} />
+                      <YAxis {...chartAxisProps} allowDecimals={false} />
+                      <ReTooltip {...chartTooltipProps} />
+                      <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+                      <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                        {byDia.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                        <LabelList
+                          content={({ x, y, width, value }) => {
+                            const numVal = Number(value);
+                            if (!numVal || numVal <= 0) return null;
+                            return (
+                              <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>{value}</text>
+                            );
+                          }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+            <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO" glass>
+              <ChartPie data={byPlanejamento} onCellClick={chartClick} />
+            </Panel>
+          </div>
+          <div className="mt-4">
+            <Panel dataChart="planejamento-dia" title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias">
+              {byPlanejamentoDia.length === 0 ? (
+                <EmptyState className="h-64" />
+              ) : (
+                <div className="h-72 md:h-64">
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={byPlanejamentoDia}
+                      barCategoryGap="5%"
+                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
+                    >
+                      <CartesianGrid {...chartGridProps} />
+                      <XAxis dataKey="label" {...chartAxisProps} />
+                      <YAxis {...chartAxisProps} allowDecimals={false} />
+                      <ReTooltip {...chartTooltipProps} />
+                      <Legend
+                        wrapperStyle={CHART_LEGEND_STYLE}
+                        formatter={(value) =>
+                          value === "planejado" ? "Planejado" : "Não Planejado"
+                        }
+                      />
+                      <Bar dataKey="planejado" name="planejado" stackId="a" fill={SERIES_COLORS.planejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                        <LabelList
+                          content={({ x, y, width, index }) => {
+                            const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
+                            if (!d) return null;
+                            if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
+                            return (
+                              <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>
+                                {d.planejado}/{d.naoPlanejado}
+                              </text>
+                            );
+                          }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+          </div>
+        </SectionHeader>
+
+        {/* ═══════════ DESEMPENHO ═══════════ */}
+        <SectionHeader
+          label="Desempenho"
+          insight={`${formatBRNumber(aderencia.pct, 1)}% aderência · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas`}
+          icon={CheckCircle2}
+          colorIndex={1}
+        >
+          <div className="grid gap-4 lg:grid-cols-3">
+            <AderenciaCard
+              pct={aderencia.pct}
+              finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+              finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
+              canceladas={aderencia.canceladas}
+              pendentes={aderencia.pendentes}
+              totalProgramadas={aderencia.totalProgramadas}
+            />
+            <Panel dataChart="status-os" title="STATUS DAS OS" glass>
+              <ChartDonut data={byStatus} onCellClick={chartClick} />
+            </Panel>
+            <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
+              <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
+            </Panel>
+          </div>
+        </SectionHeader>
+
+        {/* ═══════════ ATENÇÃO ═══════════ */}
+        <SectionHeader
+          label="Atenção"
+          insight={`${formatInt(aa)} criticidade AA · ${quebras.length} quebras · ${formatInt(tempAlerta)} alertas térmicos`}
+          icon={AlertOctagon}
+          colorIndex={3}
+        >
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
+              <ChartDonut data={byCriticidade} onCellClick={chartClick} />
+            </Panel>
+            <Panel dataChart="quebras" title="QUEBRAS POR SOLICITANTE" subtitle="OS tipo quebra" className="lg:col-span-2">
+              {quebras.length === 0 ? (
+                <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-40" />
+              ) : (
+                <div className="h-48">
+                  <ResponsiveContainer>
+                    <BarChart data={quebras} layout="vertical" margin={{ left: 16, right: 32, top: 4, bottom: 4 }}>
+                      <CartesianGrid {...chartGridProps} horizontal={false} />
+                      <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
+                      <ReTooltip {...chartTooltipProps} />
+                      <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                        <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </Panel>
+          </div>
+        </SectionHeader>
+
+        {/* ═══════════ RECURSOS ═══════════ */}
+        <SectionHeader
+          label="Recursos"
+          insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${formatBRNumber(totalHH, 1)}h HH`}
+          icon={Users}
+          colorIndex={2}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Panel dataChart="hh-cargo" title="HH POR CARGO" className="lg:col-span-2">
+              {(() => {
+                const hhData = aggregateHH(programacaoFiltrada);
+                const avg = hhData.length > 0
+                  ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
+                  : 0;
+                return (
+                  <ChartBarHorizontal
+                    data={hhData}
+                    refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
+                  />
+                );
+              })()}
+            </Panel>
+            <Panel title="TÉCNICOS" glass>
+              <div className="num text-2xl font-bold text-foreground">{formatInt(tecnicos.length)}</div>
+              <p className="mt-1 text-xs text-muted-foreground">Ativos na plataforma</p>
+            </Panel>
+            <Panel title="HH TOTAL" glass>
+              <div className="num text-2xl font-bold text-foreground">{formatBRNumber(totalHH, 1)}<span className="text-xs font-normal text-muted-foreground">h</span></div>
+              <p className="mt-1 text-xs text-muted-foreground">Horas-homem programadas</p>
+            </Panel>
+          </div>
+        </SectionHeader>
       </div>
     </div>
   );
