@@ -110,6 +110,10 @@ function PreditivasPage() {
       .sort((a, b) => b.value - a.value);
   }, [preditiva]);
 
+  const [fullscreenImg, setFullscreenImg] = useState(false);
+  const openFullscreen = useCallback(() => setFullscreenImg(true), []);
+  const closeFullscreen = useCallback(() => setFullscreenImg(false), []);
+
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -132,10 +136,6 @@ function PreditivasPage() {
       </div>
     );
   }
-
-  const [fullscreenImg, setFullscreenImg] = useState(false);
-  const openFullscreen = useCallback(() => setFullscreenImg(true), []);
-  const closeFullscreen = useCallback(() => setFullscreenImg(false), []);
 
   const total = preditiva.length;
   const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);
