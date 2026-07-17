@@ -70,7 +70,7 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
             ? "bg-warning/20 text-warning border-warning/40"
             : "bg-primary/15 text-primary border-primary/30";
       return (
-        <Badge variant="outline" className={`${color} text-[10px] font-bold`}>
+        <Badge variant="outline" className={`${color} text-[11px] font-bold`}>
           {v || "—"}
         </Badge>
       );
@@ -93,8 +93,8 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
         <span
           className={
             isQuebra
-              ? "text-destructive font-semibold text-[10px]"
-              : "text-muted-foreground text-[10px]"
+              ? "text-destructive font-semibold text-[11px]"
+              : "text-muted-foreground text-[11px]"
           }
         >
           {isQuebra ? (
@@ -253,6 +253,13 @@ function ProgramacaoPage() {
       <PageHeader
         title="Programação"
         subtitle="Visões diária, semanal e mensal — comparativo programado vs executado"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="programacao"
@@ -441,7 +448,7 @@ function ProgramacaoPage() {
                         )}
                       >
                         <div className="mb-2 flex items-center justify-between">
-                          <span className="text-[10px] font-bold tracking-wider uppercase text-muted-foreground">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground">
                             {d.toLocaleDateString("pt-BR", { weekday: "short" })}
                           </span>
                           <span className="num text-[11px] font-bold text-foreground">
@@ -449,7 +456,7 @@ function ProgramacaoPage() {
                             {String(d.getMonth() + 1).padStart(2, "0")}
                           </span>
                         </div>
-                        <div className="space-y-1 text-[10px]">
+                        <div className="space-y-1 text-[11px]">
                           <Stat label="Prog." value={prog.length} tone="primary" />
                           <Stat label="Exec." value={exec.length} tone="success" />
                           <Stat

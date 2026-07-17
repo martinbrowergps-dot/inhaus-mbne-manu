@@ -62,14 +62,14 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
       <Panel title="HH PLANEJADO vs EXECUTADO" subtitle="Total agregado">
         <div className="flex items-end gap-6 py-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Planejado</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Planejado</p>
             <p className="num text-3xl font-bold text-foreground">
               {formatBRNumber(totalPlan, 1)}
               <span className="ml-0.5 text-sm text-muted-foreground">h</span>
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-success">Executado</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-success">Executado</p>
             <p className="num text-3xl font-bold text-foreground">
               {formatBRNumber(totalExec, 1)}
               <span className="ml-0.5 text-sm text-muted-foreground">h</span>
@@ -77,7 +77,7 @@ export function HhComparisonChart({ rows }: { rows: EnrichedRow[] }) {
           </div>
           {totalPlan > 0 && (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Aproveitamento
               </p>
               <p className="num text-3xl font-bold text-foreground">

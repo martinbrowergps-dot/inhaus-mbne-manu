@@ -17,7 +17,7 @@ export function FilterRow({
   if (options.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase w-24">
+      <span className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase w-24">
         {label}
       </span>
       <FilterChip label="Todos" active={!value} onClick={() => onChange(null)} />

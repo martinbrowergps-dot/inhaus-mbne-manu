@@ -6,6 +6,7 @@ export interface KpiItem {
   label: string;
   value: string | number;
   hint?: string;
+  trend?: { direction: "up" | "down" | "flat"; pct: string };
   icon: LucideIcon;
   variant?: KpiVariant;
 }
@@ -29,10 +30,23 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                    <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                       {kpi.label}
                     </div>
                     <div className="num mt-1.5 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{kpi.value}</div>
+                    {kpi.trend && (
+                      <div className={cn(
+                        "mt-1 text-[11px] font-semibold flex items-center gap-0.5",
+                        kpi.trend.direction === "up" && "text-emerald-400",
+                        kpi.trend.direction === "down" && "text-rose-400",
+                        kpi.trend.direction === "flat" && "text-muted-foreground",
+                      )}>
+                        {kpi.trend.direction === "up" && "▲"}
+                        {kpi.trend.direction === "down" && "▼"}
+                        {kpi.trend.direction === "flat" && "▬"}
+                        {kpi.trend.pct}
+                      </div>
+                    )}
                     {kpi.hint && (
                       <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
                     )}
@@ -92,10 +106,23 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                   {kpi.label}
                 </div>
                 <div className="num mt-1.5 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{kpi.value}</div>
+                {kpi.trend && (
+                  <div className={cn(
+                    "mt-1 text-[11px] font-semibold flex items-center gap-0.5",
+                    kpi.trend.direction === "up" && "text-emerald-400",
+                    kpi.trend.direction === "down" && "text-rose-400",
+                    kpi.trend.direction === "flat" && "text-muted-foreground",
+                  )}>
+                    {kpi.trend.direction === "up" && "▲"}
+                    {kpi.trend.direction === "down" && "▼"}
+                    {kpi.trend.direction === "flat" && "▬"}
+                    {kpi.trend.pct}
+                  </div>
+                )}
                 {kpi.hint && (
                   <div className="mt-1 text-[11px] text-muted-foreground">{kpi.hint}</div>
                 )}

@@ -75,7 +75,7 @@ export function TempTrendChart({
           <span className="truncate text-xs font-bold tracking-wider uppercase">{local}</span>
         </div>
         {faixa && (
-          <span className="num text-[10px] text-muted-foreground">
+          <span className="num text-[11px] text-muted-foreground">
             {faixa.min}° / {faixa.max}°C
           </span>
         )}

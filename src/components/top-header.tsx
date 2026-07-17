@@ -61,7 +61,7 @@ export function TopHeader() {
 
       <div className="hidden items-center gap-2 sm:flex" title={lastUpdate ? formatBRDateTime(lastUpdate) : undefined}>
         <Circle className={`h-1.5 w-1.5 animate-pulse ${freshnessColor.replace("text-", "fill-")}`} />
-        <span className={`num text-[10px] ${freshnessColor}`}>Atualizado {relLabel}</span>
+        <span className={`num text-[11px] ${freshnessColor}`}>Atualizado {relLabel}</span>
       </div>
 
       <Popover>
@@ -83,7 +83,7 @@ export function TopHeader() {
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Status
                 </p>
                 <span className={`num text-xs ${freshnessColor}`}>
@@ -96,13 +96,13 @@ export function TopHeader() {
                         : "Expirado"}
                 </span>
               </div>
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Última atualização
               </p>
               <p className="num text-xs text-foreground">{formatBRDateTime(lastUpdate)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Hora atual
               </p>
               <p className="num text-xs text-foreground">

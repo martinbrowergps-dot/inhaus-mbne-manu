@@ -49,7 +49,7 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
       return (
         <Badge
           variant="outline"
-          className="border-primary/30 bg-primary/10 text-primary text-[10px]"
+          className="border-primary/30 bg-primary/10 text-primary text-[11px]"
         >
           {v}
         </Badge>
@@ -100,6 +100,13 @@ function PassagemPage() {
       <PageHeader
         title="Passagem de Turno"
         subtitle="Registros de troca de turno • supervisores, equipes e pendências"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="passagem-turno"

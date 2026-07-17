@@ -83,7 +83,7 @@ const columns: ColumnDef<AtivoRow>[] = [
       return (
         <span
           className={cn(
-            "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+            "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider",
             v.toUpperCase() === "AA"
               ? "border-destructive/40 bg-destructive/15 text-destructive"
               : v.toUpperCase() === "A"
@@ -117,7 +117,7 @@ const columns: ColumnDef<AtivoRow>[] = [
               ? "border-warning/40 bg-warning/15 text-warning"
               : "border-border/40 bg-card/50 text-muted-foreground";
       return (
-        <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", cls)}>
+        <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider", cls)}>
           {s}
         </span>
       );
@@ -215,6 +215,13 @@ function AtivosPage() {
       <PageHeader
         title="Ativos"
         subtitle="Histórico e indicadores de manutenção por equipamento/máquina (TAG)"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="ativos"

@@ -27,10 +27,10 @@ export function OsGroupedByDate({ rows, emptyLabel }: { rows: EnrichedRow[]; emp
       {groups.map(([date, items]) => (
         <div key={date}>
           <div className="sticky top-0 z-10 mb-1.5 flex items-center justify-between rounded-md border border-border/40 bg-card/80 px-2 py-1 backdrop-blur">
-            <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-primary uppercase">
+            <span className="flex items-center gap-1 text-[11px] font-bold tracking-wider text-primary uppercase">
               <Calendar className="h-3 w-3" /> {date}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {items.length} OS ·{" "}
               {formatBRNumber(
                 items.reduce((s, r) => s + (r.HH || 0), 0),
@@ -75,10 +75,10 @@ export function OsGroupedByExecutante({
       {groups.map(([exe, items]) => (
         <div key={exe}>
           <div className="sticky top-0 z-10 mb-1.5 flex items-center justify-between rounded-md border border-border/40 bg-card/80 px-2 py-1 backdrop-blur">
-            <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-primary uppercase">
+            <span className="flex items-center gap-1 text-[11px] font-bold tracking-wider text-primary uppercase">
               <Users className="h-3 w-3" /> {exe}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {items.length} OS ·{" "}
               {formatBRNumber(
                 items.reduce((s, r) => s + (r.HH || 0), 0),

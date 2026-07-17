@@ -1,7 +1,6 @@
-import { useState, useMemo, type ReactNode } from "react";
+import { useState, useMemo } from "react";
 import {
   ColumnDef,
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -11,25 +10,15 @@ import {
   type Row,
 } from "@tanstack/react-table";
 import {
-  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   Search,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { RowDetailSheet } from "@/components/row-detail-sheet";
+import { MobileCardView } from "@/components/mobile-card-view";
+import { DesktopTableView } from "@/components/desktop-table-view";
 
 export function DataTable<T>({
   data,
@@ -54,18 +43,8 @@ export function DataTable<T>({
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [q, setQ] = useState("");
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [detailRow, setDetailRow] = useState<Row<T> | null>(null);
   const hasDetail = Boolean(detailTitle);
-
-  const toggleRow = (idx: number) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  };
 
   const filtered = useMemo(() => {
     if (!q.trim()) return data;
@@ -97,26 +76,6 @@ export function DataTable<T>({
     return (row as Record<string, unknown>)[rowCriticalKey as string] === rowCriticalValue;
   };
 
-  const mobileColumns = columns.filter((c) => {
-    const id = (c as { accessorKey?: string }).accessorKey ?? "";
-    return !/^(id|código|codigo|_)/i.test(id);
-  });
-
-  const visibleColumns = columns.filter((c) => {
-    const id = (c as { accessorKey?: string }).accessorKey ?? "";
-    return !/^_/.test(id);
-  });
-
-  const getHeaderLabel = (col: ColumnDef<T, unknown>) => {
-    return typeof col.header === "string" ? col.header : "";
-  };
-
-  const getCellValue = (row: T, col: ColumnDef<T, unknown>) => {
-    const id = (col as { accessorKey?: string }).accessorKey;
-    if (!id) return "";
-    return String((row as Record<string, unknown>)[id] ?? "");
-  };
-
   return (
     <div className="space-y-3">
       <div className="relative max-w-sm">
@@ -129,137 +88,20 @@ export function DataTable<T>({
         />
       </div>
 
-      {/* ── Mobile cards ── */}
-      <div className="space-y-2 md:hidden">
-        {table.getRowModel().rows.length === 0 ? (
-          <div className="flex h-24 items-center justify-center rounded-lg border border-border/40 text-sm text-muted-foreground">
-            Sem registros
-          </div>
-        ) : (
-          table.getRowModel().rows.map((row, idx) => {
-            const cells = row.getVisibleCells();
-            const firstTwo = cells.slice(0, 2);
-            const rest = cells.slice(2);
-            return (
-              <div
-                key={row.id}
-                className={cn(
-                  "rounded-lg border border-border/40 bg-card/30 p-3 text-xs",
-                  isRowCritical(row.original) && "border-destructive/40",
-                )}
-              >
-                <button
-                  className="flex w-full items-start justify-between gap-2 text-left"
-                  onClick={() => toggleRow(idx)}
-                >
-                  <div className="min-w-0 flex-1 space-y-1">
-                    {firstTwo.map((cell) => (
-                      <div key={cell.id}>
-                        <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                          {getHeaderLabel(cell.column.columnDef)}
-                        </span>
-                        <div className="mt-0.5">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {rest.length > 0 && (
-                    <span className="mt-1 shrink-0 text-muted-foreground">
-                      {expandedRows.has(idx) ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </span>
-                  )}
-                </button>
-                {expandedRows.has(idx) && rest.length > 0 && (
-                  <div className="mt-2 space-y-2 border-t border-border/30 pt-2">
-                    {rest.map((cell) => {
-                      const label = getHeaderLabel(cell.column.columnDef);
-                      return (
-                        <div key={cell.id} className="flex items-baseline justify-between gap-2">
-                          {label && (
-                            <span className="shrink-0 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                              {label}
-                            </span>
-                          )}
-                          <div className="text-right">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+      <MobileCardView
+        rows={table.getRowModel().rows}
+        columns={columns}
+        isRowCritical={isRowCritical}
+      />
 
-      {/* ── Desktop table ── */}
-      <div className="hidden overflow-auto rounded-lg border border-border/40 bg-card/20 backdrop-blur-sm md:block">
-        <Table className="min-w-[640px]">
-          <TableHeader className="sticky top-0 z-10 bg-[#082F49]">
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id} className="border-border/30 hover:bg-transparent">
-                {hg.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                  >
-                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                      <button
-                        className="flex items-center gap-1 hover:text-primary"
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        <ArrowUpDown className="h-3 w-3" />
-                      </button>
-                    ) : (
-                      flexRender(header.column.columnDef.header, header.getContext())
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
-                  Sem registros
-                </TableCell>
-              </TableRow>
-            ) : (
-               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  onClick={hasDetail ? () => setDetailRow(row) : undefined}
-                  className={cn(
-                    "border-border/30 text-xs transition-colors",
-                    isRowCritical(row.original)
-                      ? "table-row-critical neon-glow-pulse"
-                      : "hover:bg-primary/[0.04]",
-                    hasDetail && "cursor-pointer",
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-1.5">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DesktopTableView
+        headerGroups={table.getHeaderGroups()}
+        rows={table.getRowModel().rows}
+        columns={columns}
+        isRowCritical={isRowCritical}
+        hasDetail={hasDetail}
+        onRowClick={(row) => setDetailRow(row)}
+      />
 
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
         <span>
@@ -270,20 +112,20 @@ export function DataTable<T>({
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronLeft className="h-3 w-3" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="h-7 border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronRight className="h-3 w-3" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

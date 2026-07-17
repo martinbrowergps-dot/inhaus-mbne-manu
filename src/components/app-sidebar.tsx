@@ -34,21 +34,41 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const items = [
-  { title: "Visão Geral", url: "/", icon: LayoutDashboard },
-  { title: "Programação", url: "/programacao", icon: CalendarDays },
-  { title: "Relatórios", url: "/relatorios", icon: FileText },
-  { title: "Indicadores", url: "/indicadores", icon: Activity },
-  { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
-  { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
-  { title: "Backlog", url: "/backlog", icon: Inbox },
-  { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
-  { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
-  { title: "Planos de Manutenção", url: "/checklists", icon: ClipboardCheck },
-  { title: "NC", url: "/nc", icon: FileWarning },
-  { title: "Ativos", url: "/ativos", icon: Boxes },
-  { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
-  { title: "Alertas", url: "/alertas", icon: AlertTriangle },
+const groups = [
+  {
+    label: "MONITORAMENTO",
+    items: [
+      { title: "Visão Geral", url: "/", icon: LayoutDashboard },
+      { title: "Alertas", url: "/alertas", icon: AlertTriangle },
+      { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
+    ],
+  },
+  {
+    label: "PLANEJAMENTO",
+    items: [
+      { title: "Programação", url: "/programacao", icon: CalendarDays },
+      { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
+      { title: "Planos de Manutenção", url: "/planos-manutencao", icon: ClipboardCheck },
+    ],
+  },
+  {
+    label: "QUALIDADE",
+    items: [
+      { title: "NC", url: "/nc", icon: FileWarning },
+      { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
+      { title: "Relatórios", url: "/relatorios", icon: FileText },
+      { title: "Indicadores", url: "/indicadores", icon: Activity },
+    ],
+  },
+  {
+    label: "APOIO",
+    items: [
+      { title: "Backlog", url: "/backlog", icon: Inbox },
+      { title: "Ativos", url: "/ativos", icon: Boxes },
+      { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
+      { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
+    ],
+  },
 ] as const;
 
 export function AppSidebar() {
@@ -77,52 +97,54 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-3">
           <img src="/logo.png" alt="Logo" width={36} height={36} className="h-9 w-auto shrink-0" />
           <div className="transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
-            <div className="text-[10px] font-bold tracking-[0.18em] text-primary">
+            <div className="text-[11px] font-bold tracking-[0.18em] text-primary">
               MARTIN BROWER
             </div>
-            <div className="text-[10px] text-sidebar-foreground/70 tracking-wider">
+            <div className="text-[11px] text-sidebar-foreground/70 tracking-wider">
               IN HAUS INDUSTRIAL
             </div>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] tracking-[0.18em] text-muted-foreground">
-            CENTRO DE CONTROLE
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const active = pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      tooltip={item.title}
-                      className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
-                    >
-                      <Link
-                        to={item.url}
-                        className="flex items-center gap-3"
-                        aria-current={active ? "page" : undefined}
+        {groups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel className="text-[11px] tracking-[0.18em] text-muted-foreground">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const active = pathname === item.url;
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.title}
+                        className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
                       >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <Link
+                          to={item.url}
+                          className="flex items-center gap-3"
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-0">
         <div className="group-data-[collapsible=icon]:hidden">
           <div className="flex items-center justify-between px-3 pt-3 pb-1">
-            <span className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground">
+            <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground">
               FILTRO DE DATAS
             </span>
             {isActive && (
@@ -135,7 +157,7 @@ export function AppSidebar() {
             <div className="flex gap-1">
               <button
                 onClick={() => setPreset("week")}
-                className={`clay-sm flex-1 rounded-lg text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded-lg text-[11px] py-1 font-semibold ${
                   isActive
                     ? "bg-primary/15 text-primary"
                     : "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -145,7 +167,7 @@ export function AppSidebar() {
               </button>
               <button
                 onClick={() => setPreset("month")}
-                className={`clay-sm flex-1 rounded-lg text-[10px] py-1 font-semibold ${
+                className={`clay-sm flex-1 rounded-lg text-[11px] py-1 font-semibold ${
                   isActive
                     ? "bg-primary/15 text-primary"
                     : "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -195,7 +217,7 @@ export function AppSidebar() {
             {isActive && (
               <button
                 onClick={clearFilter}
-                className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[11px] font-semibold text-destructive"
               >
                 Limpar
               </button>
@@ -229,19 +251,19 @@ export function AppSidebar() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => setPreset("week")}
-                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[11px] font-semibold text-primary"
                   >
                     Semana
                   </button>
                   <button
                     onClick={() => setPreset("month")}
-                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[10px] font-semibold text-primary"
+                    className="clay-sm flex-1 rounded-lg bg-primary/15 px-1 py-1 text-[11px] font-semibold text-primary"
                   >
                     Mês
                   </button>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground">Início</p>
+                  <p className="text-[11px] text-muted-foreground">Início</p>
                   <CalendarPicker
                     mode="single"
                     selected={parseISO(startDate)}
@@ -252,7 +274,7 @@ export function AppSidebar() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground">Fim</p>
+                  <p className="text-[11px] text-muted-foreground">Fim</p>
                   <CalendarPicker
                     mode="single"
                     selected={parseISO(endDate)}
@@ -265,7 +287,7 @@ export function AppSidebar() {
                 {isActive && (
                   <button
                     onClick={clearFilter}
-                    className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[10px] font-semibold text-destructive"
+                    className="clay-sm w-full rounded-lg bg-destructive/15 py-1 text-[11px] font-semibold text-destructive"
                   >
                     Limpar
                   </button>

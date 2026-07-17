@@ -26,11 +26,13 @@ export function ChartBarHorizontal({
   refLine,
   color = SERIES_COLORS.executado,
   height,
+  onCellClick,
 }: {
   data: { name: string; value: number }[];
   refLine?: { value: number; label: string };
   color?: string;
   height?: number;
+  onCellClick?: (name: string) => void;
 }) {
   if (data.length === 0) return <Empty />;
   const sorted = [...data].sort((a, b) => a.value - b.value);
@@ -58,7 +60,7 @@ export function ChartBarHorizontal({
               }}
             />
           )}
-          <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+          <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} isAnimationActive={false} onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")} style={{ cursor: onCellClick ? "pointer" : undefined }}>
             <LabelList
               position="right"
               offset={8}

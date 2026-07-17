@@ -57,7 +57,7 @@ export function RowDetailSheet<T>({
                 );
                 return (
                   <div key={cell.id} className="grid grid-cols-3 gap-3 px-4 py-3 text-sm">
-                    <div className="self-start pt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                    <div className="self-start pt-0.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                       {label}
                     </div>
                     <div className="col-span-2 break-words">{value}</div>

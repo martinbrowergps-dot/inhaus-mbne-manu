@@ -398,7 +398,7 @@ export function ExportButton<T>({
               {validation.warnings.map((w, i) => (
                 <p key={i}>{w}</p>
               ))}
-              <p className="mt-1 text-[10px] opacity-70">
+              <p className="mt-1 text-[11px] opacity-70">
                 {validation.metrics.contentH.toFixed(0)}mm ×{" "}
                 {validation.metrics.contentW.toFixed(0)}mm úteis · {validation.metrics.marginTotalV}
                 mm margem vertical

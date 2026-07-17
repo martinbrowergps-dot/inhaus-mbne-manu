@@ -47,7 +47,7 @@ export function SectionHeader({
           </div>
         )}
         <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <span className={cn("text-[10px] font-bold uppercase tracking-[0.15em]", colorClass)}>
+          <span className={cn("text-[11px] font-bold uppercase tracking-[0.15em]", colorClass)}>
             {label}
           </span>
           <p className="line-clamp-2 text-xs text-muted-foreground/70 leading-relaxed md:line-clamp-none">

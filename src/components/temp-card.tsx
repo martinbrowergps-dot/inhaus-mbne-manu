@@ -52,7 +52,7 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
             {summary.local}
           </span>
         </div>
-        <div className={cn("flex items-center gap-1 text-[10px] font-bold tracking-wider shrink-0", overallConfig.color)}>
+        <div className={cn("flex items-center gap-1 text-[11px] font-bold tracking-wider shrink-0", overallConfig.color)}>
           <OverallIcon className="h-3 w-3" />
           {overallConfig.label}
         </div>
@@ -99,7 +99,7 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
           )}
         </div>
         {faixa && (
-          <div className="text-right text-[10px] text-muted-foreground">
+          <div className="text-right text-[11px] text-muted-foreground">
             <div className="tracking-wider">FAIXA</div>
             <div className="num text-foreground">{faixa.min}° / {faixa.max}°</div>
           </div>
@@ -108,20 +108,20 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
 
       {/* outlier / duration alerts */}
       {durationInfo?.isViolation && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[10px] font-bold tracking-wider text-destructive">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[11px] font-bold tracking-wider text-destructive">
           <Timer className="h-3 w-3 shrink-0" />
           HÁ {durationInfo.currentDurationLabel} FORA DA FAIXA
         </div>
       )}
       {summary.outlier && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-bold tracking-wider text-warning">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-warning/50 bg-warning/10 px-2 py-1 text-[11px] font-bold tracking-wider text-warning">
           <Bug className="h-3 w-3 shrink-0" />
           MEDIÇÃO SUSPEITA — VERIFICAR LEITURA
         </div>
       )}
 
       {/* footer */}
-      <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2 text-[10px] text-muted-foreground">
+      <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
         <span className="truncate">{summary.tecnico || "—"}</span>
         <span className="num shrink-0">{formatBRDateTime(summary.timestamp)}</span>
       </div>

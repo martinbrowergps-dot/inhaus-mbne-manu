@@ -20,7 +20,7 @@ export function CalendarHeatmap({
             key={d.date.toISOString()}
             title={`${d.date.toLocaleDateString("pt-BR")} · ${d.total} OS · ${formatBRNumber(d.hh, 1)}h`}
             className={cn(
-              "flex aspect-square flex-col items-center justify-center rounded border text-[10px]",
+              "flex aspect-square flex-col items-center justify-center rounded border text-[11px]",
               isToday ? "border-primary" : "border-border/40",
             )}
             style={{

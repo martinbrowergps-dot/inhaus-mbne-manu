@@ -15,6 +15,7 @@ import { filterByRange, summarizeLocais, uniqueLocais, computeDurationAlerts, ty
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { formatDateBR } from "@/lib/format";
 import { SectionHeader } from "@/components/section-header";
+import { EmptyState } from "@/components/empty-state";
 
 const searchSchema = z.object({
   range: fallback(z.enum(["24h", "7d", "30d"]), "24h").default("24h"),
@@ -113,7 +114,7 @@ function TemperaturasPage() {
 
         <Panel title={`NORMAIS (${normais.length})`}>
           {normais.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem registros</p>
+            <EmptyState className="h-32" />
           ) : (
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {normais.map((l) => (
@@ -133,7 +134,7 @@ function TemperaturasPage() {
           subtitle="Faixa-alvo em verde · linha colorida pelo status do período"
         >
           {allLocais.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem registros</p>
+            <EmptyState className="h-32" />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {allLocais.map((local) => (

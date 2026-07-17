@@ -19,6 +19,7 @@ import { formatBRNumber, parseBRDate, formatDateBR } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/section-header";
+import { PageHeader } from "@/components/page-header";
 import type { LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_app/alertas")({
@@ -220,43 +221,44 @@ function AlertasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="fade-up text-xl font-bold tracking-tight">Central de Alertas</h1>
-            {newAlerts > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-destructive" />
-                {newAlerts} novo{newAlerts !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Alertas gerados automaticamente a partir das condições operacionais
-          </p>
-          {prevAlertCount && (
-            <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-              Última verificação: {new Date(prevAlertCount.ts).toLocaleString("pt-BR")} · {prevAlertCount.total} alertas
-            </p>
-          )}
-        </div>
-        <ExportButton
-          filename="alertas"
-          rows={alerts}
-          columns={[
-            { header: "Prioridade", value: (a) => a.prio.toUpperCase() },
-            { header: "Título", value: (a) => a.title },
-            { header: "Descrição", value: (a) => a.desc },
-            { header: "Referência", value: (a) => a.when ?? "" },
-          ]}
-          pdfTitle="Central de Alertas · Centro de Controle"
-          pdfSubtitle={
-            dateFilter.isActive
-              ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="Central de Alertas"
+        subtitle={
+          (prevAlertCount
+            ? `Última verificação: ${new Date(prevAlertCount.ts).toLocaleString("pt-BR")} · ${prevAlertCount.total} alertas · `
+            : "") + "Alertas gerados automaticamente a partir das condições operacionais"
+        }
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : newAlerts > 0 ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[11px] font-bold text-destructive">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-destructive" />
+              {newAlerts} novo{newAlerts !== 1 ? "s" : ""}
+            </span>
+          ) : undefined
+        }
+        exportButton={
+          <ExportButton
+            filename="alertas"
+            rows={alerts}
+            columns={[
+              { header: "Prioridade", value: (a) => a.prio.toUpperCase() },
+              { header: "Título", value: (a) => a.title },
+              { header: "Descrição", value: (a) => a.desc },
+              { header: "Referência", value: (a) => a.when ?? "" },
+            ]}
+            pdfTitle="Central de Alertas · Centro de Controle"
+            pdfSubtitle={
+              dateFilter.isActive
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                : undefined
+            }
+          />
+        }
+      />
 
       <SectionHeader
         label="Resumo"
@@ -309,7 +311,7 @@ function SummaryChip({
   }[variant];
   return (
     <div className={cn("panel rounded-xl border p-4", cls)}>
-      <div className="text-[10px] tracking-[0.18em] uppercase opacity-80">PRIORIDADE {label}</div>
+      <div className="text-[11px] tracking-[0.18em] uppercase opacity-80">PRIORIDADE {label}</div>
       <div className="num mt-1 text-3xl font-bold">{value}</div>
     </div>
   );
@@ -345,13 +347,13 @@ function AlertItem({ alert }: { alert: Alerta }) {
         <div className="flex items-baseline justify-between gap-2">
           <p className="truncate text-sm font-semibold text-foreground">{alert.title}</p>
           {alert.when && (
-            <span className="num text-[10px] text-muted-foreground">{alert.when}</span>
+            <span className="num text-[11px] text-muted-foreground">{alert.when}</span>
           )}
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">{alert.desc}</p>
       </div>
       {href && (
-        <span className="shrink-0 self-center text-[10px] font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="shrink-0 self-center text-[11px] font-semibold uppercase tracking-wider text-primary opacity-0 transition-opacity group-hover:opacity-100">
           Ver →
         </span>
       )}

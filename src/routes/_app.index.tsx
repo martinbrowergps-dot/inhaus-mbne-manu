@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ClipboardList,
@@ -11,6 +11,7 @@ import {
   Clock,
   Users,
   Thermometer,
+  CalendarX,
 } from "lucide-react";
 import {
   BarChart,
@@ -63,11 +64,54 @@ export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
 });
 
+function computePrevDateRange(dateFilter: ReturnType<typeof useDateFilter>):
+  | { start: string; end: string }
+  | null {
+  if (!dateFilter.isActive) return null;
+  const s = dateFilter.startDate;
+  const e = dateFilter.endDate;
+  if (!s || !e) return null;
+  const start = new Date(s + "T00:00:00");
+  const end = new Date(e + "T00:00:00");
+  const diffDays = Math.round(
+    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  if (diffDays <= 0) return null;
+  const prevStart = new Date(start);
+  prevStart.setDate(prevStart.getDate() - diffDays - 1);
+  const prevEnd = new Date(start);
+  prevEnd.setDate(prevEnd.getDate() - 1);
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  return { start: fmt(prevStart), end: fmt(prevEnd) };
+}
+
+function computeTrend(
+  current: number,
+  previous: number,
+): { direction: "up" | "down" | "flat"; pct: string } | undefined {
+  if (previous === 0 && current === 0) return undefined;
+  if (previous === 0) return { direction: "up", pct: "+100%" };
+  const change = ((current - previous) / previous) * 100;
+  const pct = `${change >= 0 ? "+" : ""}${change.toFixed(0)}%`;
+  if (Math.abs(change) < 1) return { direction: "flat", pct };
+  return { direction: change > 0 ? "up" : "down", pct };
+}
+
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
+  const navigate = useNavigate();
+
+  const chartClick = (label: string) => {
+    navigate({ to: "/programacao" });
+  };
 
   if (isLoading) {
     return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;
@@ -95,6 +139,7 @@ function VisaoGeral() {
   const emAndamento = enriched.filter((p) => p._execStatus === "Em execução").length;
   const finalizadas = enriched.filter((p) => p._execStatus === "Finalizada").length;
   const canceladas = enriched.filter((p) => p._execStatus === "Cancelada").length;
+  const atrasadas = enriched.filter((p) => p._execStatus === "Atrasada").length;
   const aa = programacaoFiltrada.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
   const totalHH = programacaoFiltrada.reduce((s, p) => s + (p.HH || 0), 0);
 
@@ -127,6 +172,39 @@ function VisaoGeral() {
   // Quebra de Programação por solicitante
   const quebras = aggregateQuebrasBySolicitante(programacaoFiltrada);
 
+  // ── Trend (vs período anterior) ──
+  const prevRange = computePrevDateRange(dateFilter);
+  const programacaoPrev = prevRange
+    ? (programacao ?? []).filter((p) => {
+        const d = p.DataReprogramada || p.DataProgramada;
+        if (!d) return false;
+        let dt: Date | null = null;
+        try {
+          dt = new Date(String(d).split("/").reverse().join("-") + "T00:00:00");
+        } catch { /* empty */ }
+        if (!dt) return false;
+        const pStart = new Date(prevRange.start + "T00:00:00");
+        const pEnd = new Date(prevRange.end + "T00:00:00");
+        return dt >= pStart && dt <= pEnd;
+      })
+    : [];
+  const prevEnriched = programacaoPrev.map((p) => ({
+    ...p,
+    _execStatus: deriveExecStatus(p),
+  }));
+  const prevTotal = programacaoPrev.length;
+  const prevProgramadas = prevEnriched.filter((p) => p._execStatus === "Programada").length;
+  const prevFinalizadas = prevEnriched.filter((p) => p._execStatus === "Finalizada").length;
+  const prevCanceladas = prevEnriched.filter((p) => p._execStatus === "Cancelada").length;
+  const prevAtrasadas = prevEnriched.filter((p) => p._execStatus === "Atrasada").length;
+  const prevHH = programacaoPrev.reduce((s, p) => s + (p.HH || 0), 0);
+  const trendOS = computeTrend(total, prevTotal);
+  const trendPendentes = computeTrend(programadas, prevProgramadas);
+  const trendFinalizadas = computeTrend(finalizadas, prevFinalizadas);
+  const trendCanceladas = computeTrend(canceladas, prevCanceladas);
+  const trendAtrasadas = computeTrend(atrasadas, prevAtrasadas);
+  const trendHH = computeTrend(totalHH, prevHH);
+
   const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
     const charts = chartEls ? Array.from(chartEls) : [];
@@ -141,6 +219,7 @@ function VisaoGeral() {
         { label: "Em Andamento", value: formatInt(emAndamento), variant: "warning" },
         { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
         { label: "Canceladas", value: formatInt(canceladas), variant: "danger" },
+        { label: "Atrasadas", value: formatInt(atrasadas), variant: "danger" },
         { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
         { label: "OS Pendentes", value: formatInt(programadas), variant: "neutral" },
         { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
@@ -175,6 +254,13 @@ function VisaoGeral() {
       <PageHeader
         title="Visão Geral"
         subtitle="Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="visao-geral"
@@ -211,12 +297,14 @@ function VisaoGeral() {
               value: formatInt(total),
               icon: ClipboardList,
               variant: "primary",
+              trend: trendOS,
             },
             {
               label: "OS Pendentes",
               value: formatInt(programadas),
               icon: Calendar,
               variant: "neutral",
+              trend: trendPendentes,
             },
             {
               label: "Em Andamento",
@@ -229,12 +317,21 @@ function VisaoGeral() {
               value: formatInt(finalizadas),
               icon: CheckCircle2,
               variant: "success",
+              trend: trendFinalizadas,
             },
             {
               label: "Canceladas",
               value: formatInt(canceladas),
               icon: XCircle,
               variant: "danger",
+              trend: trendCanceladas,
+            },
+            {
+              label: "Atrasadas",
+              value: formatInt(atrasadas),
+              icon: CalendarX,
+              variant: "danger",
+              trend: trendAtrasadas,
             },
             {
               label: "Criticidade AA",
@@ -248,6 +345,7 @@ function VisaoGeral() {
               hint: "horas-homem",
               icon: Clock,
               variant: "primary",
+              trend: trendHH,
             },
             {
               label: "Técnicos Ativos",
@@ -274,7 +372,7 @@ function VisaoGeral() {
         >
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
-              <ChartPie data={byPlanejamento} />
+              <ChartPie data={byPlanejamento} onCellClick={chartClick} />
             </Panel>
 
             <Panel
@@ -409,10 +507,10 @@ function VisaoGeral() {
               totalProgramadas={aderencia.totalProgramadas}
             />
             <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-              <ChartDonut data={byStatus} />
+              <ChartDonut data={byStatus} onCellClick={chartClick} />
             </Panel>
             <Panel dataChart="os-sistema" title="OS POR SISTEMA" className="lg:col-span-1" glass>
-              <ChartBarHorizontal data={bySistema} />
+              <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
             </Panel>
           </div>
         </SectionHeader>
@@ -426,7 +524,7 @@ function VisaoGeral() {
         >
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
-              <ChartDonut data={byCriticidade} />
+              <ChartDonut data={byCriticidade} onCellClick={chartClick} />
             </Panel>
             <Panel
               dataChart="quebras"

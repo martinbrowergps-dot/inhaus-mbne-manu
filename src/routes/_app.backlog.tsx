@@ -105,7 +105,7 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     accessorKey: "OQuePrecisa",
     header: "O que precisa",
     cell: ({ getValue }) => (
-      <span className="line-clamp-2 max-w-[200px] text-muted-foreground text-[10px]">
+      <span className="line-clamp-2 max-w-[200px] text-muted-foreground text-[11px]">
         {(getValue() as string) || "—"}
       </span>
     ),
@@ -118,7 +118,7 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     cell: ({ getValue }) => {
       const v = (getValue() as string) || "—";
       return (
-        <Badge variant="outline" className={`${priorityClass(v)} text-[10px] font-bold`}>
+        <Badge variant="outline" className={`${priorityClass(v)} text-[11px] font-bold`}>
           {v}
         </Badge>
       );
@@ -130,7 +130,7 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
     cell: ({ getValue }) => {
       const v = (getValue() as string) || "—";
       return (
-        <Badge variant="outline" className={`${stateClass(v)} text-[10px]`}>
+        <Badge variant="outline" className={`${stateClass(v)} text-[11px]`}>
           {v}
         </Badge>
       );
@@ -331,6 +331,13 @@ function BacklogPage() {
       <PageHeader
         title="Backlog de Solicitações"
         subtitle="Solicitações em aberto na aba BACKLOG da planilha"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="backlog"
@@ -443,7 +450,7 @@ function BacklogPage() {
           {(priFilter || stateFilter || q.trim()) && (
             <button
               onClick={() => { setPriFilter(null); setStateFilter(null); setQ(""); }}
-              className="mb-3 inline-flex items-center gap-1 rounded-full border border-border/40 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+              className="mb-3 inline-flex items-center gap-1 rounded-full border border-border/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-border"
             >
               <X className="h-3 w-3" />
               Limpar filtros
@@ -472,7 +479,7 @@ function ChartBars({
   horizontal?: boolean;
 }) {
   if (data.length === 0) {
-    return <p className="py-8 text-center text-xs text-muted-foreground">Sem dados</p>;
+    return <EmptyState className="h-56" />;
   }
   const color = (name: string, i: number) => {
     if (colorBy === "priority") {

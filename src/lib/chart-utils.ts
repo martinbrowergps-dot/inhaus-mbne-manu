@@ -5,11 +5,11 @@ import { formatBRNumber, formatInt } from "@/lib/format";
 export const CHART_FONT = "'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
 
 export const CHART_TOOLTIP_STYLE: CSSProperties = {
-  background: "#FFFFFF",
-  border: "1px solid #E1E5EA",
+  background: "#1F2937",
+  border: "1px solid #374151",
   borderRadius: 4,
   fontSize: 12,
-  color: "#1F1F1F",
+  color: "#F1F5F9",
   boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
   padding: "8px 10px",
   fontFamily: CHART_FONT,

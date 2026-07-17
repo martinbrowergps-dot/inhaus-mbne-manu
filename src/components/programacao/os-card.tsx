@@ -24,7 +24,7 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="id text-[11px] font-bold text-primary">{r.NumeroOS}</span>
-            <span className="text-[10px] text-muted-foreground">{r.Sistema}</span>
+            <span className="text-[11px] text-muted-foreground">{r.Sistema}</span>
             {isAtrasada && (
               <span className="inline-flex items-center gap-0.5 rounded-full border border-destructive/50 bg-destructive/15 px-1.5 py-0.5 text-[9px] font-bold text-destructive">
                 <AlertTriangle className="h-2.5 w-2.5" /> {r._diasAtraso}d atrasada
@@ -35,7 +35,7 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
         </div>
         <StatusBadge status={r._status} />
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/30 pt-1.5 text-[10px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/30 pt-1.5 text-[11px] text-muted-foreground">
         {r.DataReprogramada && (
           <span>
             <Clock className="mr-0.5 inline h-2.5 w-2.5" />{" "}
@@ -63,7 +63,7 @@ export function OsCard({ row: r }: { row: EnrichedRow }) {
       </div>
 
       {expanded && (
-        <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2 text-[10px] text-muted-foreground md:hidden">
+        <div className="mt-2 space-y-1.5 border-t border-border/30 pt-2 text-[11px] text-muted-foreground md:hidden">
           {r.LocalMacro && (
             <p>
               <span className="font-semibold text-foreground">Local:</span> {r.LocalMacro}

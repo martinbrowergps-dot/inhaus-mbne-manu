@@ -13,9 +13,11 @@ import { Empty } from "./empty";
 export function ChartPie({
   data,
   colors = COLORS,
+  onCellClick,
 }: {
   data: { name: string; value: number }[];
   colors?: string[];
+  onCellClick?: (name: string) => void;
 }) {
   if (data.length === 0) return <Empty />;
   const sorted = [...data].sort((a, b) => b.value - a.value);
@@ -34,6 +36,8 @@ export function ChartPie({
             outerRadius={75}
             labelLine={false}
             isAnimationActive={false}
+            onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")}
+            style={{ cursor: onCellClick ? "pointer" : undefined }}
             label={({ x, y, value, percent }) => {
               const pct = Math.round((percent ?? Number(value) / total) * 100);
               if (pct < 5) return "";

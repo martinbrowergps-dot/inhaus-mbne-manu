@@ -36,6 +36,7 @@ import {
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { deriveExecStatus } from "@/lib/status";
 
 export const Route = createFileRoute("/_app/indicadores")({
@@ -198,6 +199,13 @@ function IndicadoresPage() {
       <PageHeader
         title="Indicadores Operacionais"
         subtitle="Análise consolidada do plano de manutenção"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
         exportButton={
           <ExportButton
             filename="indicadores"
@@ -371,7 +379,7 @@ function IndicadoresPage() {
           <Panel title="DURAÇÃO REAL DA ATIVIDADE" subtitle="Início → Fim (execução)">
             <div className="flex flex-wrap gap-6 py-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
                   Duração média real
                 </p>
                 <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
@@ -380,7 +388,7 @@ function IndicadoresPage() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-warning">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-warning">
                   HH planejado (média)
                 </p>
                 <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
@@ -390,7 +398,7 @@ function IndicadoresPage() {
               </div>
               {computed.hhPlanMedio && computed.hhPlanMedio > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-success">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-success">
                     Variação
                   </p>
                   <p className="num text-2xl sm:text-3xl font-bold text-foreground leading-tight">
@@ -407,9 +415,7 @@ function IndicadoresPage() {
 
           <Panel title="DURAÇÃO REAL vs HH PLANEJADO" subtitle="Média por executante (horas)">
             {computed.duracaoPorExec.length === 0 ? (
-              <div className="flex h-64 items-center justify-center text-xs text-muted-foreground">
-                Sem dados
-              </div>
+              <EmptyState className="h-64" />
             ) : (
               <div className="h-64">
                 <ResponsiveContainer>
@@ -445,7 +451,7 @@ function IndicadoresPage() {
 }
 
 function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: string }) {
-  if (data.length === 0) return <p className="text-xs text-muted-foreground">Sem registros</p>;
+  if (data.length === 0) return <EmptyState className="h-72" />;
   return (
     <div className="h-72">
       <ResponsiveContainer>
@@ -484,7 +490,7 @@ function PieView({
   colors?: string[];
   donut?: boolean;
 }) {
-  if (data.length === 0) return <p className="text-xs text-muted-foreground">Sem registros</p>;
+  if (data.length === 0) return <EmptyState className="h-72" />;
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   return (
     <div className="h-72">

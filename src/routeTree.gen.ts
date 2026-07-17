@@ -22,6 +22,7 @@ import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
 import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
 import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
 import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
+import { Route as AppPlanosManutencaoRouteImport } from './routes/_app.planos-manutencao'
 import { Route as AppBacklogRouteImport } from './routes/_app.backlog'
 import { Route as AppAtivosRouteImport } from './routes/_app.ativos'
 import { Route as AppAlertasRouteImport } from './routes/_app.alertas'
@@ -90,6 +91,11 @@ const AppChecklistsRoute = AppChecklistsRouteImport.update({
   path: '/checklists',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPlanosManutencaoRoute = AppPlanosManutencaoRouteImport.update({
+  id: '/planos-manutencao',
+  path: '/planos-manutencao',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBacklogRoute = AppBacklogRouteImport.update({
   id: '/backlog',
   path: '/backlog',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
+  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
+  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_app/ativos': typeof AppAtivosRoute
   '/_app/backlog': typeof AppBacklogRoute
   '/_app/checklists': typeof AppChecklistsRoute
+  '/_app/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/_app/equipe': typeof AppEquipeRoute
   '/_app/hh-semanal': typeof AppHhSemanalRoute
   '/_app/indicadores': typeof AppIndicadoresRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/ativos'
     | '/backlog'
     | '/checklists'
+    | '/planos-manutencao'
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/ativos'
     | '/backlog'
     | '/checklists'
+    | '/planos-manutencao'
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_app/ativos'
     | '/_app/backlog'
     | '/_app/checklists'
+    | '/_app/planos-manutencao'
     | '/_app/equipe'
     | '/_app/hh-semanal'
     | '/_app/indicadores'
@@ -311,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChecklistsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/planos-manutencao': {
+      id: '/_app/planos-manutencao'
+      path: '/planos-manutencao'
+      fullPath: '/planos-manutencao'
+      preLoaderRoute: typeof AppPlanosManutencaoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/backlog': {
       id: '/_app/backlog'
       path: '/backlog'
@@ -340,6 +359,7 @@ interface AppRouteChildren {
   AppAtivosRoute: typeof AppAtivosRoute
   AppBacklogRoute: typeof AppBacklogRoute
   AppChecklistsRoute: typeof AppChecklistsRoute
+  AppPlanosManutencaoRoute: typeof AppPlanosManutencaoRoute
   AppEquipeRoute: typeof AppEquipeRoute
   AppHhSemanalRoute: typeof AppHhSemanalRoute
   AppIndicadoresRoute: typeof AppIndicadoresRoute
@@ -358,6 +378,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAtivosRoute: AppAtivosRoute,
   AppBacklogRoute: AppBacklogRoute,
   AppChecklistsRoute: AppChecklistsRoute,
+  AppPlanosManutencaoRoute: AppPlanosManutencaoRoute,
   AppEquipeRoute: AppEquipeRoute,
   AppHhSemanalRoute: AppHhSemanalRoute,
   AppIndicadoresRoute: AppIndicadoresRoute,

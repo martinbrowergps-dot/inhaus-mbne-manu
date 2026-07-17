@@ -56,10 +56,10 @@ export function AderenciaCard({
     <div className={cn("panel fade-up rounded-xl border p-4", t.ring, className)}>
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             Aderência à Programação
           </div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <TrendingUp className="h-3 w-3" /> (finalizadas + canceladas) / programadas
           </div>
         </div>

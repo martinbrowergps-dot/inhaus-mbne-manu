@@ -84,7 +84,7 @@ function HHPage() {
         exportButton={
           <div className="flex flex-wrap items-center gap-2">
             {dateFilter.isActive && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
                 Filtro ativo
               </span>
             )}
@@ -169,7 +169,7 @@ function Gauge({
     <div>
       <div className="flex items-end justify-between">
         <div>
-          <div className="text-[10px] tracking-wider text-muted-foreground uppercase">{label}</div>
+          <div className="text-[11px] tracking-wider text-muted-foreground uppercase">{label}</div>
           <div className={cn("num font-bold", large ? "text-5xl" : "text-3xl", textColor)}>
             {formatBRNumber(ocupacao, 1)}%
           </div>
