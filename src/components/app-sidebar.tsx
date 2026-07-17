@@ -55,7 +55,7 @@ const groups = [
     label: "QUALIDADE",
     items: [
       { title: "NC", url: "/nc", icon: FileWarning },
-      { title: "Preditiva - SEMEQ", url: "/preditivas", icon: TrendingUp },
+      { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
       { title: "Relatórios", url: "/relatorios", icon: FileText },
       { title: "Indicadores", url: "/indicadores", icon: Activity },
     ],

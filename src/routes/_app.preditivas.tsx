@@ -147,7 +147,7 @@ function PreditivasPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Preditiva - SEMEQ"
+        title="Preditivas"
         subtitle="Ações preditivas e corretivas-preditivas registradas"
         exportButton={
           <ExportButton
@@ -163,7 +163,7 @@ function PreditivasPage() {
               { header: "Status", value: (r) => r.Status },
               { header: "HH", value: (r) => r.HH },
             ]}
-            pdfTitle="Preditiva - SEMEQ"
+            pdfTitle="Preditivas"
             pdfSubtitle={
               dateFilter.isActive
                 ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
@@ -257,7 +257,7 @@ function PreditivasPage() {
             <button type="button" onClick={openFullscreen} className="cursor-pointer focus:outline-none">
               <img
                 src="/newplot.png"
-                alt="Plano Preditiva - SEMEQ"
+                alt="Plano de Manutenção Preditiva"
                 className="max-w-full h-auto rounded-lg border hover:opacity-90 transition-opacity"
               />
             </button>
