@@ -21,7 +21,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "fade-up rounded-xl border p-5 transition-all hover:-translate-y-0.5",
+        "fade-up rounded-lg border p-5 transition-all hover:-translate-y-0.5",
         glass ? "panel-glass" : "panel",
         v.ring,
         v.glow,
@@ -36,7 +36,7 @@ export function KpiCard({
           {hint && <div className="mt-1.5 text-xs text-muted-foreground">{hint}</div>}
         </div>
         {Icon && (
-          <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", v.icon)}>
+          <div className={cn("flex h-12 w-12 items-center justify-center rounded-lg", v.icon)}>
             <Icon className="h-6 w-6" />
           </div>
         )}

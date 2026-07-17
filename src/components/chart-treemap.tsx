@@ -418,7 +418,7 @@ export function ChartTreemap({
 
   return (
     <div
-      className="rounded-xl overflow-hidden border border-slate-700/50"
+      className="rounded-lg overflow-hidden border border-slate-700/50"
       style={{ background: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)" }}
     >
       {/* Header controls */}

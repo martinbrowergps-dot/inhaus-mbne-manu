@@ -39,7 +39,7 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
   return (
     <div
       className={cn(
-        "fade-up rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+        "fade-up rounded-lg border p-4 transition-all hover:-translate-y-0.5",
         overallConfig.bg,
         isCritico ? "panel-glass neon-glow-pulse" : "panel",
       )}

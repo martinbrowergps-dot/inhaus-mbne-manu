@@ -68,7 +68,7 @@ export function TempTrendChart({
   const maxT = faixa ? Math.max(faixa.max + 2, ...allTemps) : Math.max(...allTemps, 1);
 
   return (
-    <div className="panel fade-up rounded-xl p-4">
+    <div className="panel fade-up rounded-lg p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <Thermometer className="h-4 w-4 text-primary shrink-0" />

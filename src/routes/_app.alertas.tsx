@@ -310,7 +310,7 @@ function SummaryChip({
     success: "border-success/40 bg-success/10 text-success",
   }[variant];
   return (
-    <div className={cn("panel rounded-xl border p-4", cls)}>
+    <div className={cn("panel rounded-lg border p-4", cls)}>
       <div className="text-[11px] tracking-[0.18em] uppercase opacity-80">PRIORIDADE {label}</div>
       <div className="num mt-1 text-3xl font-bold">{value}</div>
     </div>

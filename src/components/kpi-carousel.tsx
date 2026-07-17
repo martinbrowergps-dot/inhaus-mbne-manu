@@ -22,7 +22,7 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
               <div
                 key={i}
                 className={cn(
-                  "fade-up snap-start min-w-[220px] flex-1 rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+                  "fade-up snap-start min-w-[220px] flex-1 rounded-lg border p-4 transition-all hover:-translate-y-0.5",
                   v.ring,
                   v.glow,
                 )}
@@ -98,7 +98,7 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
           <div
             key={i}
             className={cn(
-              "fade-up rounded-xl border p-4 transition-all hover:-translate-y-0.5",
+              "fade-up rounded-lg border p-4 transition-all hover:-translate-y-0.5",
               v.ring,
               v.glow,
             )}

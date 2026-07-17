@@ -252,7 +252,7 @@ function MatrizPriorizacaoPage() {
           {PRIORIDADES.map((pri) => (
             <div
               key={pri.label}
-              className="fade-up rounded-xl border p-4"
+              className="fade-up rounded-lg border p-4"
               style={{ backgroundColor: pri.bg, borderColor: pri.border }}
             >
               <div className="flex flex-col gap-3">

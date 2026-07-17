@@ -52,7 +52,7 @@ function AppLayout() {
               <Suspense fallback={
                 <div className="grid gap-4 md:grid-cols-4">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-28 animate-pulse rounded-xl bg-card/40 border border-border/30" />
+                    <div key={i} className="h-28 animate-pulse rounded-lg bg-card/40 border border-border/30" />
                   ))}
                 </div>
               }>

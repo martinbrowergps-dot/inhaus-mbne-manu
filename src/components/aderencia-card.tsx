@@ -35,7 +35,7 @@ export function AderenciaCard({
 }) {
   if (loading) {
     return (
-      <div className={cn("panel fade-up rounded-xl border border-border/40 p-4", className)}>
+      <div className={cn("panel fade-up rounded-lg border border-border/40 p-4", className)}>
         <Skeleton className="mb-3 h-3 w-44" />
         <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
           <Skeleton className="h-24 w-24 sm:h-32 sm:w-32 rounded-full" />
@@ -53,7 +53,7 @@ export function AderenciaCard({
   const data = [{ name: "aderencia", value: Math.max(0, Math.min(100, pct)), fill: t.color }];
 
   return (
-    <div className={cn("panel fade-up rounded-xl border p-4", t.ring, className)}>
+    <div className={cn("panel fade-up rounded-lg border p-4", t.ring, className)}>
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
