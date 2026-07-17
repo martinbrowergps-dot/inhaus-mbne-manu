@@ -5,7 +5,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { ExportButton } from "@/components/export-button";
-import { formatBRNumber, getWeekStart, parseBRDate, formatDateBR } from "@/lib/format";
+import { formatBRNumber, formatDateBR } from "@/lib/format";
 import { AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDateFilter } from "@/hooks/use-date-filter";
@@ -24,36 +24,19 @@ function normalize(s: string) {
     .trim();
 }
 
-function isDateInRange(dateStr: string | undefined | null, start: Date, end: Date): boolean {
-  if (!dateStr) return false;
-  const d = parseBRDate(dateStr);
-  if (!d) return false;
-  d.setHours(0, 0, 0, 0);
-  return d >= start && d <= end;
-}
-
 function HHPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
-
-  // Default: semana corrente. Se filtro ativo, usa ele.
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const weekStart = getWeekStart(hoje);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
 
   if (isLoading)
     return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   if (!data) return null;
 
-  const programacaoFiltrada = data.programacao.filter((p) => {
-    const dateStr = p.DataReprogramada || p.DataProgramada;
-    if (dateFilter.isActive) return dateFilter.filterByDateRange(dateStr);
-    return isDateInRange(dateStr, weekStart, weekEnd);
-  });
+  const programacaoFiltrada = (data.programacao ?? []).filter((p) =>
+    dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
+  );
 
   // Soma HH alocado por cargo
   const alocadoByCargo = new Map<string, number>();
