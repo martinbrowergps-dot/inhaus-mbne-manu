@@ -458,5 +458,6 @@ export const sheetsQueryOptions = queryOptions({
   queryFn: fetchSheetsData,
   staleTime: 5 * 60_000,
   refetchInterval: 5 * 60_000,
+  refetchIntervalInBackground: true,
   refetchOnWindowFocus: false,
 });
