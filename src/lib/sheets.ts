@@ -13,7 +13,8 @@ import type {
   SheetsData,
   TecnicoRow,
 } from "./sheets-types";
-import { parseBRNumber, parseBRNumberOrNull } from "./format";
+import { parseBRNumber, parseBRNumberOrNull, parseNumberSafeOrNull } from "./format";
+import { validateProgramacaoRow, validateMedicaoRow, validateBacklogRow } from "./sheets-schema";
 
 const SHEET_ID = "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA";
 
@@ -41,7 +42,7 @@ function logSheetError(sheet: string, err: unknown) {
 }
 
 async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
-  const res = await fetch(csvUrl(sheet), { cache: "no-store" });
+  const res = await fetch(csvUrl(sheet), { cache: "no-store", signal: AbortSignal.timeout(5000) });
   if (!res.ok) throw new Error(`Falha ao ler aba "${sheet}" (${res.status})`);
   const text = await res.text();
   const parsed = Papa.parse<Record<string, string>>(text, {
@@ -70,7 +71,7 @@ const NC_COL_INDEX = {
 const NC_EXPECTED_COLS = 8;
 
 async function fetchNcRows(): Promise<NcRow[]> {
-  const res = await fetch(csvUrl(SHEETS.nc), { cache: "no-store" });
+  const res = await fetch(csvUrl(SHEETS.nc), { cache: "no-store", signal: AbortSignal.timeout(5000) });
   if (!res.ok) throw new Error(`Falha ao ler aba "NC" (${res.status})`);
   const text = await res.text();
   const parsed = Papa.parse<string[]>(text, {
@@ -312,11 +313,20 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     LOCAL: pick(r, "LOCAL", "Local"),
     DATA: pick(r, "DATA", "Data"),
     HORA: pick(r, "HORA", "Hora"),
-    TEMPERATURA_01: parseBRNumberOrNull(r["TEMPERATURA 01"]),
-    TEMPERATURA_02: parseBRNumberOrNull(r["TEMPERATURA 02"]),
+    TEMPERATURA_01: parseNumberSafeOrNull(r["TEMPERATURA 01"]),
+    TEMPERATURA_02: parseNumberSafeOrNull(r["TEMPERATURA 02"]),
 
     TECNICO: pick(r, "TECNICO", "Tecnico"),
   }));
+
+  // Validate medicoes rows (temperatura finiteness)
+  let medicoesIssues: string[] = [];
+  for (let i = 0; i < medicoes.length; i++) {
+    medicoesIssues.push(...validateMedicaoRow(medicoes[i], i));
+  }
+  if (medicoesIssues.length > 0) {
+    console.warn("[sheets] Medições com dados suspeitos:", medicoesIssues.slice(0, 20));
+  }
 
   const mapChecklist = (rows: Record<string, string>[]): ChecklistRow[] =>
     rows.map((r) => ({
@@ -377,6 +387,15 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     HHEstimado: parseBRNumber(r["HH Estimado"] ?? r["HHEstimado"]),
     OQuePrecisa: pick(r, "o que precisa", "OQuePrecisa"),
   }));
+
+  // Validate backlog rows
+  let backlogIssues: string[] = [];
+  for (let i = 0; i < backlog.length; i++) {
+    backlogIssues.push(...validateBacklogRow(backlog[i], i));
+  }
+  if (backlogIssues.length > 0) {
+    console.warn("[sheets] Backlog com dados suspeitos:", backlogIssues.slice(0, 20));
+  }
 
   const nc: NcRow[] = ncRows;
 

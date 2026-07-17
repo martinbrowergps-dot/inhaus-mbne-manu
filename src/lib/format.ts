@@ -1,3 +1,91 @@
+/**
+ * Converte string numérica (BR ou EN/US) para número float.
+ * Detecta locale automaticamente:
+ *   - "1.234,56" → BR (milhar = ponto, decimal = vírgula) → 1234.56
+ *   - "25.3"     → EN (decimal = ponto, sem milhar)       → 25.3
+ *   - "1,234.56" → EN (decimal = ponto com vírgula de separador) → 1234.56
+ * Regra: se existe vírgula E ponto, conta qual aparece mais à direita.
+ * O caractere mais à direita é tratado como separador decimal.
+ */
+export function parseNumberSafe(value: string | number | null | undefined): number {
+  if (value === null || value === undefined || value === "") return 0;
+  if (typeof value === "number") return value;
+  const raw = String(value).trim();
+
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+
+  // Ambos presentes: decide locale pela posição
+  if (lastComma >= 0 && lastDot >= 0) {
+    if (lastComma > lastDot) {
+      // BR: milhar é ponto (joga fora), decimal é vírgula
+      const cleaned = raw.replace(/\./g, "").replace(",", ".");
+      const n = parseFloat(cleaned);
+      return Number.isFinite(n) ? n : 0;
+    } else {
+      // EN/US: milhar é vírgula (joga fora), decimal é ponto
+      const cleaned = raw.replace(/,/g, "");
+      const n = parseFloat(cleaned);
+      return Number.isFinite(n) ? n : 0;
+    }
+  }
+
+  // Só ponto OU só vírgula: trata o único como decimal
+  if (lastDot >= 0 && lastComma < 0) {
+    const cleaned = raw.replace(/,/g, "");
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+  if (lastComma >= 0 && lastDot < 0) {
+    const cleaned = raw.replace(",", ".");
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // Sem pontuação: inteiro puro
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Versão com fallback para `null` em vez de `0`. */
+export function parseNumberSafeOrNull(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return value;
+  const raw = String(value).trim();
+
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+
+  if (lastComma >= 0 && lastDot >= 0) {
+    if (lastComma > lastDot) {
+      const cleaned = raw.replace(/\./g, "").replace(",", ".");
+      const n = parseFloat(cleaned);
+      return Number.isFinite(n) ? n : null;
+    } else {
+      const cleaned = raw.replace(/,/g, "");
+      const n = parseFloat(cleaned);
+      return Number.isFinite(n) ? n : null;
+    }
+  }
+
+  if (lastDot >= 0 && lastComma < 0) {
+    const cleaned = raw.replace(/,/g, "");
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+  if (lastComma >= 0 && lastDot < 0) {
+    const cleaned = raw.replace(",", ".");
+    const n = parseFloat(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+// -- legacy aliases compatíveis com call-sites existentes --
+
+/** BR-pessimista: sempre trata ponto como milhar (ignora) e vírgula como decimal. */
 export function parseBRNumber(value: string | number | null | undefined): number {
   if (value === null || value === undefined || value === "") return 0;
   if (typeof value === "number") return value;

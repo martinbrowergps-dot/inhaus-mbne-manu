@@ -37,6 +37,16 @@ export function TopHeader() {
           ? `há ${minutesAgo ?? 0} min`
           : lastUpdate.toLocaleDateString("pt-BR");
 
+  // Cor baseada na idade dos dados
+  const freshnessColor =
+    minutesAgo === null
+      ? "text-muted-foreground"
+      : minutesAgo <= 4
+        ? "text-success"
+        : minutesAgo <= 10
+          ? "text-warning"
+          : "text-destructive";
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl">
       <SidebarTrigger className="text-primary hover:bg-primary/10" />
@@ -50,8 +60,8 @@ export function TopHeader() {
       </div>
 
       <div className="hidden items-center gap-2 sm:flex" title={lastUpdate ? formatBRDateTime(lastUpdate) : undefined}>
-        <Circle className="h-1.5 w-1.5 animate-pulse fill-success text-success" />
-        <span className="num text-[10px] text-muted-foreground/70">Atualizado {relLabel}</span>
+        <Circle className={`h-1.5 w-1.5 animate-pulse ${freshnessColor.replace("text-", "fill-")}`} />
+        <span className={`num text-[10px] ${freshnessColor}`}>Atualizado {relLabel}</span>
       </div>
 
       <Popover>
@@ -72,6 +82,20 @@ export function TopHeader() {
               <span className="font-medium text-success">Online</span>
             </div>
             <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                  Status
+                </p>
+                <span className={`num text-xs ${freshnessColor}`}>
+                  {minutesAgo === null
+                    ? "Sem dados"
+                    : minutesAgo <= 4
+                      ? "Atual"
+                      : minutesAgo <= 10
+                        ? "Desatualizado"
+                        : "Expirado"}
+                </span>
+              </div>
               <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Última atualização
               </p>
