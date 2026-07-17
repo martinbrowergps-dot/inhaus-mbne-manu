@@ -110,7 +110,7 @@ export function TempCard({ summary, durationInfo }: { summary: LocalSummary; dur
       {durationInfo?.isViolation && (
         <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[11px] font-bold tracking-wider text-destructive">
           <Timer className="h-3 w-3 shrink-0" />
-          HÁ {durationInfo.currentDurationLabel} FORA DA FAIXA
+          {durationInfo.excessDurationLabel} EXCEDENTE AO LIMITE DE 4H
         </div>
       )}
       {summary.outlier && (

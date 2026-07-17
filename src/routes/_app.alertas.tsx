@@ -107,7 +107,7 @@ function AlertasPage() {
         id: `temp-duracao-${local}`,
         icon: Timer,
         title: `Temperatura fora da faixa há mais de 4h: ${local}`,
-        desc: `Há ${dur.currentDurationLabel} com temperatura fora do range permitido`,
+        desc: `${dur.excessDurationLabel} excedente ao limite de 4h`,
         prio: "alta",
         when: undefined,
       });

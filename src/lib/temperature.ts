@@ -321,9 +321,13 @@ export function uniqueLocais(medicoes: MedicaoRow[]): string[] {
   return Array.from(set).sort();
 }
 
+const GRACE_PERIOD_MS = 4 * 3_600_000;
+
 export interface DurationAlert {
   currentDurationMs: number;
   currentDurationLabel: string;
+  excessDurationMs: number;
+  excessDurationLabel: string;
   violations: number;
   isViolation: boolean;
 }
@@ -341,7 +345,7 @@ export function computeOutOfRangeDuration(
   faixa: { min: number; max: number } | null,
 ): DurationAlert {
   if (series.length === 0 || !faixa) {
-    return { currentDurationMs: 0, currentDurationLabel: "0min", violations: 0, isViolation: false };
+    return { currentDurationMs: 0, currentDurationLabel: "0min", excessDurationMs: 0, excessDurationLabel: "0min", violations: 0, isViolation: false };
   }
 
   let streakStart: number | null = null;
@@ -356,7 +360,7 @@ export function computeOutOfRangeDuration(
       streakEnd = p.t;
     } else if (streakStart !== null) {
       const dur = streakEnd! - streakStart;
-      if (dur > 4 * 3_600_000) violations++;
+      if (dur > GRACE_PERIOD_MS) violations++;
       streakStart = null;
       streakEnd = null;
     }
@@ -365,13 +369,17 @@ export function computeOutOfRangeDuration(
   const currentDuration =
     streakStart !== null && streakEnd !== null ? streakEnd - streakStart : 0;
 
-  if (currentDuration > 4 * 3_600_000) violations++;
+  if (currentDuration > GRACE_PERIOD_MS) violations++;
+
+  const excessMs = Math.max(0, currentDuration - GRACE_PERIOD_MS);
 
   return {
     currentDurationMs: currentDuration,
     currentDurationLabel: formatDuration(currentDuration),
+    excessDurationMs: excessMs,
+    excessDurationLabel: formatDuration(excessMs),
     violations,
-    isViolation: currentDuration > 4 * 3_600_000,
+    isViolation: currentDuration > GRACE_PERIOD_MS,
   };
 }
 
@@ -385,7 +393,7 @@ export function computeDurationAlerts(
     const faixa = getFaixa(tipo);
     if (!faixa) continue;
     const multi = buildMultiSeries(medicoes, local);
-    let worst: DurationAlert = { currentDurationMs: 0, currentDurationLabel: "0min", violations: 0, isViolation: false };
+    let worst: DurationAlert = { currentDurationMs: 0, currentDurationLabel: "0min", excessDurationMs: 0, excessDurationLabel: "0min", violations: 0, isViolation: false };
     for (const sk of SENSOR_KEYS) {
       const sensorSeries: SeriesPoint[] = multi
         .map((p) => {
