@@ -24,24 +24,26 @@ export function Panel({
     <section
       data-chart={dataChart}
       className={cn(
-        "fade-up rounded-xl p-5",
+        "fade-up rounded-lg p-4 md:p-5",
         glass ? "panel-glass" : "panel",
         glow && "panel-glow",
         className,
       )}
     >
       {(title || action) && (
-        <header className="mb-4 flex items-start justify-between gap-3">
-          <div>
+        <div className="panel-header">
+          <div className="flex min-w-0 items-center gap-3">
             {title && (
-              <h2 className="text-[11px] font-bold tracking-[0.2em] text-primary uppercase">
-                {title}
-              </h2>
+              <div className="panel-nameplate">
+                <span className="panel-nameplate-text">{title}</span>
+              </div>
             )}
-            {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+            {subtitle && (
+              <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
+            )}
           </div>
-          {action}
-        </header>
+          {action && <div className="shrink-0">{action}</div>}
+        </div>
       )}
       {children}
     </section>

@@ -5,10 +5,7 @@ import {
   ClipboardList,
   Play,
   CheckCircle2,
-  XCircle,
-  Calendar,
   AlertOctagon,
-  Clock,
   Users,
   Thermometer,
   CalendarX,
@@ -42,7 +39,6 @@ import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
-import { Button } from "@/components/ui/button";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
@@ -289,7 +285,41 @@ function VisaoGeral() {
       />
 
       <div ref={chartRef} className="space-y-6">
-        {/* ═══════════ HERO DE KPIs ═══════════ */}
+        {/* ═══════════ ALERT BAR ═══════════ */}
+        {(aa > 0 || tempAlerta > 0 || atrasadas > 0) && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.03] px-4 py-2.5 text-xs">
+            {aa > 0 && (
+              <button
+                onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1.5 rounded-md bg-destructive/15 px-2 py-1 font-semibold text-destructive transition-colors hover:bg-destructive/25"
+              >
+                <AlertOctagon className="h-3 w-3" />
+                {aa} OS criticidade AA
+              </button>
+            )}
+            {atrasadas > 0 && (
+              <button
+                onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1.5 rounded-md bg-warning/15 px-2 py-1 font-semibold text-warning transition-colors hover:bg-warning/25"
+              >
+                <CalendarX className="h-3 w-3" />
+                {atrasadas} atrasadas
+              </button>
+            )}
+            {tempAlerta > 0 && (
+              <button
+                onClick={() => navigate({ to: "/temperaturas" })}
+                className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/15 px-2 py-1 font-semibold text-rose-400 transition-colors hover:bg-rose-500/25"
+              >
+                <Thermometer className="h-3 w-3" />
+                {tempAlerta} alertas térmicos
+              </button>
+            )}
+            <span className="ml-auto hidden text-muted-foreground sm:inline">Itens que requerem atenção</span>
+          </div>
+        )}
+
+        {/* ═══════════ HERO KPIs ═══════════ */}
         <KpiStrip
           items={[
             {
@@ -298,13 +328,6 @@ function VisaoGeral() {
               icon: ClipboardList,
               variant: "primary",
               trend: trendOS,
-            },
-            {
-              label: "OS Pendentes",
-              value: formatInt(programadas),
-              icon: Calendar,
-              variant: "neutral",
-              trend: trendPendentes,
             },
             {
               label: "Em Andamento",
@@ -320,297 +343,230 @@ function VisaoGeral() {
               trend: trendFinalizadas,
             },
             {
-              label: "Canceladas",
-              value: formatInt(canceladas),
-              icon: XCircle,
-              variant: "danger",
-              trend: trendCanceladas,
-            },
-            {
               label: "Atrasadas",
               value: formatInt(atrasadas),
               icon: CalendarX,
               variant: "danger",
               trend: trendAtrasadas,
             },
-            {
-              label: "Criticidade AA",
-              value: formatInt(aa),
-              icon: AlertOctagon,
-              variant: "danger",
-            },
-            {
-              label: "HH Programado",
-              value: formatBRNumber(totalHH, 1),
-              hint: "horas-homem",
-              icon: Clock,
-              variant: "primary",
-              trend: trendHH,
-            },
-            {
-              label: "Técnicos Ativos",
-              value: formatInt(tecnicos.length),
-              icon: Users,
-              variant: "neutral",
-            },
-            {
-              label: "Temp. em Alerta",
-              value: formatInt(tempAlerta),
-              hint: `${locais.length} locais`,
-              icon: Thermometer,
-              variant: tempAlerta > 0 ? "danger" : "success",
-            },
           ]}
         />
 
-        {/* ═══════════ PLANEJAMENTO ═══════════ */}
-        <SectionHeader
-          label="Planejamento"
-          insight={`${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH no período`}
-          icon={ClipboardList}
-          colorIndex={0}
-        >
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
-              <ChartPie data={byPlanejamento} onCellClick={chartClick} />
-            </Panel>
-
-            <Panel
-              dataChart="planejamento-dia"
-              title="PLANEJADO vs NÃO PLANEJADO POR DIA"
-              subtitle="Últimos 14 dias"
-              className="lg:col-span-2"
-              glass
+        {/* ═══════════ GRADE ASSIMÉTRICA ═══════════ */}
+        <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+          {/* ────── ESQUERDA ────── */}
+          <div className="space-y-6">
+            {/* PLANEJAMENTO */}
+            <SectionHeader
+              label="Planejamento"
+              insight={`${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas · ${formatBRNumber(totalHH, 1)}h HH no período`}
+              icon={ClipboardList}
+              colorIndex={0}
             >
-              {byPlanejamentoDia.length === 0 ? (
-                <EmptyState className="h-64" />
-              ) : (
-                <div className="h-72 md:h-64">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={byPlanejamentoDia}
-                      barCategoryGap="5%"
-                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
-                    >
-                      <CartesianGrid {...chartGridProps} />
-                      <XAxis dataKey="label" {...chartAxisProps} />
-                      <YAxis {...chartAxisProps} allowDecimals={false} />
-                      <ReTooltip {...chartTooltipProps} />
-                      <Legend
-                        wrapperStyle={CHART_LEGEND_STYLE}
-                        formatter={(value) =>
-                          value === "planejado" ? "Planejado" : "Não Planejado"
-                        }
-                      />
-                      <Bar
-                        dataKey="planejado"
-                        name="planejado"
-                        stackId="a"
-                        fill={SERIES_COLORS.planejado}
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={false}
-                      />
-                      <Bar
-                        dataKey="naoPlanejado"
-                        name="naoPlanejado"
-                        stackId="a"
-                        fill={SERIES_COLORS.naoPlanejado}
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={false}
-                      >
-                        <LabelList
-                          content={({ x, y, width, index }) => {
-                            const d =
-                              index !== undefined ? byPlanejamentoDia[index] : undefined;
-                            if (!d) return null;
-                            if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
-                            return (
-                              <text
-                                x={Number(x) + Number(width) / 2}
-                                y={Number(y) - 6}
-                                textAnchor="middle"
-                                fill="#F1F5F9"
-                                fontSize={10}
-                              >
-                                {d.planejado}/{d.naoPlanejado}
-                              </text>
-                            );
-                          }}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-          </div>
-
-          <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
-            {byDia.length === 0 ? (
-              <EmptyState className="h-64" />
-            ) : (
-              <div className="h-72 md:h-64">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={byDia}
-                      barCategoryGap="5%"
-                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
-                    >
-                    <CartesianGrid {...chartGridProps} />
-                    <XAxis dataKey="label" {...chartAxisProps} />
-                    <YAxis {...chartAxisProps} allowDecimals={false} />
-                    <ReTooltip {...chartTooltipProps} />
-                    <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                    <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                      {byDia.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                      <LabelList
-                        content={({ x, y, width, value }) => {
-                          const numVal = Number(value);
-                          if (!numVal || numVal <= 0) return null;
-                          return (
-                            <text
-                              x={Number(x) + Number(width) / 2}
-                              y={Number(y) - 6}
-                              textAnchor="middle"
-                              fill="#F1F5F9"
-                              fontSize={10}
-                            >
-                              {value}
-                            </text>
-                          );
-                        }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO PLANEJADO" glass>
+                  <ChartPie data={byPlanejamento} onCellClick={chartClick} />
+                </Panel>
+                <Panel
+                  dataChart="planejamento-dia"
+                  title="PLANEJADO vs NÃO PLANEJADO POR DIA"
+                  subtitle="Últimos 14 dias"
+                  className="lg:col-span-2"
+                  glass
+                >
+                  {byPlanejamentoDia.length === 0 ? (
+                    <EmptyState className="h-64" />
+                  ) : (
+                    <div className="h-72 md:h-64">
+                      <ResponsiveContainer>
+                        <BarChart
+                          data={byPlanejamentoDia}
+                          barCategoryGap="5%"
+                          margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
+                        >
+                          <CartesianGrid {...chartGridProps} />
+                          <XAxis dataKey="label" {...chartAxisProps} />
+                          <YAxis {...chartAxisProps} allowDecimals={false} />
+                          <ReTooltip {...chartTooltipProps} />
+                          <Legend
+                            wrapperStyle={CHART_LEGEND_STYLE}
+                            formatter={(value) =>
+                              value === "planejado" ? "Planejado" : "Não Planejado"
+                            }
+                          />
+                          <Bar dataKey="planejado" name="planejado" stackId="a" fill={SERIES_COLORS.planejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                          <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                            <LabelList
+                              content={({ x, y, width, index }) => {
+                                const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
+                                if (!d) return null;
+                                if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
+                                return (
+                                  <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>
+                                    {d.planejado}/{d.naoPlanejado}
+                                  </text>
+                                );
+                              }}
+                            />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </Panel>
               </div>
-            )}
-          </Panel>
-        </SectionHeader>
 
-        {/* ═══════════ EXECUÇÃO ═══════════ */}
-        <SectionHeader
-          label="Execução"
-          insight={`${formatBRNumber(aderencia.pct, 1)}% de aderência · ${formatInt(finalizadas)} finalizadas · ${formatInt(emAndamento)} em andamento · ${formatInt(aderencia.pendentes)} pendentes`}
-          icon={CheckCircle2}
-          colorIndex={1}
-        >
-          <div className="grid gap-4 lg:grid-cols-3">
-            <AderenciaCard
-              pct={aderencia.pct}
-              finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
-              finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
-              canceladas={aderencia.canceladas}
-              pendentes={aderencia.pendentes}
-              totalProgramadas={aderencia.totalProgramadas}
-            />
-            <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-              <ChartDonut data={byStatus} onCellClick={chartClick} />
-            </Panel>
-            <Panel dataChart="os-sistema" title="OS POR SISTEMA" className="lg:col-span-1" glass>
-              <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
-            </Panel>
-          </div>
-        </SectionHeader>
+              <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas">
+                {byDia.length === 0 ? (
+                  <EmptyState className="h-64" />
+                ) : (
+                  <div className="h-72 md:h-64">
+                    <ResponsiveContainer>
+                      <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 30, right: 20, left: 20, bottom: 4 }}>
+                        <CartesianGrid {...chartGridProps} />
+                        <XAxis dataKey="label" {...chartAxisProps} />
+                        <YAxis {...chartAxisProps} allowDecimals={false} />
+                        <ReTooltip {...chartTooltipProps} />
+                        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+                        <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                          {byDia.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                          <LabelList
+                            content={({ x, y, width, value }) => {
+                              const numVal = Number(value);
+                              if (!numVal || numVal <= 0) return null;
+                              return (
+                                <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>{value}</text>
+                              );
+                            }}
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </Panel>
+            </SectionHeader>
 
-        {/* ═══════════ PROBLEMAS ═══════════ */}
-        <SectionHeader
-          label="Problemas"
-          insight={`${formatInt(aa)} OS com criticidade AA · ${quebras.length} quebras de programação · ${formatInt(tempAlerta)} alertas térmicos`}
-          icon={AlertOctagon}
-          colorIndex={3}
-        >
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
-              <ChartDonut data={byCriticidade} onCellClick={chartClick} />
-            </Panel>
-            <Panel
-              dataChart="quebras"
-              title="QUEBRA DE PROGRAMAÇÃO POR SOLICITANTE"
-              subtitle="OS do tipo quebra agrupadas por solicitante"
+            {/* EXECUÇÃO */}
+            <SectionHeader
+              label="Execução"
+              insight={`${formatBRNumber(aderencia.pct, 1)}% de aderência · ${formatInt(finalizadas)} finalizadas · ${formatInt(emAndamento)} em andamento`}
+              icon={CheckCircle2}
+              colorIndex={1}
             >
-              {quebras.length === 0 ? (
-                <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-64" />
-              ) : (
-                <div className="h-64">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={quebras}
-                      layout="vertical"
-                      margin={{ left: 20, right: 40, top: 8, bottom: 4 }}
-                    >
-                      <CartesianGrid {...chartGridProps} horizontal={false} />
-                      <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" {...chartAxisProps} width={140} />
-                      <ReTooltip {...chartTooltipProps} />
-                      <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                        <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+              <AderenciaCard
+                pct={aderencia.pct}
+                finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
+                finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
+                canceladas={aderencia.canceladas}
+                pendentes={aderencia.pendentes}
+                totalProgramadas={aderencia.totalProgramadas}
+              />
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Panel dataChart="status-os" title="STATUS DAS OS" glass>
+                  <ChartDonut data={byStatus} onCellClick={chartClick} />
+                </Panel>
+                <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
+                  <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
+                </Panel>
+              </div>
+            </SectionHeader>
+          </div>
+
+          {/* ────── DIREITA ────── */}
+          <div className="space-y-6">
+            {/* ATENÇÃO */}
+            <SectionHeader
+              label="Atenção"
+              insight={`${formatInt(aa)} criticidade AA · ${quebras.length} quebras · ${formatInt(tempAlerta)} alertas`}
+              icon={AlertOctagon}
+              colorIndex={3}
+            >
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
+                  <ChartDonut data={byCriticidade} onCellClick={chartClick} />
+                </Panel>
+                <Panel dataChart="quebras" title="QUEBRAS POR SOLICITANTE" subtitle="OS tipo quebra">
+                  {quebras.length === 0 ? (
+                    <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-40" />
+                  ) : (
+                    <div className="h-48">
+                      <ResponsiveContainer>
+                        <BarChart data={quebras} layout="vertical" margin={{ left: 16, right: 32, top: 4, bottom: 4 }}>
+                          <CartesianGrid {...chartGridProps} horizontal={false} />
+                          <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
+                          <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
+                          <ReTooltip {...chartTooltipProps} />
+                          <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                            <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </Panel>
+              </div>
+            </SectionHeader>
+
+            {/* RECURSOS */}
+            <SectionHeader
+              label="Recursos"
+              insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${formatBRNumber(totalHH, 1)}h HH`}
+              icon={Users}
+              colorIndex={2}
+            >
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <Panel dataChart="hh-cargo" title="HH POR CARGO">
+                  {(() => {
+                    const hhData = aggregateHH(programacaoFiltrada);
+                    const avg = hhData.length > 0
+                      ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
+                      : 0;
+                    return (
+                      <ChartBarHorizontal
+                        data={hhData}
+                        refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
+                      />
+                    );
+                  })()}
+                </Panel>
+                <div className="grid grid-cols-2 gap-2">
+                  <Panel title="TÉCNICOS" glass>
+                    <div className="num text-2xl font-bold text-foreground">{formatInt(tecnicos.length)}</div>
+                    <p className="mt-1 text-xs text-muted-foreground">Ativos na plataforma</p>
+                  </Panel>
+                  <Panel title="HH TOTAL" glass>
+                    <div className="num text-2xl font-bold text-foreground">{formatBRNumber(totalHH, 1)}<span className="text-xs font-normal text-muted-foreground">h</span></div>
+                    <p className="mt-1 text-xs text-muted-foreground">Horas-homem programadas</p>
+                  </Panel>
                 </div>
-              )}
+              </div>
+            </SectionHeader>
+
+            {/* NAVEGAÇÃO RÁPIDA */}
+            <Panel title="NAVEGAÇÃO" glass>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { url: "/programacao", label: "Programação Semanal" },
+                  { url: "/temperaturas", label: "Monitor Térmico" },
+                  { url: "/hh-semanal", label: "Capacidade HH" },
+                  { url: "/planos-manutencao", label: "Planos de Manutenção" },
+                ].map((s) => (
+                  <Link
+                    key={s.url}
+                    to={s.url}
+                    className="rounded-lg border border-border/60 bg-card/40 p-2.5 text-xs text-foreground/80 transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    {s.label}
+                  </Link>
+                ))}
+              </div>
             </Panel>
           </div>
-        </SectionHeader>
-
-        {/* ═══════════ RECURSOS ═══════════ */}
-        <SectionHeader
-          label="Recursos"
-          insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${locais.length} locais monitorados`}
-          icon={Users}
-          colorIndex={2}
-        >
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Panel dataChart="hh-cargo" title="HH POR CARGO">
-              {(() => {
-                const hhData = aggregateHH(programacaoFiltrada);
-                const avg = hhData.length > 0
-                  ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
-                  : 0;
-                return (
-                  <ChartBarHorizontal
-                    data={hhData}
-                    refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
-                  />
-                );
-              })()}
-            </Panel>
-          </div>
-        </SectionHeader>
-      </div>
-
-      {/* ═══════════ NAVEGAÇÃO ═══════════ */}
-      <Panel
-        title="Navegação Rápida"
-        glass
-        action={
-          <Link to="/alertas">
-            <Button size="sm" variant="ghost" className="text-primary">
-              Ver alertas →
-            </Button>
-          </Link>
-        }
-      >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { url: "/programacao", label: "Programação Semanal" },
-            { url: "/temperaturas", label: "Monitor Térmico" },
-            { url: "/hh-semanal", label: "Capacidade HH" },
-            { url: "/checklists", label: "Planos de Manutenção" },
-          ].map((s) => (
-            <Link
-              key={s.url}
-              to={s.url}
-              className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs text-foreground transition-all hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              {s.label}
-            </Link>
-          ))}
         </div>
-      </Panel>
+      </div>
     </div>
   );
 }

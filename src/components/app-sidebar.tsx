@@ -44,28 +44,23 @@ const groups = [
     ],
   },
   {
-    label: "PLANEJAMENTO",
+    label: "OPERAÇÃO",
     items: [
       { title: "Programação", url: "/programacao", icon: CalendarDays },
       { title: "HH Semanal", url: "/hh-semanal", icon: Clock },
+      { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
       { title: "Planos de Manutenção", url: "/planos-manutencao", icon: ClipboardCheck },
+      { title: "Relatórios", url: "/relatorios", icon: FileText },
     ],
   },
   {
-    label: "QUALIDADE",
+    label: "QUALIDADE & APOIO",
     items: [
       { title: "NC", url: "/nc", icon: FileWarning },
       { title: "Preditivas", url: "/preditivas", icon: TrendingUp },
-      { title: "Relatórios", url: "/relatorios", icon: FileText },
       { title: "Indicadores", url: "/indicadores", icon: Activity },
-    ],
-  },
-  {
-    label: "APOIO",
-    items: [
       { title: "Backlog", url: "/backlog", icon: Inbox },
       { title: "Ativos", url: "/ativos", icon: Boxes },
-      { title: "Passagem de Turno", url: "/passagem-turno", icon: ArrowLeftRight },
       { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
     ],
   },

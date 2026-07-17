@@ -15,6 +15,7 @@ import { Route as AppTemperaturasRouteImport } from './routes/_app.temperaturas'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
 import { Route as AppPreditivasRouteImport } from './routes/_app.preditivas'
+import { Route as AppPlanosManutencaoRouteImport } from './routes/_app.planos-manutencao'
 import { Route as AppPassagemTurnoRouteImport } from './routes/_app.passagem-turno'
 import { Route as AppNcRouteImport } from './routes/_app.nc'
 import { Route as AppMatrizPriorizacaoRouteImport } from './routes/_app.matriz-priorizacao'
@@ -22,7 +23,6 @@ import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
 import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
 import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
 import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
-import { Route as AppPlanosManutencaoRouteImport } from './routes/_app.planos-manutencao'
 import { Route as AppBacklogRouteImport } from './routes/_app.backlog'
 import { Route as AppAtivosRouteImport } from './routes/_app.ativos'
 import { Route as AppAlertasRouteImport } from './routes/_app.alertas'
@@ -54,6 +54,11 @@ const AppProgramacaoRoute = AppProgramacaoRouteImport.update({
 const AppPreditivasRoute = AppPreditivasRouteImport.update({
   id: '/preditivas',
   path: '/preditivas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlanosManutencaoRoute = AppPlanosManutencaoRouteImport.update({
+  id: '/planos-manutencao',
+  path: '/planos-manutencao',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPassagemTurnoRoute = AppPassagemTurnoRouteImport.update({
@@ -91,11 +96,6 @@ const AppChecklistsRoute = AppChecklistsRouteImport.update({
   path: '/checklists',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPlanosManutencaoRoute = AppPlanosManutencaoRouteImport.update({
-  id: '/planos-manutencao',
-  path: '/planos-manutencao',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppBacklogRoute = AppBacklogRouteImport.update({
   id: '/backlog',
   path: '/backlog',
@@ -118,13 +118,13 @@ export interface FileRoutesByFullPath {
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
-  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
   '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
   '/relatorios': typeof AppRelatoriosRoute
@@ -135,13 +135,13 @@ export interface FileRoutesByTo {
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
-  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/equipe': typeof AppEquipeRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
   '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/nc': typeof AppNcRoute
   '/passagem-turno': typeof AppPassagemTurnoRoute
+  '/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/preditivas': typeof AppPreditivasRoute
   '/programacao': typeof AppProgramacaoRoute
   '/relatorios': typeof AppRelatoriosRoute
@@ -155,13 +155,13 @@ export interface FileRoutesById {
   '/_app/ativos': typeof AppAtivosRoute
   '/_app/backlog': typeof AppBacklogRoute
   '/_app/checklists': typeof AppChecklistsRoute
-  '/_app/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/_app/equipe': typeof AppEquipeRoute
   '/_app/hh-semanal': typeof AppHhSemanalRoute
   '/_app/indicadores': typeof AppIndicadoresRoute
   '/_app/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
   '/_app/nc': typeof AppNcRoute
   '/_app/passagem-turno': typeof AppPassagemTurnoRoute
+  '/_app/planos-manutencao': typeof AppPlanosManutencaoRoute
   '/_app/preditivas': typeof AppPreditivasRoute
   '/_app/programacao': typeof AppProgramacaoRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
@@ -176,13 +176,13 @@ export interface FileRouteTypes {
     | '/ativos'
     | '/backlog'
     | '/checklists'
-    | '/planos-manutencao'
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
     | '/matriz-priorizacao'
     | '/nc'
     | '/passagem-turno'
+    | '/planos-manutencao'
     | '/preditivas'
     | '/programacao'
     | '/relatorios'
@@ -193,13 +193,13 @@ export interface FileRouteTypes {
     | '/ativos'
     | '/backlog'
     | '/checklists'
-    | '/planos-manutencao'
     | '/equipe'
     | '/hh-semanal'
     | '/indicadores'
     | '/matriz-priorizacao'
     | '/nc'
     | '/passagem-turno'
+    | '/planos-manutencao'
     | '/preditivas'
     | '/programacao'
     | '/relatorios'
@@ -212,13 +212,13 @@ export interface FileRouteTypes {
     | '/_app/ativos'
     | '/_app/backlog'
     | '/_app/checklists'
-    | '/_app/planos-manutencao'
     | '/_app/equipe'
     | '/_app/hh-semanal'
     | '/_app/indicadores'
     | '/_app/matriz-priorizacao'
     | '/_app/nc'
     | '/_app/passagem-turno'
+    | '/_app/planos-manutencao'
     | '/_app/preditivas'
     | '/_app/programacao'
     | '/_app/relatorios'
@@ -274,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPreditivasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/planos-manutencao': {
+      id: '/_app/planos-manutencao'
+      path: '/planos-manutencao'
+      fullPath: '/planos-manutencao'
+      preLoaderRoute: typeof AppPlanosManutencaoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/passagem-turno': {
       id: '/_app/passagem-turno'
       path: '/passagem-turno'
@@ -323,13 +330,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChecklistsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/planos-manutencao': {
-      id: '/_app/planos-manutencao'
-      path: '/planos-manutencao'
-      fullPath: '/planos-manutencao'
-      preLoaderRoute: typeof AppPlanosManutencaoRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/backlog': {
       id: '/_app/backlog'
       path: '/backlog'
@@ -359,13 +359,13 @@ interface AppRouteChildren {
   AppAtivosRoute: typeof AppAtivosRoute
   AppBacklogRoute: typeof AppBacklogRoute
   AppChecklistsRoute: typeof AppChecklistsRoute
-  AppPlanosManutencaoRoute: typeof AppPlanosManutencaoRoute
   AppEquipeRoute: typeof AppEquipeRoute
   AppHhSemanalRoute: typeof AppHhSemanalRoute
   AppIndicadoresRoute: typeof AppIndicadoresRoute
   AppMatrizPriorizacaoRoute: typeof AppMatrizPriorizacaoRoute
   AppNcRoute: typeof AppNcRoute
   AppPassagemTurnoRoute: typeof AppPassagemTurnoRoute
+  AppPlanosManutencaoRoute: typeof AppPlanosManutencaoRoute
   AppPreditivasRoute: typeof AppPreditivasRoute
   AppProgramacaoRoute: typeof AppProgramacaoRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
@@ -378,13 +378,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppAtivosRoute: AppAtivosRoute,
   AppBacklogRoute: AppBacklogRoute,
   AppChecklistsRoute: AppChecklistsRoute,
-  AppPlanosManutencaoRoute: AppPlanosManutencaoRoute,
   AppEquipeRoute: AppEquipeRoute,
   AppHhSemanalRoute: AppHhSemanalRoute,
   AppIndicadoresRoute: AppIndicadoresRoute,
   AppMatrizPriorizacaoRoute: AppMatrizPriorizacaoRoute,
   AppNcRoute: AppNcRoute,
   AppPassagemTurnoRoute: AppPassagemTurnoRoute,
+  AppPlanosManutencaoRoute: AppPlanosManutencaoRoute,
   AppPreditivasRoute: AppPreditivasRoute,
   AppProgramacaoRoute: AppProgramacaoRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
