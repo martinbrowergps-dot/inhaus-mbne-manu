@@ -12,8 +12,7 @@ import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
 import { filterByRange, summarizeLocais, uniqueLocais, computeDurationAlerts, type TempRange } from "@/lib/temperature";
-import { useDateFilter } from "@/hooks/use-date-filter";
-import { formatDateBR } from "@/lib/format";
+
 import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
 
@@ -34,19 +33,16 @@ function TemperaturasPage() {
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
 
-  const dateFilter = useDateFilter();
-
   if (isLoading)
     return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   const medicoes = data?.medicoes ?? [];
-  const medicoesFiltradas = medicoes.filter((m) => dateFilter.filterByDateRange(m.DATA));
-  const locais = summarizeLocais(medicoesFiltradas);
-  const durationAlerts = computeDurationAlerts(medicoesFiltradas);
+  const locais = summarizeLocais(medicoes);
+  const durationAlerts = computeDurationAlerts(medicoes);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
-  const allLocais = uniqueLocais(medicoesFiltradas);
+  const allLocais = uniqueLocais(medicoes);
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -67,7 +63,7 @@ function TemperaturasPage() {
           </Tabs>
           <ExportButton
             filename={`temperaturas_${range}`}
-            rows={filterByRange(medicoesFiltradas, range)}
+            rows={filterByRange(medicoes, range)}
             columns={[
               { header: "Local", value: (r) => r.LOCAL },
               { header: "Data", value: (r) => r.DATA },
@@ -78,11 +74,6 @@ function TemperaturasPage() {
               { header: "Técnico", value: (r) => r.TECNICO },
             ]}
             pdfTitle="Temperaturas · Centro de Controle"
-            pdfSubtitle={
-              dateFilter.isActive
-                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-                : undefined
-            }
             pdfTargetRef={pdfRef as React.RefObject<HTMLElement | null>}
           />
         </div>
@@ -141,7 +132,7 @@ function TemperaturasPage() {
                 <TempTrendChart
                   key={local}
                   local={local}
-                  medicoes={medicoesFiltradas}
+                  medicoes={medicoes}
                   range={range}
                 />
               ))}
@@ -153,7 +144,7 @@ function TemperaturasPage() {
           title="VISÃO COMPARATIVA"
           subtitle="Todos os locais sobrepostos · ideal para detectar desvios simultâneos"
         >
-          <TempMultiChart locais={allLocais} medicoes={medicoesFiltradas} range={range} />
+          <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
         </Panel>
       </SectionHeader>
     </div>

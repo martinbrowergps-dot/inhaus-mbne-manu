@@ -8,7 +8,6 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import type { NcRow } from "@/lib/sheets-types";
 import { statusBadge } from "@/lib/chart-utils";
 import { parseBRDate, formatBRDate } from "@/lib/format";
-import { useDateFilter } from "@/hooks/use-date-filter";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -85,13 +84,7 @@ const columns: ColumnDef<NcRow>[] = [
 
 function NcPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const dateFilter = useDateFilter();
-
-  const nc = useMemo(() => {
-    const raw = data?.nc ?? [];
-    if (!dateFilter.isActive) return raw;
-    return raw.filter((r) => dateFilter.filterByDateRange(r.DataConclusao));
-  }, [data?.nc, dateFilter]);
+  const nc = useMemo(() => data?.nc ?? [], [data?.nc]);
 
   const byResponsavel = useMemo(() => {
     const m = new Map<string, number>();
@@ -115,6 +108,10 @@ function NcPage() {
       .sort((a, b) => b.value - a.value);
   }, [nc]);
 
+  const total = nc.length;
+  const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
+  const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
+
   if (isLoading)
     return (
       <div className="space-y-4">
@@ -131,20 +128,12 @@ function NcPage() {
         <h1 className="fade-up text-xl font-bold tracking-tight">Não Conformidades</h1>
         <EmptyState
           icon={FileSearch}
-          title="Nenhuma NC no período"
-          description={
-            dateFilter.isActive
-              ? "Tente ampliar o filtro de datas para ver mais registros."
-              : "Nenhuma não conformidade cadastrada na planilha."
-          }
+          title="Nenhuma NC cadastrada"
+          description="Nenhuma não conformidade encontrada na planilha."
         />
       </div>
     );
   }
-
-  const total = nc.length;
-  const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
-  const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
 
   return (
     <div className="space-y-6">

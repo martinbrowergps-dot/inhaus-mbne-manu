@@ -18,8 +18,7 @@ import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
 import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
-import { formatBRNumber, parseBRDate, formatBRDate, formatDateBR } from "@/lib/format";
-import { useDateFilter } from "@/hooks/use-date-filter";
+import { formatBRNumber, parseBRDate, formatBRDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/preditivas")({
   component: PreditivasPage,
@@ -75,11 +74,9 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const dateFilter = useDateFilter();
   const preditiva = useMemo(
-    () =>
-      (data?.preditiva ?? []).filter((r) => dateFilter.filterByDateRange(r.Data)),
-    [data?.preditiva, dateFilter],
+    () => data?.preditiva ?? [],
+    [data?.preditiva],
   );
 
   const byCategoria = useMemo(() => aggregate(preditiva, (r) => r.Categoria), [preditiva]);
@@ -164,18 +161,13 @@ function PreditivasPage() {
               { header: "HH", value: (r) => r.HH },
             ]}
             pdfTitle="Preditivas"
-            pdfSubtitle={
-              dateFilter.isActive
-                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
-                : undefined
-            }
           />
         }
       />
 
       <SectionHeader
         label="Panorama"
-        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byCategoria.length} categorias${dateFilter.isActive ? ` · ${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}` : ""}`}
+        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados · ${byCategoria.length} categorias`}
       >
         <div className="grid gap-3 sm:grid-cols-4">
           <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
