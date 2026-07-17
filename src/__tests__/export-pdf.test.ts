@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { validateLayout, DEFAULT_MARGINS } from "@/lib/export-pdf";
+import { validateLayout } from "@/lib/pdf-layout";
+import { DEFAULT_MARGINS } from "@/lib/pdf-css-patch";
 
 describe("validateLayout", () => {
   const defaults = { ...DEFAULT_MARGINS };
