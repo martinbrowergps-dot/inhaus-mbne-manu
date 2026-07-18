@@ -37,8 +37,9 @@ function TemperaturasPage() {
     return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   const medicoes = data?.medicoes ?? [];
+  const filteredMedicoes = filterByRange(medicoes, range);
   const locais = summarizeLocais(medicoes);
-  const durationAlerts = computeDurationAlerts(medicoes);
+  const durationAlerts = computeDurationAlerts(filteredMedicoes);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
