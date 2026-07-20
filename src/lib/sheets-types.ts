@@ -124,21 +124,16 @@ export interface PlanoManutencaoRow {
 }
 
 export interface PreditivaRow {
-  CodigoReferencia: string;
-  Data: string;
-  Tipo: string;
-  Categoria: string;
-  Prioridade: string;
-  Titulo: string;
-  Objetivo: string;
   Area: string;
   Setor: string;
   Conjunto: string;
+  TipoEquipamento: string;
+  Equipamento: string;
+  Data: string;
+  NumeroRelatorio: string;
   Servico: string;
-  DescricaoAtividade: string;
-  HH: string;
   Status: string;
-  Situacao: string;
+  Acoes: string;
 }
 
 export interface SheetsData {

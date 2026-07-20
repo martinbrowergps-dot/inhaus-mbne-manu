@@ -2,11 +2,9 @@ import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Activity, Clock, ListFilter, TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Activity, CheckCircle2, Clock } from "lucide-react";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
-import { priorityBadge } from "@/lib/chart-utils";
 import { StatusBadge } from "@/components/status-badge";
 import type { ExecStatus } from "@/lib/status";
 import { DataTable } from "@/components/data-table";
@@ -17,18 +15,15 @@ import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
-import { formatBRNumber, parseBRDate, formatBRDate } from "@/lib/format";
+import { TrendingUp } from "lucide-react";
+import { parseBRDate, formatBRDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/preditivas")({
   component: PreditivasPage,
 });
 
 const columns: ColumnDef<PreditivaRow>[] = [
-  {
-    accessorKey: "CodigoReferencia",
-    header: "Código",
-    cell: ({ getValue }) => <span className="id">{getValue() as string}</span>,
-  },
+  { accessorKey: "NumeroRelatorio", header: "Nº Relatório" },
   {
     accessorKey: "Data",
     header: "Data",
@@ -37,42 +32,24 @@ const columns: ColumnDef<PreditivaRow>[] = [
       return <span className="num">{d ? formatBRDate(d) : ((getValue() as string) || "—")}</span>;
     },
   },
-  { accessorKey: "Tipo", header: "Tipo" },
-  { accessorKey: "Categoria", header: "Categoria" },
-  {
-    accessorKey: "Prioridade",
-    header: "Prioridade",
-    cell: ({ row }) => (
-      <span
-        className={cn(
-          "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider",
-          priorityBadge(row.original.Prioridade),
-        )}
-      >
-        {row.original.Prioridade}
-      </span>
-    ),
-  },
-  { accessorKey: "Titulo", header: "Título" },
-  {
-    accessorKey: "DescricaoAtividade",
-    header: "Descrição",
-    cell: ({ getValue }) => (
-      <span className="line-clamp-1 max-w-[280px]">{getValue() as string}</span>
-    ),
-  },
+  { accessorKey: "Servico", header: "Serviço" },
+  { accessorKey: "TipoEquipamento", header: "Tipo Equipamento" },
+  { accessorKey: "Equipamento", header: "Equipamento" },
+  { accessorKey: "Area", header: "Área" },
   { accessorKey: "Setor", header: "Setor" },
-  {
-    accessorKey: "HH",
-    header: "HH",
-    cell: ({ getValue }) => <span className="num">{formatBRNumber(Number(getValue() || 0), 2)}</span>,
-  },
+  { accessorKey: "Conjunto", header: "Conjunto" },
   {
     accessorKey: "Status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={(row.original.Status || "Programada") as ExecStatus} />,
+    cell: ({ row }) => <StatusBadge status={(row.original.Status || "Pendente") as ExecStatus} />,
   },
-  { accessorKey: "Situacao", header: "Situação" },
+  {
+    accessorKey: "Acoes",
+    header: "Ações",
+    cell: ({ getValue }) => (
+      <span className="line-clamp-2 max-w-[400px] text-sm">{getValue() as string}</span>
+    ),
+  },
 ];
 
 function PreditivasPage() {
@@ -98,7 +75,7 @@ function PreditivasPage() {
         <h1 className="fade-up text-xl font-bold tracking-tight">Manutenção Preditiva</h1>
         <EmptyState
           icon={TrendingUp}
-          title="Nenhuma ação preditiva cadastrada"
+          title="Nenhum relatório preditivo cadastrado"
           description="Não há registros na planilha de manutenção preditiva."
         />
       </div>
@@ -106,33 +83,29 @@ function PreditivasPage() {
   }
 
   const total = preditiva.length;
-  const totalHH = preditiva.reduce((s, r) => s + Number(r.HH || 0), 0);
-  const finalizadas = preditiva.filter((r) =>
-    /finaliz|conclu|fechado/i.test(r.Status || ""),
-  ).length;
+  const finalizadas = preditiva.filter((r) => /finaliz|conclu/i.test(r.Status || "")).length;
   const pendentes = total - finalizadas;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Preditivas"
-        subtitle="Ações preditivas e corretivas-preditivas registradas"
+        subtitle="Relatórios de manutenção preditiva (termografia, óleo, vibração)"
         exportButton={
           <ExportButton
             filename="preditivas"
             rows={preditiva}
             columns={[
-              { header: "Código", value: (r) => r.CodigoReferencia },
+              { header: "Nº Relatório", value: (r) => r.NumeroRelatorio },
               { header: "Data", value: (r) => r.Data },
-              { header: "Tipo", value: (r) => r.Tipo },
-              { header: "Categoria", value: (r) => r.Categoria },
-              { header: "Prioridade", value: (r) => r.Prioridade },
-              { header: "Título", value: (r) => r.Titulo },
-              { header: "Descrição", value: (r) => r.DescricaoAtividade },
+              { header: "Área", value: (r) => r.Area },
               { header: "Setor", value: (r) => r.Setor },
+              { header: "Conjunto", value: (r) => r.Conjunto },
+              { header: "Tipo Equipamento", value: (r) => r.TipoEquipamento },
+              { header: "Equipamento", value: (r) => r.Equipamento },
+              { header: "Serviço", value: (r) => r.Servico },
               { header: "Status", value: (r) => r.Status },
-              { header: "Situação", value: (r) => r.Situacao },
-              { header: "HH", value: (r) => r.HH },
+              { header: "Ações", value: (r) => r.Acoes },
             ]}
             pdfTitle="Preditivas"
           />
@@ -141,38 +114,32 @@ function PreditivasPage() {
 
       <SectionHeader
         label="Panorama"
-        insight={`${total} ações preditivas · ${formatBRNumber(totalHH, 1)}h estimados`}
+        insight={`${total} relatórios · ${finalizadas} finalizados`}
       >
-        <div className="grid gap-3 sm:grid-cols-4">
-          <KpiCard label="Total de ações" value={total} icon={Activity} variant="primary" />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <KpiCard label="Total de relatórios" value={total} icon={Activity} variant="primary" />
           <KpiCard
-            label="HH Estimado"
-            value={`${formatBRNumber(totalHH, 1)}h`}
-            icon={Clock}
-            variant="neutral"
-          />
-          <KpiCard
-            label="Finalizadas"
+            label="Finalizados"
             value={finalizadas}
-            icon={TrendingUp}
+            icon={CheckCircle2}
             variant="success"
           />
-          <KpiCard label="Pendentes" value={pendentes} icon={ListFilter} variant="warning" />
+          <KpiCard label="Pendentes" value={pendentes} icon={Clock} variant="warning" />
         </div>
       </SectionHeader>
 
       <SectionHeader
-        label="Atividades"
-        insight={`${preditiva.length} ações cadastradas`}
+        label="Relatórios"
+        insight={`${preditiva.length} registros`}
       >
-        <Panel title="LISTA DE AÇÕES PREDITIVAS">
+        <Panel title="LISTA DE RELATÓRIOS PREDITIVOS">
           <DataTable
             data={preditiva}
             columns={columns}
             pageSize={15}
-            searchKeys={["CodigoReferencia", "Titulo", "DescricaoAtividade", "Tipo", "Categoria", "Setor"]}
-            detailTitle={(r) => r.CodigoReferencia}
-            detailSubtitle={(r) => `${r.Titulo} — ${r.Objetivo}`}
+            searchKeys={["NumeroRelatorio", "Servico", "TipoEquipamento", "Equipamento", "Area", "Setor", "Acoes"]}
+            detailTitle={(r) => `Nº ${r.NumeroRelatorio}`}
+            detailSubtitle={(r) => `${r.Servico} — ${r.Equipamento || r.TipoEquipamento}`}
           />
         </Panel>
       </SectionHeader>
