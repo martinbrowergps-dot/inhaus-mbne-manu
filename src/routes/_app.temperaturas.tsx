@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -11,7 +11,17 @@ import { TempMultiChart } from "@/components/temp-multi-chart";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButton } from "@/components/export-button";
-import { filterByRange, summarizeLocais, uniqueLocais, computeDurationAlerts, type TempRange } from "@/lib/temperature";
+import {
+  filterByRange,
+  summarizeLocais,
+  uniqueLocais,
+  computeDurationAlerts,
+  classifyLocal,
+  tempStatus,
+  type TempRange,
+  type TempStatus,
+} from "@/lib/temperature";
+import { parseBRDate } from "@/lib/format";
 
 import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
@@ -44,6 +54,45 @@ function TemperaturasPage() {
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
   const allLocais = uniqueLocais(medicoes);
+
+  // Heatmap LOCAL x DIA (todo o histórico disponível)
+  const heatmap = useMemo(() => {
+    const rank = (s: TempStatus) => (s === "critico" ? 2 : s === "alerta" ? 1 : 0);
+    const dayMap = new Map<string, { label: string; ts: number }>();
+    for (const m of medicoes) {
+      const d = (m.DATA || "").trim();
+      if (!d || dayMap.has(d)) continue;
+      const dt = parseBRDate(d);
+      dayMap.set(d, {
+        label: dt ? dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : d,
+        ts: dt ? dt.getTime() : 0,
+      });
+    }
+    const days = Array.from(dayMap.entries())
+      .map(([raw, v]) => ({ raw, ...v }))
+      .sort((a, b) => a.ts - b.ts);
+    const cells = new Map<string, { temp: number | null; status: TempStatus }>();
+    for (const m of medicoes) {
+      const l = (m.LOCAL || "").trim();
+      const d = (m.DATA || "").trim();
+      if (!l || !d) continue;
+      const tipo = classifyLocal(l);
+      const temps = [m.TEMPERATURA_01, m.TEMPERATURA_02].filter(
+        (t): t is number => t !== null,
+      );
+      if (temps.length === 0) continue;
+      const worst = temps.reduce((w, t) => {
+        const sw = tempStatus(w, tipo);
+        const st = tempStatus(t, tipo);
+        return rank(st) > rank(sw) ? t : w;
+      }, temps[0]);
+      const key = `${l}|${d}`;
+      const prev = cells.get(key);
+      const ws = tempStatus(worst, tipo);
+      if (!prev || rank(ws) > rank(prev.status)) cells.set(key, { temp: worst, status: ws });
+    }
+    return { locais: allLocais, days, cells };
+  }, [medicoes, allLocais]);
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -148,6 +197,75 @@ function TemperaturasPage() {
           <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
         </Panel>
       </SectionHeader>
+
+      <SectionHeader
+        label="Heatmap de Temperaturas"
+        insight="Pior leitura do dia por local · verde na faixa · âmbar alerta · vermelho crítico"
+        children={null}
+      />
+
+      <Panel title="LOCAL × DIA" subtitle="Todo o período histórico disponível">
+        {heatmap.locais.length === 0 || heatmap.days.length === 0 ? (
+          <EmptyState className="h-32" />
+        ) : (
+          <div className="space-y-3">
+            <div className="overflow-x-auto">
+              <table className="border-separate border-spacing-1 text-[10px]">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 bg-background pr-2 text-left font-semibold text-muted-foreground">
+                      Local
+                    </th>
+                    {heatmap.days.map((d) => (
+                      <th key={d.raw} className="px-1 font-medium text-muted-foreground">
+                        {d.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {heatmap.locais.map((local) => (
+                    <tr key={local}>
+                      <td className="sticky left-0 max-w-[140px] truncate bg-background pr-2 font-medium text-foreground">
+                        {local}
+                      </td>
+                      {heatmap.days.map((d) => {
+                        const c = heatmap.cells.get(`${local}|${d.raw}`);
+                        const cellCls = c
+                          ? c.status === "critico"
+                            ? "bg-destructive/30 text-destructive"
+                            : c.status === "alerta"
+                              ? "bg-warning/25 text-warning"
+                              : "bg-success/15 text-success"
+                          : "bg-muted/30 text-muted-foreground/40";
+                        return (
+                          <td
+                            key={d.raw}
+                            className={`h-7 min-w-[28px] rounded text-center font-semibold ${cellCls}`}
+                          >
+                            {c && c.temp !== null ? Math.round(c.temp) : ""}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded bg-success/40" /> Na faixa
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded bg-warning/50" /> Alerta
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded bg-destructive/50" /> Crítico
+              </span>
+            </div>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }
