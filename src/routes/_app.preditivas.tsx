@@ -227,20 +227,6 @@ function PreditivasPage() {
       </SectionHeader>
 
       <SectionHeader
-        label="Registro"
-        insight={`${preditiva.length} ações cadastradas`}
-      >
-        <DataTable
-          data={preditiva}
-          columns={columns}
-          pageSize={15}
-          searchKeys={["CodigoReferencia", "Titulo", "Tipo", "Categoria"]}
-          detailTitle={(r) => r.CodigoReferencia}
-          detailSubtitle={(r) => `${r.Titulo} — ${r.Objetivo}`}
-        />
-      </SectionHeader>
-
-      <SectionHeader
         label="Anexo"
         insight="Plano de manutenção preditiva"
       >
