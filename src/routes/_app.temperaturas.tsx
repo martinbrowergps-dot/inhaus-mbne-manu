@@ -57,6 +57,7 @@ function TemperaturasPage() {
 
   // Heatmap LOCAL x DIA (todo o histórico disponível)
   const heatmap = useMemo(() => {
+    const rank = (s: TempStatus) => (s === "critico" ? 2 : s === "alerta" ? 1 : 0);
     const dayMap = new Map<string, { label: string; ts: number }>();
     for (const m of medicoes) {
       const d = (m.DATA || "").trim();
@@ -70,29 +71,47 @@ function TemperaturasPage() {
     const days = Array.from(dayMap.entries())
       .map(([raw, v]) => ({ raw, ...v }))
       .sort((a, b) => a.ts - b.ts);
-    const acc = new Map<string, { sum: number; count: number }>();
+    const acc = new Map<
+      string,
+      { sum: number; count: number; min: number; max: number; worst: TempStatus; out: number }
+    >();
     for (const m of medicoes) {
       const l = (m.LOCAL || "").trim();
       const d = (m.DATA || "").trim();
       if (!l || !d) continue;
+      const tipo = classifyLocal(l);
       const temps = [m.TEMPERATURA_01, m.TEMPERATURA_02].filter(
         (t): t is number => t !== null,
       );
       if (temps.length === 0) continue;
       const key = `${l}|${d}`;
-      const cur = acc.get(key) ?? { sum: 0, count: 0 };
+      const cur =
+        acc.get(key) ??
+        ({ sum: 0, count: 0, min: Infinity, max: -Infinity, worst: "normal" as TempStatus, out: 0 });
       for (const t of temps) {
         cur.sum += t;
         cur.count++;
+        if (t < cur.min) cur.min = t;
+        if (t > cur.max) cur.max = t;
+        const s = tempStatus(t, tipo);
+        if (rank(s) > rank(cur.worst)) cur.worst = s;
+        if (s !== "normal") cur.out++;
       }
       acc.set(key, cur);
     }
-    const cells = new Map<string, { temp: number | null; status: TempStatus }>();
+    const cells = new Map<
+      string,
+      { temp: number | null; status: TempStatus; min: number; max: number; out: number; count: number }
+    >();
     for (const [key, v] of acc) {
-      const [l] = key.split("|");
-      const tipo = classifyLocal(l);
-      const mean = v.sum / v.count;
-      cells.set(key, { temp: mean, status: tempStatus(mean, tipo) });
+      cells.set(key, {
+        temp: v.sum / v.count,
+        status: v.worst,
+        min: v.min,
+        max: v.max,
+        out: v.out,
+        count: v.count,
+      });
     }
     return { locais: allLocais, days, cells };
   }, [medicoes, allLocais]);
@@ -203,7 +222,7 @@ function TemperaturasPage() {
 
       <SectionHeader
         label="Heatmap de Temperaturas"
-        insight="Média do dia por local · verde na faixa · âmbar alerta · vermelho crítico"
+        insight="Número = média do dia · cor = pior status do dia (hover p/ min/máx/fora da faixa)"
         children={null}
       />
 
@@ -241,9 +260,13 @@ function TemperaturasPage() {
                               ? "bg-warning/25 text-warning"
                               : "bg-success/15 text-success"
                           : "bg-muted/30 text-muted-foreground/40";
+                        const tip = c
+                          ? `min ${Math.round(c.min)}° · máx ${Math.round(c.max)}° · média ${Math.round(c.temp ?? 0)}° · ${c.out}/${c.count} fora da faixa`
+                          : "";
                         return (
                           <td
                             key={d.raw}
+                            title={tip}
                             className={`h-7 min-w-[28px] rounded text-center font-semibold ${cellCls}`}
                           >
                             {c && c.temp !== null ? Math.round(c.temp) : ""}
