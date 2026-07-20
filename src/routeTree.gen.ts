@@ -25,7 +25,6 @@ import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
 import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
 import { Route as AppBacklogRouteImport } from './routes/_app.backlog'
 import { Route as AppAtivosRouteImport } from './routes/_app.ativos'
-import { Route as AppAlertasRouteImport } from './routes/_app.alertas'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -106,15 +105,9 @@ const AppAtivosRoute = AppAtivosRouteImport.update({
   path: '/ativos',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAlertasRoute = AppAlertasRouteImport.update({
-  id: '/alertas',
-  path: '/alertas',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/alertas': typeof AppAlertasRoute
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
@@ -131,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/temperaturas': typeof AppTemperaturasRoute
 }
 export interface FileRoutesByTo {
-  '/alertas': typeof AppAlertasRoute
   '/ativos': typeof AppAtivosRoute
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
@@ -151,7 +143,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/_app/alertas': typeof AppAlertasRoute
   '/_app/ativos': typeof AppAtivosRoute
   '/_app/backlog': typeof AppBacklogRoute
   '/_app/checklists': typeof AppChecklistsRoute
@@ -172,7 +163,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/alertas'
     | '/ativos'
     | '/backlog'
     | '/checklists'
@@ -189,7 +179,6 @@ export interface FileRouteTypes {
     | '/temperaturas'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/alertas'
     | '/ativos'
     | '/backlog'
     | '/checklists'
@@ -208,7 +197,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
-    | '/_app/alertas'
     | '/_app/ativos'
     | '/_app/backlog'
     | '/_app/checklists'
@@ -344,18 +332,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAtivosRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/alertas': {
-      id: '/_app/alertas'
-      path: '/alertas'
-      fullPath: '/alertas'
-      preLoaderRoute: typeof AppAlertasRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
 interface AppRouteChildren {
-  AppAlertasRoute: typeof AppAlertasRoute
   AppAtivosRoute: typeof AppAtivosRoute
   AppBacklogRoute: typeof AppBacklogRoute
   AppChecklistsRoute: typeof AppChecklistsRoute
@@ -374,7 +354,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAlertasRoute: AppAlertasRoute,
   AppAtivosRoute: AppAtivosRoute,
   AppBacklogRoute: AppBacklogRoute,
   AppChecklistsRoute: AppChecklistsRoute,

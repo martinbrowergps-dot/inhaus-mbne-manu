@@ -22,7 +22,6 @@ const NAV_SHORTCUTS: Record<string, string> = {
   "6": "/temperaturas",
   "7": "/checklists",
   "8": "/passagem-turno",
-  "9": "/alertas",
 };
 
 function AppLayout() {

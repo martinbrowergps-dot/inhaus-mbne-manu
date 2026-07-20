@@ -7,7 +7,6 @@ import {
   Thermometer,
   ClipboardCheck,
   ArrowLeftRight,
-  AlertTriangle,
   Activity,
   Inbox,
   FileWarning,
@@ -39,7 +38,7 @@ const groups = [
     label: "MONITORAMENTO",
     items: [
       { title: "Visão Geral", url: "/", icon: LayoutDashboard },
-      { title: "Alertas", url: "/alertas", icon: AlertTriangle },
+
       { title: "Temperaturas", url: "/temperaturas", icon: Thermometer },
     ],
   },
