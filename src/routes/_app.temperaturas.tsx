@@ -57,7 +57,6 @@ function TemperaturasPage() {
 
   // Heatmap LOCAL x DIA (todo o histórico disponível)
   const heatmap = useMemo(() => {
-    const rank = (s: TempStatus) => (s === "critico" ? 2 : s === "alerta" ? 1 : 0);
     const dayMap = new Map<string, { label: string; ts: number }>();
     for (const m of medicoes) {
       const d = (m.DATA || "").trim();
@@ -71,25 +70,29 @@ function TemperaturasPage() {
     const days = Array.from(dayMap.entries())
       .map(([raw, v]) => ({ raw, ...v }))
       .sort((a, b) => a.ts - b.ts);
-    const cells = new Map<string, { temp: number | null; status: TempStatus }>();
+    const acc = new Map<string, { sum: number; count: number }>();
     for (const m of medicoes) {
       const l = (m.LOCAL || "").trim();
       const d = (m.DATA || "").trim();
       if (!l || !d) continue;
-      const tipo = classifyLocal(l);
       const temps = [m.TEMPERATURA_01, m.TEMPERATURA_02].filter(
         (t): t is number => t !== null,
       );
       if (temps.length === 0) continue;
-      const worst = temps.reduce((w, t) => {
-        const sw = tempStatus(w, tipo);
-        const st = tempStatus(t, tipo);
-        return rank(st) > rank(sw) ? t : w;
-      }, temps[0]);
       const key = `${l}|${d}`;
-      const prev = cells.get(key);
-      const ws = tempStatus(worst, tipo);
-      if (!prev || rank(ws) > rank(prev.status)) cells.set(key, { temp: worst, status: ws });
+      const cur = acc.get(key) ?? { sum: 0, count: 0 };
+      for (const t of temps) {
+        cur.sum += t;
+        cur.count++;
+      }
+      acc.set(key, cur);
+    }
+    const cells = new Map<string, { temp: number | null; status: TempStatus }>();
+    for (const [key, v] of acc) {
+      const [l] = key.split("|");
+      const tipo = classifyLocal(l);
+      const mean = v.sum / v.count;
+      cells.set(key, { temp: mean, status: tempStatus(mean, tipo) });
     }
     return { locais: allLocais, days, cells };
   }, [medicoes, allLocais]);
@@ -200,7 +203,7 @@ function TemperaturasPage() {
 
       <SectionHeader
         label="Heatmap de Temperaturas"
-        insight="Pior leitura do dia por local · verde na faixa · âmbar alerta · vermelho crítico"
+        insight="Média do dia por local · verde na faixa · âmbar alerta · vermelho crítico"
         children={null}
       />
 
