@@ -20,7 +20,7 @@ const NAV_SHORTCUTS: Record<string, string> = {
   "4": "/equipe",
   "5": "/hh-semanal",
   "6": "/temperaturas",
-  "7": "/checklists",
+  "7": "/planos-manutencao",
   "8": "/passagem-turno",
 };
 

@@ -4,10 +4,11 @@ import { cn } from "@/lib/utils";
 import { formatBRNumber } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import { computeAderencia } from "@/lib/domain/aderencia";
+import { META_ADERENCIA } from "@/lib/metas";
 export { computeAderencia };
 
 function tone(pct: number) {
-if (pct >= 95)
+if (pct >= META_ADERENCIA)
     return { color: "#10B981", cls: "text-success", ring: "border-success/40" };
   if (pct >= 85)
     return { color: "#F59E0B", cls: "text-warning", ring: "border-warning/40" };
@@ -113,7 +114,7 @@ export function AderenciaCard({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Meta</span>
-            <span className="num font-bold text-primary">≥ 95%</span>
+            <span className="num font-bold text-primary">≥ {META_ADERENCIA}%</span>
           </div>
         </div>
       </div>

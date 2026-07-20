@@ -10,6 +10,7 @@ import {
 } from "./pdf-css-patch";
 import { waitForChartsReady } from "./chart-utils";
 import { validateLayout, type PdfLayoutOptions } from "./export-pdf";
+import { META_ADERENCIA } from "@/lib/metas";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -320,7 +321,7 @@ function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia, margins: PdfM
   );
   y += 3;
   pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-  pdf.text("Meta: ≥ 95%", m.left + 2, y);
+  pdf.text(`Meta: ≥ ${META_ADERENCIA}%`, m.left + 2, y);
   y += 4;
 
   const barW = pageW - m.left - m.right - 4;
@@ -328,7 +329,7 @@ function drawAderencia(pdf: jsPDF, y: number, ad: ReportAderencia, margins: PdfM
   const fillW = (Math.min(ad.pct, 100) / 100) * barW;
   pdf.setFillColor(C.light[0], C.light[1], C.light[2]);
   pdf.roundedRect(m.left + 2, y, barW, barH, 2, 2, "F");
-  const barColor = ad.pct >= 95 ? C.success : ad.pct >= 85 ? C.warning : C.danger;
+  const barColor = ad.pct >= META_ADERENCIA ? C.success : ad.pct >= 85 ? C.warning : C.danger;
   pdf.setFillColor(barColor[0], barColor[1], barColor[2]);
   pdf.roundedRect(m.left + 2, y, fillW, barH, 2, 2, "F");
   return y + barH + 5;

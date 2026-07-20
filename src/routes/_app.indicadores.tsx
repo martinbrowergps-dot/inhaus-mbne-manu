@@ -17,6 +17,8 @@ import {
   Line,
   LabelList,
 } from "recharts";
+import { Gauge, Timer } from "lucide-react";
+import { KpiCard } from "@/components/kpi-card";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,6 +41,7 @@ import { PageHeader } from "@/components/page-header";
 import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
 import { deriveExecStatus } from "@/lib/status";
+import { META_ADERENCIA, META_PLANEJAMENTO } from "@/lib/metas";
 
 export const Route = createFileRoute("/_app/indicadores")({
   component: IndicadoresPage,
@@ -164,7 +167,7 @@ function IndicadoresPage() {
       .sort((a, b) => b.duracao - a.duracao);
 
     // Indicador de planejamento (OS planejadas vs não planejadas)
-    const META_PLANEJAMENTO = 80;
+
     let planejado = 0;
     let naoPlanejado = 0;
     for (const p of programacaoFiltrada) {
@@ -216,7 +219,7 @@ function IndicadoresPage() {
       .sort((a, b) => a.ts - b.ts);
 
     // Metas vs realizado
-    const META_ADERENCIA = 95;
+
     const hhPlanejado = programacaoFiltrada.reduce((s, p) => s + (p.HH || 0), 0);
     const hhExecutado = programacaoFiltrada
       .filter((p) => /finaliz|conclu/i.test(p.StatusExecucao || p.Status || ""))
@@ -225,6 +228,27 @@ function IndicadoresPage() {
     const osRealizadas = programacaoFiltrada.filter((p) =>
       /finaliz|conclu|cancel/i.test(p.StatusExecucao || p.Status || ""),
     ).length;
+
+      // MTBF / MTTR (versão simples)
+      const finalizadasM = programacaoFiltrada.filter((p) =>
+        /finaliz|conclu/i.test(p.StatusExecucao || p.Status || ""),
+      );
+      const mttrHH =
+        finalizadasM.length > 0
+          ? finalizadasM.reduce((s, p) => s + (p.HH || 0), 0) / finalizadasM.length
+          : null;
+      const datasFim = finalizadasM
+        .map((p) => parseBRDate(p.DataProgramada))
+        .filter((d): d is Date => d != null)
+        .sort((a, b) => a.getTime() - b.getTime());
+      let mtbfDias: number | null = null;
+      if (datasFim.length >= 2) {
+        let tot = 0;
+        for (let i = 1; i < datasFim.length; i++) {
+          tot += (datasFim[i].getTime() - datasFim[i - 1].getTime()) / 86_400_000;
+        }
+        mtbfDias = tot / (datasFim.length - 1);
+      }
 
     return {
       aderencia,
@@ -245,8 +269,10 @@ function IndicadoresPage() {
       hhPlanejado,
       hhExecutado,
       osProgramadas,
-      osRealizadas,
-    };
+        osRealizadas,
+        mttrHH,
+        mtbfDias,
+      };
   }, [data, dateFilter]);
 
   if (isLoading || !data || !computed)
@@ -395,6 +421,27 @@ function IndicadoresPage() {
             />
           </div>
         </Panel>
+      </div>
+
+      <SectionHeader
+        label="Confiabilidade"
+        insight="MTBF (dias entre OS finalizadas) e MTTR (esforço médio por OS)"
+        children={null}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="MTBF"
+          value={computed.mtbfDias != null ? `${formatBRNumber(computed.mtbfDias, 0)}d` : "—"}
+          icon={Gauge}
+          variant="primary"
+        />
+        <KpiCard
+          label="MTTR (HH/OS)"
+          value={computed.mttrHH != null ? `${formatBRNumber(computed.mttrHH, 1)}h` : "—"}
+          icon={Timer}
+          variant="neutral"
+        />
       </div>
 
       <SectionHeader
