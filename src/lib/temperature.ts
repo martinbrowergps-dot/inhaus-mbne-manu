@@ -99,7 +99,8 @@ export function computeOutlierMap(medicoes: MedicaoRow[]): Map<string, boolean> 
       const stddev = Math.sqrt(variance);
       if (stddev > 0.5) {
         for (const t of temps) {
-          if (Math.abs(t - mean) > 3 * stddev) { has = true; break; }
+          const outsideFaixa = !faixa || t < faixa.min || t > faixa.max;
+          if (outsideFaixa && Math.abs(t - mean) > 3 * stddev) { has = true; break; }
         }
       }
     }

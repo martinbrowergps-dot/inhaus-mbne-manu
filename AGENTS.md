@@ -49,6 +49,12 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - Fixed oklch/oklab color parsing in html2canvas by using `onclone` callback: reads all CSS rules, patches oklch/oklab to hex, injects into cloned document, removes external stylesheets — applied to both exportVisualPdf and exportExecutiveSummary
 - Created RELATÓRIOS page (`/relatorios`) with visão semanal/mensal: KPIs, tabela agregada (OS, HH, planejadas, finalizadas, etc.), gráficos de OS/HH por período, status pie chart, quebras por solicitante; respeita filtro de data global; export CSV + PDF Visual + PDF Tabela
 - Refatoração arquitetural (Fase 1-3): domínio puro (`lib/domain/` + Zod schema + vitest 42 testes), PageHeader component, PageHeader migrado em 11 páginas (ativos, index, indicadores, relatorios, equipe, passagem-turno, hh-semanal, nc, backlog, checklists, preditivas, programacao). Alertas manteve header custom.
+- Redesenho Visão Geral: Command Bar unificada (alertas à esquerda + KPIs compactos à direita), layout narrativo Atividade→Desempenho→Atenção→Recursos com grids distintos (3-col→full→3-col→4-col); removido painel Quick Nav
+- Regras de filtro de data clarificadas: Temperaturas ignora (mostra todas), NC ignora, Preditivas ignora, HH Semanal respeita (mesmo padrão Visão Geral)
+- HH Semanal: filtro simplificado para `filterByDateRange` direto (remove `isDateInRange`+weekStart/weekEnd)
+- Auto-refresh: `refetchIntervalInBackground: true` + `staleTime: 5min` + `refetchInterval: 5min` + `refetchOnWindowFocus: false` no sheets query
+- Alerta de temperatura: exibe `excessDurationLabel` ("Xh EXCEDENTE AO LIMITE DE 4H") ao invés da duração total da streak; `GRACE_PERIOD_MS` constante nomeada; `excessDurationMs`/`excessDurationLabel` em `DurationAlert`
+- Limpeza imports não usados: `Link`, `ClipboardList`, `KpiStrip`, `KpiItem` removidos de Visão Geral; `dateFilter` removido de temperaturas/NC/preditivas; `getWeekStart`/`parseBRDate` removido de HH Semanal
 
 ### In Progress
 
@@ -77,6 +83,7 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - Status values: Não Planejado (19), Planejado (110)
 - html2canvas installed as direct dependency; does not support oklch()/oklab() CSS color functions. Fix: use `onclone` callback to patch CSS rules in cloned document.
 - CSV fetch uses `gviz/tq?tqx=out:csv&sheet=...` (Google Visualization API)
+- **installLiveOverride fix**: CSS variables set as inline styles on `document.documentElement` (not `<style>:root`), because `:root` does not match SVG foreignObject clones used by `html-to-image`
 
 ## Relevant Files
 
@@ -95,3 +102,6 @@ Implement dashboard improvements: fix bugs, add charts, expose fields, improve U
 - `src/components/export-button.tsx`: CSV / PDF Tabela / PDF Visual + optional Resumo Executivo
 - `src/components/app-sidebar.tsx`: navigation links (Planos de Manutenção, NC, Preditivas, Relatórios)
 - `src/routes/_app.relatorios.tsx`: Relatórios page with weekly/monthly aggregation, KPIs, charts, and export
+- `src/lib/temperature.ts`: `GRACE_PERIOD_MS`, `DurationAlert` with `excessDurationMs`/`excessDurationLabel`, `computeOutOfRangeDuration` returns excess beyond 4h
+- `src/components/temp-card.tsx`: displays `excessDurationLabel` instead of total streak duration
+- `src/routes/_app.alertas.tsx`: uses `excessDurationLabel` in alert descriptions
