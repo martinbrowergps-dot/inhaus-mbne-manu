@@ -41,7 +41,11 @@ const columns: ColumnDef<PreditivaRow>[] = [
   {
     accessorKey: "Status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={(row.original.Status || "Pendente") as ExecStatus} />,
+    cell: ({ row }) => {
+      const raw = row.original.Status || "";
+      const normalized: ExecStatus = /finaliz|conclu/i.test(raw) ? "Finalizada" : "Programada";
+      return <StatusBadge status={normalized} />;
+    },
   },
   {
     accessorKey: "Acoes",
