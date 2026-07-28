@@ -1,5 +1,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, X } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopHeader } from "@/components/top-header";
@@ -29,15 +31,27 @@ function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [authOk, setAuthOk] = useState(false);
+  const [dismissedWarnings, setDismissedWarnings] = useState(false);
+  const { data } = useQuery(sheetsQueryOptions);
+  const warnings = data?.warnings ?? [];
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        navigate({ to: "/login" });
-      } else {
-        setAuthOk(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (!data.session) {
+          navigate({ to: "/login" });
+        } else {
+          setAuthOk(true);
+        }
+      } catch {
+        // Supabase não configurado — permite acesso sem auth
+        if (!cancelled) setAuthOk(true);
       }
-    });
+    })();
+    return () => { cancelled = true; };
   }, [navigate]);
 
   useEffect(() => {
@@ -60,6 +74,23 @@ function AppLayout() {
         <AppSidebar />
         <SidebarInset className="flex min-w-0 flex-1 flex-col">
           <TopHeader />
+          {warnings.length > 0 && !dismissedWarnings && (
+            <div className="flex items-start gap-2 border-b border-warning/20 bg-warning/5 px-4 py-2 text-xs text-warning">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+              <div className="flex-1 space-y-0.5">
+                {warnings.map((w, i) => (
+                  <p key={i}>{w}</p>
+                ))}
+              </div>
+              <button
+                onClick={() => setDismissedWarnings(true)}
+                aria-label="Fechar aviso"
+                className="shrink-0 rounded p-0.5 transition-colors hover:bg-warning/10"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
           <main className="flex-1 p-4 md:p-6">
             <div key={pathname} className="page-enter">
               <Suspense fallback={

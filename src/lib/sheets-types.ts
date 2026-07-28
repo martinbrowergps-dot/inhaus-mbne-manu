@@ -151,4 +151,5 @@ export interface SheetsData {
   planoManutencao: PlanoManutencaoRow[];
   fetchedAt: number;
   errors?: string[];
+  warnings?: string[];
 }

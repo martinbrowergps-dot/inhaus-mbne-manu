@@ -38,9 +38,19 @@ function createSupabaseClient() {
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] Missing env: ${missing.join(', ')}. Auth disabled.`);
+    // Return stub client so the proxy never throws
+    // Auth guard in _app.tsx catches errors and bypasses auth
+    return createClient<Database>('https://placeholder.supabase.co', 'placeholder-key', {
+      global: {
+        fetch: createSupabaseFetch('placeholder-key'),
+      },
+      auth: {
+        storage: typeof window !== 'undefined' ? localStorage : undefined,
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

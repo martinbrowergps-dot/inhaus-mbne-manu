@@ -226,19 +226,20 @@ const EXPECTED_HEADERS: Record<string, string[]> = {
   ],
 };
 
-function validateHeaders(sheetName: string, rows: Record<string, string>[]) {
-  if (rows.length === 0) return;
+function validateHeaders(sheetName: string, rows: Record<string, string>[]): string[] {
+  if (rows.length === 0) return [];
   const headers = Object.keys(rows[0]);
   const expected = EXPECTED_HEADERS[sheetName];
-  if (!expected) return;
+  if (!expected) return [];
   const missing = expected.filter(
     (h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()),
   );
   if (missing.length > 0) {
-    console.warn(
-      `[${sheetName}] Colunas esperadas ausentes: ${missing.join(", ")}. Headers recebidos: ${headers.join(", ")}`,
-    );
+    const msg = `[${sheetName}] Colunas ausentes: ${missing.join(", ")}`;
+    console.warn(msg);
+    return [msg];
   }
+  return [];
 }
 
 function pick(row: Record<string, string>, ...keys: string[]): string {
@@ -326,13 +327,14 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     Record<string, string>[],
   ];
 
-  validateHeaders("programacao", programacaoRaw);
-  validateHeaders("medicoes", medicoesRaw);
-  validateHeaders("passagemTurno", passagemRaw);
-  validateHeaders("tecnicos", tecnicosRaw);
-  validateHeaders("parametrosHH", parametrosRaw);
-  validateHeaders("backlog", backlogRaw);
-  validateHeaders("preditiva", preditivaRaw);
+  const warnings: string[] = [];
+  warnings.push(...validateHeaders("programacao", programacaoRaw));
+  warnings.push(...validateHeaders("medicoes", medicoesRaw));
+  warnings.push(...validateHeaders("passagemTurno", passagemRaw));
+  warnings.push(...validateHeaders("tecnicos", tecnicosRaw));
+  warnings.push(...validateHeaders("parametrosHH", parametrosRaw));
+  warnings.push(...validateHeaders("backlog", backlogRaw));
+  warnings.push(...validateHeaders("preditiva", preditivaRaw));
 
   const programacao: ProgramacaoRow[] = programacaoRaw.map((r) => ({
     NumeroOS: pick(r, "NumeroOS"),
@@ -497,6 +499,7 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     planoManutencao,
     fetchedAt: Date.now(),
     errors: errors.length ? errors : undefined,
+    warnings: warnings.length ? warnings : undefined,
   };
 }
 
