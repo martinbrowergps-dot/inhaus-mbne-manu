@@ -36,6 +36,10 @@ const SHEETS = {
   planoManutencao: "PLANO DE MANUTENÇÃO",
 } as const;
 
+const MAX_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 1000;
+const SHEET_FETCH_TIMEOUT_MS = 5000;
+
 function csvUrl(sheet: string): string {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 }
@@ -44,8 +48,29 @@ function logSheetError(sheet: string, err: unknown) {
   console.error(`[sheets] Falha ao carregar aba "${sheet}":`, err);
 }
 
+async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
+  try {
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(SHEET_FETCH_TIMEOUT_MS) });
+    if (!res.ok && attempt < MAX_RETRIES) {
+      const backoff = INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
+      console.warn(`[sheets] Tentativa ${attempt}/${MAX_RETRIES} falhou (${res.status}). Retry em ${backoff}ms.`);
+      await new Promise((r) => setTimeout(r, backoff));
+      return fetchWithRetry(url, attempt + 1);
+    }
+    return res;
+  } catch (err) {
+    if (attempt < MAX_RETRIES) {
+      const backoff = INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
+      console.warn(`[sheets] Tentativa ${attempt}/${MAX_RETRIES} erro de rede. Retry em ${backoff}ms.`);
+      await new Promise((r) => setTimeout(r, backoff));
+      return fetchWithRetry(url, attempt + 1);
+    }
+    throw err;
+  }
+}
+
 async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
-  const res = await fetch(csvUrl(sheet), { cache: "no-store", signal: AbortSignal.timeout(5000) });
+  const res = await fetchWithRetry(csvUrl(sheet));
   if (!res.ok) throw new Error(`Falha ao ler aba "${sheet}" (${res.status})`);
   const text = await res.text();
   const parsed = Papa.parse<Record<string, string>>(text, {
@@ -228,6 +253,51 @@ function pick(row: Record<string, string>, ...keys: string[]): string {
 export async function fetchSheetsData(): Promise<SheetsData> {
   const errors: string[] = [];
 
+  const SHEET_FETCH_DELAY_MS = 200;
+
+  async function sequentialFetch<T>(
+    fetchers: (() => Promise<T>)[],
+  ): Promise<T[]> {
+    const results: T[] = [];
+    for (const fn of fetchers) {
+      results.push(await fn());
+      await new Promise((r) => setTimeout(r, SHEET_FETCH_DELAY_MS));
+    }
+    return results;
+  }
+
+  const fetchers: (() => Promise<unknown>)[] = [
+    () => fetchCsv(SHEETS.programacao),
+    () => fetchCsv(SHEETS.medicoes),
+    () => fetchCsv(SHEETS.checklistDocas),
+    () => fetchCsv(SHEETS.checklistGeral),
+    () => fetchCsv(SHEETS.checklistPortas),
+    () => fetchCsv(SHEETS.passagemTurno),
+    () => fetchCsv(SHEETS.tecnicos),
+    () => fetchCsv(SHEETS.parametrosHH),
+    () => fetchCsv(SHEETS.backlog).catch((e) => {
+      logSheetError(SHEETS.backlog, e);
+      errors.push(`BACKLOG: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
+    () => fetchNcRows().catch((e) => {
+      logSheetError(SHEETS.nc, e);
+      errors.push(`NC: falha ao carregar`);
+      return [] as NcRow[];
+    }),
+    () => fetchCsv(SHEETS.preditiva).catch((e) => {
+      logSheetError(SHEETS.preditiva, e);
+      errors.push(`PREDITIVA: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
+    () => fetchCsv(SHEETS.planoManutencao).catch((e) => {
+      logSheetError(SHEETS.planoManutencao, e);
+      errors.push(`PLANO DE MANUTENÇÃO: falha ao carregar`);
+      return [] as Record<string, string>[];
+    }),
+  ];
+
+  const raw = await sequentialFetch(fetchers);
   const [
     programacaoRaw,
     medicoesRaw,
@@ -241,36 +311,20 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     ncRows,
     preditivaRaw,
     planoRaw,
-  ] = await Promise.all([
-    fetchCsv(SHEETS.programacao),
-    fetchCsv(SHEETS.medicoes),
-    fetchCsv(SHEETS.checklistDocas),
-    fetchCsv(SHEETS.checklistGeral),
-    fetchCsv(SHEETS.checklistPortas),
-    fetchCsv(SHEETS.passagemTurno),
-    fetchCsv(SHEETS.tecnicos),
-    fetchCsv(SHEETS.parametrosHH),
-    fetchCsv(SHEETS.backlog).catch((e) => {
-      logSheetError(SHEETS.backlog, e);
-      errors.push(`BACKLOG: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
-    fetchNcRows().catch((e) => {
-      logSheetError(SHEETS.nc, e);
-      errors.push(`NC: falha ao carregar`);
-      return [] as NcRow[];
-    }),
-    fetchCsv(SHEETS.preditiva).catch((e) => {
-      logSheetError(SHEETS.preditiva, e);
-      errors.push(`PREDITIVA: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
-    fetchCsv(SHEETS.planoManutencao).catch((e) => {
-      logSheetError(SHEETS.planoManutencao, e);
-      errors.push(`PLANO DE MANUTENÇÃO: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
-  ]);
+  ] = raw as [
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    Record<string, string>[],
+    NcRow[],
+    Record<string, string>[],
+    Record<string, string>[],
+  ];
 
   validateHeaders("programacao", programacaoRaw);
   validateHeaders("medicoes", medicoesRaw);
