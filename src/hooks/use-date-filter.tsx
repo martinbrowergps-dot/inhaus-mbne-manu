@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useTransition } from "react";
-import { parseBRDate, getWeekStart } from "@/lib/format";
+import { parseBRDate, getWeekStart, fmtISO } from "@/lib/format";
 
 interface DateFilterContextType {
   startDate: string; // YYYY-MM-DD
@@ -55,13 +55,6 @@ export function DateFilterProvider({ children }: { children: React.ReactNode }) 
       start = new Date(today.getFullYear(), today.getMonth(), 1);
       end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     }
-
-    const fmtISO = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    };
 
     startTransition(() => {
       setStartDate(fmtISO(start));

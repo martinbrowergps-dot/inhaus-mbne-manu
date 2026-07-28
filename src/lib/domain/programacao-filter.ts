@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
-import type { ProgramacaoRow, SheetsData } from "@/lib/sheets-types";
+import type { ProgramacaoRow } from "@/lib/sheets-types";
 import { deriveExecStatus, type ExecStatus } from "@/lib/status";
 
 export type EnrichedRow = ProgramacaoRow & {

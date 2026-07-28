@@ -13,7 +13,7 @@ Painel executivo de manutenção industrial. Leitura de Google Sheets como banco
 | Dados | TanStack Query + Google Sheets (gviz/tq CSV) |
 | Gráficos | Recharts |
 | Export | jsPDF + html-to-image + html2canvas |
-| Testes | Vitest 4 |
+| Testes | Vitest 4 + Testing Library + jsdom |
 
 ## Rápido
 
@@ -120,7 +120,13 @@ Esse padrão está encapsulado em `useProgramacaoFilter()` em `lib/domain/progra
 
 ### Testes
 
-Testes unitários com Vitest cobrem as funções puras de `lib/` (format, status, aggregates, tag-map, observations). Não testam componentes React (por enquanto). A meta é cobrir >90% da lógica de transformação de dados.
+Vitest com cobertura v8. Testes de unidade (funções puras em `lib/`) + testes de componente (ErrorBoundary, PageHeader, DataTable) via Testing Library + jsdom. Meta: >30% linhas, >25% funções.
+
+```bash
+npx vitest                       # watch
+npx vitest run                   # CI
+npx vitest run --coverage        # com relatório
+```
 
 ### CSS e tema
 
@@ -142,15 +148,25 @@ O export PDF visual usa `html2canvas`. Como a lib não suporta `oklch()`/`oklab(
 - **Decisão**: Sem estado global. Cada página deriva do query cache.
 - **Consequências**: Sem problemas de sincronização. Cache simples (stale-while-revalidate).
 
-### ADR-003: Sem testes de componente (por enquanto)
+### ADR-003: Testes de componente com Testing Library
 - **Contexto**: Time pequeno (1 dev), protótipo em produção mista.
-- **Decisão**: Testar só funções puras em `lib/`. Componentes são testados visualmente (dev).
-- **Consequências**: Risco de regressão visual não coberto. Trade-off aceito para velocidade.
+- **Decisão**: Testar funções puras em `lib/` + componentes críticos (ErrorBoundary, PageHeader, DataTable) com Testing Library + jsdom.
+- **Consequências**: Cobertura moderada (~30% linhas, 25% funções). Testes visuais ainda necessários para layout.
 
 ### ADR-004: Export via html2canvas (em vez de PDF server-side)
 - **Contexto**: App é client-side, sem servidor.
 - **Decisão**: html2canvas captura DOM do navegador. jsPDF monta PDF.
 - **Consequências**: Dependência de oklch→hex patch. Tamanho do bundle maior (~300KB gz).
+
+### ADR-005: TypeScript strict com noUnusedLocals
+- **Contexto**: Código legado acumulava imports/vars mortas.
+- **Decisão**: Ativar `noUnusedLocals` e `noUnusedParameters` no tsconfig.
+- **Consequências**: Build limpo obrigatório. ~25 vars mortas removidas. Zero tolerância a código não usado.
+
+### ADR-006: web-vitals no cliente
+- **Contexto**: Sem monitoramento de performance real.
+- **Decisão**: Adicionar `web-vitals` (CLS, LCP, FCP, INP) no `__root.tsx`. Em DEV loga console, em PROD envia `POST /_vitals`.
+- **Consequências**: Métricas iniciais de Core Web Vitals. Endpoint `/_vitals` é placeholder — implementar se monitoramento for necessário.
 
 ## Como adicionar uma nova página
 

@@ -13,10 +13,13 @@ import type {
   SheetsData,
   TecnicoRow,
 } from "./sheets-types";
-import { parseBRNumber, parseBRNumberOrNull, parseNumberSafeOrNull } from "./format";
-import { validateProgramacaoRow, validateMedicaoRow, validateBacklogRow } from "./sheets-schema";
+import { parseBRNumber, parseNumberSafeOrNull } from "./format";
+import { validateMedicaoRow, validateBacklogRow } from "./sheets-schema";
 
-const SHEET_ID = "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA";
+const SHEET_ID = /* @__PURE__ */ (() => {
+  try { return import.meta.env.VITE_SHEET_ID || "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA"; }
+  catch { return "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA"; }
+})();
 
 const SHEETS = {
   programacao: "PROGRAMAÇÃO",

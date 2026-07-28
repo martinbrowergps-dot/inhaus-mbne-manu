@@ -13,12 +13,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Inbox,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RowDetailSheet } from "@/components/row-detail-sheet";
 import { MobileCardView } from "@/components/mobile-card-view";
 import { DesktopTableView } from "@/components/desktop-table-view";
+import { EmptyState } from "@/components/empty-state";
 
 export function DataTable<T>({
   data,
@@ -88,47 +90,56 @@ export function DataTable<T>({
         />
       </div>
 
-      <MobileCardView
-        rows={table.getRowModel().rows}
-        columns={columns}
-        isRowCritical={isRowCritical}
-      />
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title={q ? "Nenhum resultado" : "Nenhum registro"}
+          description={q ? `Nada encontrado para "${q}". Tente outros termos.` : "Nenhum dado disponível para este período."}
+        />
+      ) : (
+        <>
+          <MobileCardView
+            rows={table.getRowModel().rows}
+            isRowCritical={isRowCritical}
+          />
 
-      <DesktopTableView
-        headerGroups={table.getHeaderGroups()}
-        rows={table.getRowModel().rows}
-        columns={columns}
-        isRowCritical={isRowCritical}
-        hasDetail={hasDetail}
-        onRowClick={(row) => setDetailRow(row)}
-      />
+          <DesktopTableView
+            headerGroups={table.getHeaderGroups()}
+            rows={table.getRowModel().rows}
+            columns={columns}
+            isRowCritical={isRowCritical}
+            hasDetail={hasDetail}
+            onRowClick={(row) => setDetailRow(row)}
+          />
 
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>
-          {filtered.length} registro{filtered.length === 1 ? "" : "s"} • página{" "}
-          {table.getState().pagination.pageIndex + 1} de {Math.max(table.getPageCount(), 1)}
-        </span>
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant="outline"
-            className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>
+              {filtered.length} registro{filtered.length === 1 ? "" : "s"} • página{" "}
+              {table.getState().pagination.pageIndex + 1} de {Math.max(table.getPageCount(), 1)}
+            </span>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-[44px] min-w-[44px] border-border/40 bg-card/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
 
       {hasDetail && (
         <RowDetailSheet

@@ -36,7 +36,7 @@ import { Panel } from "@/components/panel";
 import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
 import { summarizeLocais } from "@/lib/temperature";
-import { formatBRNumber, formatInt, parseBRDate, formatDateBR } from "@/lib/format";
+import { formatBRNumber, formatInt, formatDateBR } from "@/lib/format";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
@@ -48,54 +48,18 @@ import { ChartPie } from "@/components/visao-geral/chart-pie";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { PageHeader } from "@/components/page-header";
-import { aggregateQuebrasBySolicitante } from "@/lib/domain/aggregates";
 import {
+  aggregateQuebrasBySolicitante,
   aggregateHH,
   aggregateByDay,
   aggregateByDayAndStatus,
-} from "@/components/visao-geral/helpers";
+  computePrevDateRange,
+  computeTrend,
+} from "@/lib/domain/aggregates";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
 });
-
-function computePrevDateRange(dateFilter: ReturnType<typeof useDateFilter>):
-  | { start: string; end: string }
-  | null {
-  if (!dateFilter.isActive) return null;
-  const s = dateFilter.startDate;
-  const e = dateFilter.endDate;
-  if (!s || !e) return null;
-  const start = new Date(s + "T00:00:00");
-  const end = new Date(e + "T00:00:00");
-  const diffDays = Math.round(
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-  );
-  if (diffDays <= 0) return null;
-  const prevStart = new Date(start);
-  prevStart.setDate(prevStart.getDate() - diffDays - 1);
-  const prevEnd = new Date(start);
-  prevEnd.setDate(prevEnd.getDate() - 1);
-  const fmt = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-  return { start: fmt(prevStart), end: fmt(prevEnd) };
-}
-
-function computeTrend(
-  current: number,
-  previous: number,
-): { direction: "up" | "down" | "flat"; pct: string } | undefined {
-  if (previous === 0 && current === 0) return undefined;
-  if (previous === 0) return { direction: "up", pct: "+100%" };
-  const change = ((current - previous) / previous) * 100;
-  const pct = `${change >= 0 ? "+" : ""}${change.toFixed(0)}%`;
-  if (Math.abs(change) < 1) return { direction: "flat", pct };
-  return { direction: change > 0 ? "up" : "down", pct };
-}
 
 function VisaoGeral() {
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
@@ -104,7 +68,7 @@ function VisaoGeral() {
   const dateFilter = useDateFilter();
   const navigate = useNavigate();
 
-  const chartClick = (label: string) => {
+  const chartClick = (_label: string) => {
     navigate({ to: "/programacao" });
   };
 
@@ -168,7 +132,7 @@ function VisaoGeral() {
   const quebras = aggregateQuebrasBySolicitante(programacaoFiltrada);
 
   // ── Trend (vs período anterior) ──
-  const prevRange = computePrevDateRange(dateFilter);
+  const prevRange = computePrevDateRange(dateFilter.startDate, dateFilter.endDate);
   const programacaoPrev = prevRange
     ? (programacao ?? []).filter((p) => {
         const d = p.DataReprogramada || p.DataProgramada;
@@ -193,12 +157,12 @@ function VisaoGeral() {
   const prevCanceladas = prevEnriched.filter((p) => p._execStatus === "Cancelada").length;
   const prevAtrasadas = prevEnriched.filter((p) => p._execStatus === "Atrasada").length;
   const prevHH = programacaoPrev.reduce((s, p) => s + (p.HH || 0), 0);
-  const trendOS = computeTrend(total, prevTotal);
-  const trendPendentes = computeTrend(programadas, prevProgramadas);
-  const trendFinalizadas = computeTrend(finalizadas, prevFinalizadas);
-  const trendCanceladas = computeTrend(canceladas, prevCanceladas);
-  const trendAtrasadas = computeTrend(atrasadas, prevAtrasadas);
-  const trendHH = computeTrend(totalHH, prevHH);
+  computeTrend(total, prevTotal);
+  computeTrend(programadas, prevProgramadas);
+  computeTrend(finalizadas, prevFinalizadas);
+  computeTrend(canceladas, prevCanceladas);
+  computeTrend(atrasadas, prevAtrasadas);
+  computeTrend(totalHH, prevHH);
 
   const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");

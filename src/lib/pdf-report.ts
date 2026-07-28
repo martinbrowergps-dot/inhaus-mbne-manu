@@ -342,7 +342,6 @@ function drawTables(
   margins: PdfMargins,
   showHeader: boolean,
 ): number {
-  const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const m = margins;
 

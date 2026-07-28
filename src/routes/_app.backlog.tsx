@@ -29,9 +29,8 @@ import { PageHeader } from "@/components/page-header";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData, ReportTable } from "@/lib/pdf-report";
 import { parseBRDate, formatBRNumber, formatDateBR } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn, daysSince } from "@/lib/utils";
 import {
-  COLORS,
   SERIES_COLORS,
   chartAxisProps,
   chartGridProps,
@@ -43,12 +42,6 @@ import { FilterChip } from "@/components/ui/filter-chip";
 export const Route = createFileRoute("/_app/backlog")({
   component: BacklogPage,
 });
-
-function daysSince(date: string): number | null {
-  const d = parseBRDate(date);
-  if (!d) return null;
-  return Math.floor((Date.now() - d.getTime()) / 86_400_000);
-}
 
 function priorityRank(p: string): number {
   const v = p.toLowerCase();

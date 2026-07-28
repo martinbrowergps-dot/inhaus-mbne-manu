@@ -9,11 +9,9 @@ function getHeaderLabel<T>(col: ColumnDef<T, unknown>) {
 
 export function MobileCardView<T>({
   rows,
-  columns,
   isRowCritical,
 }: {
   rows: Row<T>[];
-  columns: ColumnDef<T, unknown>[];
   isRowCritical: (row: T) => boolean;
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
@@ -58,7 +56,7 @@ export function MobileCardView<T>({
                     <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                       {getHeaderLabel(cell.column.columnDef)}
                     </span>
-                    <div className="mt-0.5">
+                    <div className="mt-0.5 break-words whitespace-normal line-clamp-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>
                   </div>
@@ -85,7 +83,7 @@ export function MobileCardView<T>({
                           {label}
                         </span>
                       )}
-                      <div className="text-right">
+                      <div className="break-words whitespace-normal text-right">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>
                     </div>

@@ -26,7 +26,6 @@ import { parseBRDate, formatBRNumber, formatDateBR, formatInt } from "@/lib/form
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { summarizeLocais } from "@/lib/temperature";
 import {
-  CHART_LEGEND_STYLE,
   COLORS,
   SERIES_COLORS,
   aggregate,

@@ -15,6 +15,22 @@ export default defineConfig({
       "/**": {
         headers: {
           "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=60",
+          "Content-Security-Policy": [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://docs.google.com https://www.gstatic.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "img-src 'self' data: blob: https://docs.google.com https://storage.googleapis.com",
+            "connect-src 'self' https://docs.google.com https://www.gstatic.com",
+            "font-src 'self' data:",
+            "frame-ancestors 'none'",
+            "base-uri 'self'",
+            "form-action 'none'",
+          ].join("; "),
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+          "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
         },
       },
     },

@@ -12,7 +12,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { formatBRNumber, parseBRDate, getWeekStart, formatDateBR } from "@/lib/format";
+import { formatBRNumber, parseBRDate, getWeekStart, formatDateBR, fmtISO, isoToDate, sameDay } from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
@@ -26,9 +26,6 @@ import {
 import {
   EnrichedRow,
   daysOverdue,
-  fmtISO,
-  isoToDate,
-  sameDay,
 } from "@/components/programacao/types";
 import { DateNav } from "@/components/programacao/date-nav";
 import { Stat } from "@/components/programacao/stat";

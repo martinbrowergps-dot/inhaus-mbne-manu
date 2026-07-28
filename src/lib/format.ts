@@ -1,105 +1,70 @@
-/**
- * Converte string numérica (BR ou EN/US) para número float.
- * Detecta locale automaticamente:
- *   - "1.234,56" → BR (milhar = ponto, decimal = vírgula) → 1234.56
- *   - "25.3"     → EN (decimal = ponto, sem milhar)       → 25.3
- *   - "1,234.56" → EN (decimal = ponto com vírgula de separador) → 1234.56
- * Regra: se existe vírgula E ponto, conta qual aparece mais à direita.
- * O caractere mais à direita é tratado como separador decimal.
- */
-export function parseNumberSafe(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number") return value;
-  const raw = String(value).trim();
+// ── Internal locale-aware parse ──
 
+function _parseLocale(raw: string): number | null {
   const lastComma = raw.lastIndexOf(",");
   const lastDot = raw.lastIndexOf(".");
+  let cleaned: string;
 
-  // Ambos presentes: decide locale pela posição
   if (lastComma >= 0 && lastDot >= 0) {
+    // Ambos: o último separador é decimal
     if (lastComma > lastDot) {
-      // BR: milhar é ponto (joga fora), decimal é vírgula
-      const cleaned = raw.replace(/\./g, "").replace(",", ".");
-      const n = parseFloat(cleaned);
-      return Number.isFinite(n) ? n : 0;
+      cleaned = raw.replace(/\./g, "").replace(",", ".");
     } else {
-      // EN/US: milhar é vírgula (joga fora), decimal é ponto
-      const cleaned = raw.replace(/,/g, "");
-      const n = parseFloat(cleaned);
-      return Number.isFinite(n) ? n : 0;
+      cleaned = raw.replace(/,/g, "");
     }
+  } else if (lastDot >= 0) {
+    cleaned = raw.replace(/,/g, "");
+  } else if (lastComma >= 0) {
+    cleaned = raw.replace(",", ".");
+  } else {
+    cleaned = raw;
   }
 
-  // Só ponto OU só vírgula: trata o único como decimal
-  if (lastDot >= 0 && lastComma < 0) {
-    const cleaned = raw.replace(/,/g, "");
-    const n = parseFloat(cleaned);
-    return Number.isFinite(n) ? n : 0;
-  }
-  if (lastComma >= 0 && lastDot < 0) {
-    const cleaned = raw.replace(",", ".");
-    const n = parseFloat(cleaned);
-    return Number.isFinite(n) ? n : 0;
-  }
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
 
-  // Sem pontuação: inteiro puro
-  const n = parseFloat(raw);
-  return Number.isFinite(n) ? n : 0;
+function _toNumber(
+  value: string | number | null | undefined,
+  nullOnInvalid: boolean,
+): number | null {
+  if (value === null || value === undefined || value === "") return nullOnInvalid ? null : 0;
+  if (typeof value === "number") return value;
+  return _parseLocale(String(value).trim());
+}
+
+/**
+ * Converte string numérica (BR ou EN/US) para número float.
+ * Detecta locale automaticamente.
+ */
+export function parseNumberSafe(value: string | number | null | undefined): number {
+  return _toNumber(value, false) ?? 0;
 }
 
 /** Versão com fallback para `null` em vez de `0`. */
 export function parseNumberSafeOrNull(value: string | number | null | undefined): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "number") return value;
-  const raw = String(value).trim();
-
-  const lastComma = raw.lastIndexOf(",");
-  const lastDot = raw.lastIndexOf(".");
-
-  if (lastComma >= 0 && lastDot >= 0) {
-    if (lastComma > lastDot) {
-      const cleaned = raw.replace(/\./g, "").replace(",", ".");
-      const n = parseFloat(cleaned);
-      return Number.isFinite(n) ? n : null;
-    } else {
-      const cleaned = raw.replace(/,/g, "");
-      const n = parseFloat(cleaned);
-      return Number.isFinite(n) ? n : null;
-    }
-  }
-
-  if (lastDot >= 0 && lastComma < 0) {
-    const cleaned = raw.replace(/,/g, "");
-    const n = parseFloat(cleaned);
-    return Number.isFinite(n) ? n : null;
-  }
-  if (lastComma >= 0 && lastDot < 0) {
-    const cleaned = raw.replace(",", ".");
-    const n = parseFloat(cleaned);
-    return Number.isFinite(n) ? n : null;
-  }
-
-  const n = parseFloat(raw);
-  return Number.isFinite(n) ? n : null;
+  return _toNumber(value, true);
 }
 
-// -- legacy aliases compatíveis com call-sites existentes --
+// ── BR-pessimista (sempre trata ponto como milhar, vírgula como decimal) ──
 
-/** BR-pessimista: sempre trata ponto como milhar (ignora) e vírgula como decimal. */
-export function parseBRNumber(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === "") return 0;
+function _toNumberBR(
+  value: string | number | null | undefined,
+  nullOnInvalid: boolean,
+): number | null {
+  if (value === null || value === undefined || value === "") return nullOnInvalid ? null : 0;
   if (typeof value === "number") return value;
   const cleaned = String(value).trim().replace(/\./g, "").replace(",", ".");
   const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? n : nullOnInvalid ? null : 0;
+}
+
+export function parseBRNumber(value: string | number | null | undefined): number {
+  return _toNumberBR(value, false)!;
 }
 
 export function parseBRNumberOrNull(value: string | number | null | undefined): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "number") return value;
-  const cleaned = String(value).trim().replace(/\./g, "").replace(",", ".");
-  const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? n : null;
+  return _toNumberBR(value, true);
 }
 
 export function formatBRNumber(n: number, digits = 1): string {
@@ -182,4 +147,27 @@ export function formatDateBR(isoDate: string): string {
   if (!isoDate) return "";
   const [y, m, d] = isoDate.split("-");
   return `${d}/${m}/${y}`;
+}
+
+/** Converte Date para string ISO YYYY-MM-DD (sem horário). */
+export function fmtISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Converte string ISO YYYY-MM-DD para Date. */
+export function isoToDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Compara se duas Dates são o mesmo dia (ignora horário). */
+export function sameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }

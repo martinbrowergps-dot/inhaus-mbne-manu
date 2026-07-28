@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import { downloadCsv, type CsvColumn } from "@/lib/export-csv";
 import { installLiveOverride, sanitizeInlineColors, DEFAULT_MARGINS } from "@/lib/pdf-css-patch";
 import { waitForChartsReady } from "@/lib/chart-utils";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { validateLayout, type PdfLayoutOptions, type ValidationResult } from "@/lib/pdf-layout";
 import type { VisualPdfQuality, PdfMargins } from "@/lib/pdf-layout";
 

@@ -12,7 +12,6 @@ import { waitForChartsReady } from "./chart-utils";
 import {
   validateLayout,
   type PdfLayoutOptions,
-  type ValidationResult,
   type VisualPdfQuality,
 } from "./pdf-layout";
 

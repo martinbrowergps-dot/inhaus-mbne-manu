@@ -194,7 +194,7 @@ function MatrizPriorizacaoPage() {
                   </div>
                 ))}
                 {PROB_LEVELS.map((prob, pi) =>
-                  [null, ...HEATMAP.filter((c) => c.prob === pi)].flatMap((cell, ci) =>
+                  [null, ...HEATMAP.filter((c) => c.prob === pi)].flatMap((cell, _ci) =>
                     cell === null ? (
                       <div
                         key={`prob-${pi}`}

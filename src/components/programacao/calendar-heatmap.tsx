@@ -1,6 +1,6 @@
 import { formatBRNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { sameDay } from "./types";
+import { sameDay } from "@/lib/format";
 
 export function CalendarHeatmap({
   days,

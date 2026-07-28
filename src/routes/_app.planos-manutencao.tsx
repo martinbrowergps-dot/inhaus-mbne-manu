@@ -1,14 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, DoorOpen, Activity } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { sheetsQueryOptions } from "@/lib/sheets";
-import { useDateFilter } from "@/hooks/use-date-filter";
 import type { ChecklistRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
@@ -113,7 +111,6 @@ const detailCols: ColumnDef<ChecklistEnriched>[] = [
 
 function ChecklistsPage() {
   const { data, isLoading } = useQuery(sheetsQueryOptions);
-  const dateFilter = useDateFilter();
   const [tab, setTab] = useState("docas");
 
   if (isLoading)

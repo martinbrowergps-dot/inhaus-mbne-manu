@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import type { Mock } from "vitest";
 
 // CSV samples simulating Google Sheets gviz/tq output
 // Use \n explicit to avoid JS string quoting issues with CSV empty fields

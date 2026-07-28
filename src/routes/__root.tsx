@@ -19,6 +19,11 @@ import "@fontsource/jetbrains-mono/700.css";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DateFilterProvider } from "../hooks/use-date-filter";
+import { reportWebVitals } from "../lib/web-vitals";
+
+if (typeof window !== "undefined") {
+  reportWebVitals();
+}
 
 function NotFoundComponent() {
   return (

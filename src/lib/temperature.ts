@@ -81,27 +81,12 @@ export function computeOutlierMap(medicoes: MedicaoRow[]): Map<string, boolean> 
 
   const result = new Map<string, boolean>();
   for (const [local, temps] of byLocal) {
-    if (temps.length < 3) { result.set(local, false); continue; }
-
     const faixa = getFaixa(classifyLocal(local));
     let has = false;
 
-    for (const t of temps) {
-      if (faixa) {
-        const rw = faixa.max - faixa.min || 1;
-        if (t < faixa.min - rw * 3 || t > faixa.max + rw * 3) { has = true; break; }
-      }
-    }
-
-    if (!has && temps.length >= 5) {
-      const mean = temps.reduce((s, v) => s + v, 0) / temps.length;
-      const variance = temps.reduce((s, v) => s + (v - mean) ** 2, 0) / temps.length;
-      const stddev = Math.sqrt(variance);
-      if (stddev > 0.5) {
-        for (const t of temps) {
-          const outsideFaixa = !faixa || t < faixa.min || t > faixa.max;
-          if (outsideFaixa && Math.abs(t - mean) > 3 * stddev) { has = true; break; }
-        }
+    if (faixa) {
+      for (const t of temps) {
+        if (t < faixa.min || t > faixa.max) { has = true; break; }
       }
     }
 

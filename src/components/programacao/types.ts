@@ -17,19 +17,4 @@ export function daysOverdue(d: Date | null): number | null {
   return diff > 0 ? diff : null;
 }
 
-export function fmtISO(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-export function isoToDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-export function sameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
+export { fmtISO, isoToDate, sameDay } from "@/lib/format";

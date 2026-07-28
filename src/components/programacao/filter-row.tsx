@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { FilterChip } from "@/components/ui/filter-chip";
 
 export function FilterRow({
