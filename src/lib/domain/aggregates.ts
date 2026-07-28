@@ -2,6 +2,7 @@ import type { ProgramacaoRow } from "@/lib/sheets-types";
 import { aggregate } from "@/lib/chart-utils";
 import { parseBRDate, fmtISO } from "@/lib/format";
 
+/** Agrupa OS por mês/ano (ex: "07/2026"). Ignora datas inválidas. Ordena cronologicamente. */
 export function aggregateByMonth(rows: ProgramacaoRow[]): { name: string; value: number }[] {
   const map = new Map<string, number>();
   for (const p of rows) {
@@ -19,9 +20,8 @@ export function aggregateByMonth(rows: ProgramacaoRow[]): { name: string; value:
     });
 }
 
-export function aggregateHHByCargo(
-  rows: ProgramacaoRow[],
-): { name: string; value: number }[] {
+/** Soma HH por cargo. Usa "—" para cargo vazio. Ordena decrescente por HH. */
+export function aggregateHHByCargo(rows: ProgramacaoRow[]): { name: string; value: number }[] {
   const map = new Map<string, number>();
   for (const p of rows) {
     map.set(p.Cargo || "—", (map.get(p.Cargo || "—") ?? 0) + (p.HH || 0));
@@ -31,18 +31,17 @@ export function aggregateHHByCargo(
     .sort((a, b) => b.value - a.value);
 }
 
-export function aggregateStatus(
-  enriched: { _exec: string }[],
-): { name: string; value: number }[] {
+/** Agrupa linhas enriquecidas pelo campo _exec. Usa aggregate() genérico. */
+export function aggregateStatus(enriched: { _exec: string }[]): { name: string; value: number }[] {
   return aggregate(enriched, (p) => p._exec);
 }
 
-export function aggregateCriticidade(
-  rows: ProgramacaoRow[],
-): { name: string; value: number }[] {
+/** Agrupa OS por criticidade. Usa "—" para vazio. */
+export function aggregateCriticidade(rows: ProgramacaoRow[]): { name: string; value: number }[] {
   return aggregate(rows, (p) => p.Criticidade || "—");
 }
 
+/** Filtra "QUEBRA DE PROGRAMAÇÃO" e agrupa por solicitante. Ordena decrescente. */
 export function aggregateQuebrasBySolicitante(
   rows: ProgramacaoRow[],
 ): { name: string; value: number }[] {
@@ -60,6 +59,7 @@ export function aggregateQuebrasBySolicitante(
 
 // ── HH aggregate ──
 
+/** Soma HH por cargo (versão simplificada sem parse). Usada em HH Semanal. */
 export function aggregateHH(rows: { Cargo: string; HH: number }[]) {
   const map = new Map<string, number>();
   for (const r of rows) {
@@ -73,6 +73,7 @@ export function aggregateHH(rows: { Cargo: string; HH: number }[]) {
 
 // ── Day aggregates ──
 
+/** Agrupa OS por dia (label "dd/mm"). Retorna últimos 14 dias. Ignora datas inválidas. */
 export function aggregateByDay(rows: { DataProgramada: string }[]) {
   const map = new Map<string, number>();
   for (const r of rows) {
@@ -90,6 +91,7 @@ export function aggregateByDay(rows: { DataProgramada: string }[]) {
     .slice(0, 14)
     .map(([label, value]) => ({ label, value }));
 }
+/** Agrupa OS por dia separando Planejado vs Não Planejado. Retorna últimos 14 dias. */
 export function aggregateByDayAndStatus(rows: { DataProgramada: string; Status: string }[]) {
   const map = new Map<string, { planejado: number; naoPlanejado: number; label: string }>();
   for (const r of rows) {
@@ -114,13 +116,15 @@ export function aggregateByDayAndStatus(rows: { DataProgramada: string; Status: 
 
 // ── Trend helpers ──
 
-export function computePrevDateRange(startDate: string, endDate: string): { start: string; end: string } | null {
+/** Dado um range de datas, calcula o range anterior de mesma duração. Ex: 01/07-07/07 → 24/06-30/06. */
+export function computePrevDateRange(
+  startDate: string,
+  endDate: string,
+): { start: string; end: string } | null {
   if (!startDate || !endDate) return null;
   const start = new Date(startDate + "T00:00:00");
   const end = new Date(endDate + "T00:00:00");
-  const diffDays = Math.round(
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays <= 0) return null;
   const prevStart = new Date(start);
   prevStart.setDate(prevStart.getDate() - diffDays - 1);
@@ -129,6 +133,7 @@ export function computePrevDateRange(startDate: string, endDate: string): { star
   return { start: fmtISO(prevStart), end: fmtISO(prevEnd) };
 }
 
+/** Calcula direção e percentual de variação entre current e previous. Retorna undefined se ambos zero. */
 export function computeTrend(
   current: number,
   previous: number,
@@ -140,5 +145,3 @@ export function computeTrend(
   if (Math.abs(change) < 1) return { direction: "flat", pct };
   return { direction: change > 0 ? "up" : "down", pct };
 }
-
-

@@ -4,16 +4,16 @@ Painel executivo de manutenção industrial. Leitura de Google Sheets como banco
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | TanStack Start (React 19) |
-| Build | Vite 8 + Nitro |
-| Estilo | Tailwind CSS v4 + shadcn/ui |
-| Roteamento | TanStack Router (file-based) |
-| Dados | TanStack Query + Google Sheets (gviz/tq CSV) |
-| Gráficos | Recharts |
-| Export | jsPDF + html-to-image + html2canvas |
-| Testes | Vitest 4 + Testing Library + jsdom |
+| Camada     | Tecnologia                                   |
+| ---------- | -------------------------------------------- |
+| Framework  | TanStack Start (React 19)                    |
+| Build      | Vite 8 + Nitro                               |
+| Estilo     | Tailwind CSS v4 + shadcn/ui                  |
+| Roteamento | TanStack Router (file-based)                 |
+| Dados      | TanStack Query + Google Sheets (gviz/tq CSV) |
+| Gráficos   | Recharts                                     |
+| Export     | jsPDF + html-to-image + html2canvas          |
+| Testes     | Vitest 4 + Testing Library + jsdom           |
 
 ## Rápido
 
@@ -75,19 +75,19 @@ src/
 
 ## Mapa Sheets → Tipos
 
-| Aba Google Sheets | Tipo TypeScript | Rota |
-|---|---|---|
-| PROGRAMAÇÃO | `ProgramacaoRow` | todas |
-| MEDIÇÕES | `MedicaoRow` | Temperaturas |
-| CHECKLIST DOCAS | `ChecklistRow` | Planos de Manutenção |
-| CHECKLIST GERAL | `ChecklistRow` | Planos de Manutenção |
-| CHECKLIST PORTAS | `ChecklistRow` | Planos de Manutenção |
-| PASSAGEM DE TURNO | `PassagemTurnoRow` | Passagem de Turno |
-| TECNICOS | `TecnicoRow` | Visão Geral |
-| PARAMETROS_HH | `ParametroHHRow` | HH Semanal |
-| BACKLOG | `BacklogRow` | Backlog |
-| NC | `NcRow` | NC |
-| PREDITIVA | `PreditivaRow` | Preditivas |
+| Aba Google Sheets   | Tipo TypeScript      | Rota                          |
+| ------------------- | -------------------- | ----------------------------- |
+| PROGRAMAÇÃO         | `ProgramacaoRow`     | todas                         |
+| MEDIÇÕES            | `MedicaoRow`         | Temperaturas                  |
+| CHECKLIST DOCAS     | `ChecklistRow`       | Planos de Manutenção          |
+| CHECKLIST GERAL     | `ChecklistRow`       | Planos de Manutenção          |
+| CHECKLIST PORTAS    | `ChecklistRow`       | Planos de Manutenção          |
+| PASSAGEM DE TURNO   | `PassagemTurnoRow`   | Passagem de Turno             |
+| TECNICOS            | `TecnicoRow`         | Visão Geral                   |
+| PARAMETROS_HH       | `ParametroHHRow`     | HH Semanal                    |
+| BACKLOG             | `BacklogRow`         | Backlog                       |
+| NC                  | `NcRow`              | NC                            |
+| PREDITIVA           | `PreditivaRow`       | Preditivas                    |
 | PLANO DE MANUTENÇÃO | `PlanoManutencaoRow` | Ativos (mapa TAG→Equipamento) |
 
 ## Arquitetura (Decisões)
@@ -105,6 +105,7 @@ Dados fluem de `sheetsQueryOptions` (fetch + cache com staleTime 5min). Cada pá
 ### UseProgramacaoFilter (hook central)
 
 Toda página que exibe OS usa o mesmo padrão:
+
 1. `useQuery(sheetsQueryOptions)`
 2. `useDateFilter()` (sidebar global)
 3. Filtrar por data → enriquecer com `deriveExecStatus` + `tagMap`
@@ -139,34 +140,64 @@ O export PDF visual usa `html2canvas`. Como a lib não suporta `oklch()`/`oklab(
 ## ADR — Registro de Decisões Arquiteturais
 
 ### ADR-001: Google Sheets como fonte de dados
+
 - **Contexto**: Sem backend, sem orçamento para DB. Planilha já usada pela operação.
 - **Decisão**: Fetch via gviz/tq CSV. Sem write-back.
 - **Consequências**: App read-only. Latência de rede. Mudança de schema da planilha quebra o app.
 
 ### ADR-002: TanStack Query como única camada de estado
+
 - **Contexto**: Dados vêm de uma fonte (Sheets), sem mutações.
 - **Decisão**: Sem estado global. Cada página deriva do query cache.
 - **Consequências**: Sem problemas de sincronização. Cache simples (stale-while-revalidate).
 
 ### ADR-003: Testes de componente com Testing Library
+
 - **Contexto**: Time pequeno (1 dev), protótipo em produção mista.
 - **Decisão**: Testar funções puras em `lib/` + componentes críticos (ErrorBoundary, PageHeader, DataTable) com Testing Library + jsdom.
 - **Consequências**: Cobertura moderada (~30% linhas, 25% funções). Testes visuais ainda necessários para layout.
 
 ### ADR-004: Export via html2canvas (em vez de PDF server-side)
+
 - **Contexto**: App é client-side, sem servidor.
 - **Decisão**: html2canvas captura DOM do navegador. jsPDF monta PDF.
 - **Consequências**: Dependência de oklch→hex patch. Tamanho do bundle maior (~300KB gz).
 
 ### ADR-005: TypeScript strict com noUnusedLocals
+
 - **Contexto**: Código legado acumulava imports/vars mortas.
 - **Decisão**: Ativar `noUnusedLocals` e `noUnusedParameters` no tsconfig.
 - **Consequências**: Build limpo obrigatório. ~25 vars mortas removidas. Zero tolerância a código não usado.
 
 ### ADR-006: web-vitals no cliente
+
 - **Contexto**: Sem monitoramento de performance real.
 - **Decisão**: Adicionar `web-vitals` (CLS, LCP, FCP, INP) no `__root.tsx`. Em DEV loga console, em PROD envia `POST /_vitals`.
 - **Consequências**: Métricas iniciais de Core Web Vitals. Endpoint `/_vitals` é placeholder — implementar se monitoramento for necessário.
+
+### ADR-007: Logger server-side sem dependências externas
+
+- **Contexto**: Zod v4 conflita com peer deps de vários pacotes (pino, etc).
+- **Decisão**: Logger caseiro em `src/lib/logger.ts` com `console` + timestamp ISO + nível configurável via `LOG_LEVEL`.
+- **Consequências**: Sem peso extra de bundle. Funcionalidades limitadas (sem transporte remoto, sem serialização customizada).
+
+### ADR-008: Health check no entry point instead of Nitro route
+
+- **Contexto**: TanStack Start usa Nitro apenas em build. Dev server não carrega server/ diretório.
+- **Decisão**: Health check (`/_health`) interceptado no `src/server.ts:fetch()` antes de delegar ao TanStack. Retorna JSON com status, uptime, memória.
+- **Consequências**: Endpoint disponível em dev e prod. Acoplado ao entry point — fácil de mudar para Nitro route se necessário.
+
+### ADR-009: lint-staged + husky para pre-commit
+
+- **Contexto**: Sem barreira antes do commit. Erros de lint chegavam ao repositório.
+- **Decisão**: Husky executa lint-staged no `pre-commit`. Lint-staged roda eslint + prettier em arquivos staged.
+- **Consequências**: Garante que código commited está formatado e sem erros de lint. CI ainda roda validação completa.
+
+### ADR-010: Vitest sem globals=true
+
+- **Contexto**: `globals: true` conflita com `noUnusedLocals` no tsconfig — vitest injeta `describe`/`it`/`expect` globalmente sem declaração de tipo conhecida pelo TS.
+- **Decisão**: Manter `globals: false`. Testes importam `{ describe, it, expect, vi }` explicitamente de `vitest`.
+- **Consequências**: 3 caracteres a mais por import, mas compatível com TypeScript strict.
 
 ## Como adicionar uma nova página
 
@@ -177,8 +208,8 @@ O export PDF visual usa `html2canvas`. Como a lib não suporta `oklch()`/`oklab(
 
 ## Variáveis de ambiente
 
-| Variável | Obrigatório | Padrão | Descrição |
-|---|---|---|---|
-| `SHEET_ID` | ✅ | `1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA` | ID da planilha Google Sheets |
+| Variável   | Obrigatório | Padrão                                         | Descrição                    |
+| ---------- | ----------- | ---------------------------------------------- | ---------------------------- |
+| `SHEET_ID` | ✅          | `1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA` | ID da planilha Google Sheets |
 
 (Não há outras variáveis — o app não tem backend, auth, ou serviços externos além do Google Sheets.)

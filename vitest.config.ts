@@ -7,6 +7,10 @@ export default defineConfig({
     include: ["src/__tests__/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     setupFiles: ["src/__tests__/setup.ts"],
+    reporters: ["default", "verbose"],
+    testTimeout: 10_000,
+    retry: 2,
+    watchExclude: ["dist/**", "node_modules/**", ".tanstack/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov", "html"],

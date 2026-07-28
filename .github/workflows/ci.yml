@@ -16,5 +16,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bunx tsc --noEmit
       - run: bunx eslint .
-      - run: bun test
       - run: bun run build
+      - run: bun test
+      - run: npm audit --audit-level=high 2>&1 || echo "audit warnings (non-blocking)"

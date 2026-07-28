@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { logger } from "./lib/logger";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -30,21 +31,41 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
+  const captured = consumeLastCapturedError();
+  logger.error(captured instanceof Error ? captured.message : `h3 swallowed SSR error: ${body}`);
   return new Response(renderErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
 
+const HEALTH_PATH = "/_health";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const url = new URL(request.url);
+    if (url.pathname === HEALTH_PATH) {
+      const uptime = process.uptime();
+      const mem = process.memoryUsage();
+      logger.info("Health check", { url: request.url });
+      return Response.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime,
+        memory: {
+          rss: Math.round(mem.rss / 1024 / 1024) + "MB",
+          heapTotal: Math.round(mem.heapTotal / 1024 / 1024) + "MB",
+          heapUsed: Math.round(mem.heapUsed / 1024 / 1024) + "MB",
+        },
+      });
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
-      console.error(error);
+      logger.error("Request failed", { url: request.url, error: String(error) });
       return new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
