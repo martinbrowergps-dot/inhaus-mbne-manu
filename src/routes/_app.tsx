@@ -7,7 +7,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { TopHeader } from "@/components/top-header";
 import { Toaster } from "@/components/ui/sonner";
 import { sheetsQueryOptions } from "@/lib/sheets";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   loader: ({ context }) => {
@@ -36,22 +36,14 @@ function AppLayout() {
   const warnings = data?.warnings ?? [];
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (cancelled) return;
-        if (!data.session) {
-          navigate({ to: "/login" });
-        } else {
-          setAuthOk(true);
-        }
-      } catch {
-        // Supabase não configurado — permite acesso sem auth
-        if (!cancelled) setAuthOk(true);
+    if (!isSupabaseConfigured) { setAuthOk(true); return; }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate({ to: "/login" });
+      } else {
+        setAuthOk(true);
       }
-    })();
-    return () => { cancelled = true; };
+    });
   }, [navigate]);
 
   useEffect(() => {

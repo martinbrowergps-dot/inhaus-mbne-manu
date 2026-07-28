@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -14,6 +14,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) { navigate({ to: "/" }); return; }
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/" });
     });

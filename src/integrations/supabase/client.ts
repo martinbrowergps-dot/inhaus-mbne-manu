@@ -67,6 +67,11 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
+// Eager check — used by auth guard to bypass login when Supabase is not set up
+const _SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const _SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+export const isSupabaseConfigured = !!( _SUPABASE_URL && _SUPABASE_KEY );
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
