@@ -17,6 +17,7 @@ export function TopHeader() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/login" });
   };
@@ -67,8 +68,13 @@ export function TopHeader() {
         </p>
       </div>
 
-      <div className="hidden items-center gap-2 sm:flex" title={lastUpdate ? formatBRDateTime(lastUpdate) : undefined}>
-        <Circle className={`h-1.5 w-1.5 animate-pulse ${freshnessColor.replace("text-", "fill-")}`} />
+      <div
+        className="hidden items-center gap-2 sm:flex"
+        title={lastUpdate ? formatBRDateTime(lastUpdate) : undefined}
+      >
+        <Circle
+          className={`h-1.5 w-1.5 animate-pulse ${freshnessColor.replace("text-", "fill-")}`}
+        />
         <span className={`num text-[11px] ${freshnessColor}`}>Atualizado {relLabel}</span>
       </div>
 

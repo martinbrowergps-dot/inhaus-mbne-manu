@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Loader2 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopHeader } from "@/components/top-header";
@@ -31,19 +31,48 @@ function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [authOk, setAuthOk] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
   const [dismissedWarnings, setDismissedWarnings] = useState(false);
   const { data } = useQuery(sheetsQueryOptions);
   const warnings = data?.warnings ?? [];
 
   useEffect(() => {
-    if (!isSupabaseConfigured) { setAuthOk(true); return; }
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
+    if (!isSupabaseConfigured) {
+      setAuthOk(true);
+      setAuthChecking(false);
+      return;
+    }
+
+    // Check inicial
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!data.session) {
+          navigate({ to: "/login" });
+        } else {
+          setAuthOk(true);
+        }
+        setAuthChecking(false);
+      })
+      .catch((err) => {
+        console.error("[Auth] getSession failed:", err);
+        navigate({ to: "/login" });
+        setAuthChecking(false);
+      });
+
+    // Listener para mudanças de sessão (expiração, refresh, signOut)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setAuthOk(false);
         navigate({ to: "/login" });
       } else {
         setAuthOk(true);
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
@@ -58,7 +87,13 @@ function AppLayout() {
     return () => window.removeEventListener("keydown", handler);
   }, [navigate]);
 
-  if (!authOk) return null;
+  if (!authOk || authChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider defaultOpen>
@@ -85,13 +120,18 @@ function AppLayout() {
           )}
           <main className="flex-1 p-4 md:p-6">
             <div key={pathname} className="page-enter">
-              <Suspense fallback={
-                <div className="grid gap-4 md:grid-cols-4">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-28 animate-pulse rounded-lg bg-card/40 border border-border/30" />
-                  ))}
-                </div>
-              }>
+              <Suspense
+                fallback={
+                  <div className="grid gap-4 md:grid-cols-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-28 animate-pulse rounded-lg bg-card/40 border border-border/30"
+                      />
+                    ))}
+                  </div>
+                }
+              >
                 <Outlet />
               </Suspense>
             </div>
