@@ -1,10 +1,11 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopHeader } from "@/components/top-header";
 import { Toaster } from "@/components/ui/sonner";
 import { sheetsQueryOptions } from "@/lib/sheets";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   loader: ({ context }) => {
@@ -27,6 +28,17 @@ const NAV_SHORTCUTS: Record<string, string> = {
 function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const [authOk, setAuthOk] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate({ to: "/login" });
+      } else {
+        setAuthOk(true);
+      }
+    });
+  }, [navigate]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -39,6 +51,8 @@ function AppLayout() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [navigate]);
+
+  if (!authOk) return null;
 
   return (
     <SidebarProvider defaultOpen>

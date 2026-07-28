@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { RefreshCw, Circle } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { RefreshCw, Circle, LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export function TopHeader() {
   const qc = useQueryClient();
   const { data, isFetching } = useQuery(sheetsQueryOptions);
   const [now, setNow] = useState<Date | null>(null);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login" });
+  };
 
   useEffect(() => {
     setNow(new Date());
@@ -122,6 +130,15 @@ export function TopHeader() {
           </div>
         </PopoverContent>
       </Popover>
+
+      <button
+        onClick={handleLogout}
+        title="Sair"
+        aria-label="Sair do sistema"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
     </header>
   );
 }
