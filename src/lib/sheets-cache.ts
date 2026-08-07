@@ -1,4 +1,3 @@
-import { queryOptions } from "@tanstack/react-query";
 import { fetchSheetsData } from "./sheets";
 import type { SheetsData } from "./sheets-types";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
@@ -53,12 +52,3 @@ export async function fetchSheetsCached(): Promise<SheetsData> {
   triggerSync();
   return fresh;
 }
-
-export const sheetsCachedQueryOptions = queryOptions({
-  queryKey: ["sheets"],
-  queryFn: fetchSheetsCached,
-  staleTime: 5 * 60_000,
-  refetchInterval: 5 * 60_000,
-  refetchIntervalInBackground: true,
-  refetchOnWindowFocus: false,
-});
