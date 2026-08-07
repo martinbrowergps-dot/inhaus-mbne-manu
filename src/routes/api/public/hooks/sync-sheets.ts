@@ -9,7 +9,7 @@ async function runSync() {
   const { error } = await supabaseAdmin.from("sheets_snapshot").upsert(
     {
       id: SNAPSHOT_ID,
-      payload: data as unknown as Record<string, unknown>,
+      payload: JSON.parse(JSON.stringify(data)),
       fetched_at: new Date().toISOString(),
     },
     { onConflict: "id" },
