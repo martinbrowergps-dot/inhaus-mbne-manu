@@ -29,6 +29,11 @@ export function TopHeader() {
   }, []);
 
   const handleRefresh = async () => {
+    try {
+      await fetch("/api/public/hooks/sync-sheets", { method: "POST" });
+    } catch (err) {
+      console.warn("[top-header] sync falhou:", err);
+    }
     await qc.invalidateQueries({ queryKey: ["sheets"] });
     toast.success("Dados atualizados");
   };

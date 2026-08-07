@@ -505,7 +505,8 @@ export async function fetchSheetsData(): Promise<SheetsData> {
 
 export const sheetsQueryOptions = queryOptions({
   queryKey: ["sheets"],
-  queryFn: fetchSheetsData,
+  // Lê primeiro o cache no banco (ETL a cada 5 min); cai para a planilha se indisponível.
+  queryFn: () => import("./sheets-cache").then((m) => m.fetchSheetsCached()),
   staleTime: 5 * 60_000,
   refetchInterval: 5 * 60_000,
   refetchIntervalInBackground: true,

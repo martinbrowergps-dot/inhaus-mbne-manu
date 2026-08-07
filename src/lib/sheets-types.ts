@@ -150,6 +150,8 @@ export interface SheetsData {
   preditiva: PreditivaRow[];
   planoManutencao: PlanoManutencaoRow[];
   fetchedAt: number;
+  /** true quando os dados vieram do cache no banco (ETL) e não da planilha. */
+  fromCache?: boolean;
   errors?: string[];
   warnings?: string[];
 }
