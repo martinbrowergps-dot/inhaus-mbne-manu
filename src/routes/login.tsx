@@ -9,9 +9,11 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [modo, setModo] = useState<"login" | "cadastro">("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [aviso, setAviso] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
 
@@ -32,10 +34,31 @@ function LoginPage() {
       });
   }, [navigate]);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErro("");
+    setAviso("");
     setLoading(true);
+
+    if (modo === "cadastro") {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: senha,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      setLoading(false);
+      if (error) {
+        setErro(error.message);
+        return;
+      }
+      if (!data.session) {
+        setAviso("Cadastro criado. Confirme o e-mail enviado para ativar o acesso.");
+        return;
+      }
+      navigate({ to: "/" });
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
     setLoading(false);
     if (error) {
@@ -56,7 +79,28 @@ function LoginPage() {
             <p className="mt-1 text-xs text-muted-foreground">Centro de Controle de Manutenção</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <div className="mb-4 grid grid-cols-2 gap-1 rounded-md border border-border/60 p-1">
+            {(["login", "cadastro"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setModo(m);
+                  setErro("");
+                  setAviso("");
+                }}
+                className={`rounded px-2 py-1.5 text-xs font-medium transition-colors ${
+                  modo === m
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m === "login" ? "Entrar" : "Criar conta"}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="text-xs font-medium text-foreground">
                 Email
@@ -65,6 +109,7 @@ function LoginPage() {
                 id="email"
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -80,6 +125,8 @@ function LoginPage() {
                 id="senha"
                 type="password"
                 required
+                minLength={6}
+                autoComplete={modo === "login" ? "current-password" : "new-password"}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -88,13 +135,18 @@ function LoginPage() {
             </div>
 
             {erro && <p className="text-xs text-destructive">{erro}</p>}
+            {aviso && <p className="text-xs text-success">{aviso}</p>}
 
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading
+                ? "Aguarde..."
+                : modo === "login"
+                  ? "Entrar"
+                  : "Criar conta"}
             </button>
           </form>
         </div>
