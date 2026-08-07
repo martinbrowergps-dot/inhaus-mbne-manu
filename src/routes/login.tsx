@@ -171,6 +171,54 @@ function LoginPage() {
                   : "Criar conta"}
             </button>
           </form>
+
+          <div className="my-4 flex items-center gap-2">
+            <span className="h-px flex-1 bg-border/60" />
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">ou</span>
+            <span className="h-px flex-1 bg-border/60" />
+          </div>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => handleOAuth("google")}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-border/60 bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.56-5.17 3.56-8.87Z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.87-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.28v3.09A12 12 0 0 0 12 24Z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58V6.62H1.28a12 12 0 0 0 0 10.76l3.99-3.09Z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.23 0 12 0A12 12 0 0 0 1.28 6.62l3.99 3.09C6.22 6.86 8.87 4.75 12 4.75Z"
+                />
+              </svg>
+              Entrar com Google
+            </button>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => handleOAuth("apple")}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-border/60 bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+                <path d="M16.37 12.78c.03 3.2 2.8 4.26 2.83 4.28-.02.08-.44 1.52-1.46 3-.88 1.29-1.8 2.57-3.25 2.6-1.42.02-1.88-.85-3.51-.85s-2.13.82-3.48.87c-1.4.05-2.46-1.39-3.35-2.67-1.82-2.63-3.21-7.44-1.34-10.68.93-1.61 2.58-2.63 4.38-2.66 1.37-.03 2.66.92 3.5.92.84 0 2.41-1.14 4.06-.97.69.03 2.63.28 3.87 2.1-.1.06-2.31 1.35-2.29 4.03M13.9 3.9c.74-.9 1.24-2.15 1.1-3.4-1.07.05-2.36.72-3.13 1.61-.68.79-1.28 2.06-1.12 3.28 1.19.09 2.41-.6 3.15-1.49" />
+              </svg>
+              Entrar com Apple
+            </button>
+          </div>
+
         </div>
       )}
     </div>
