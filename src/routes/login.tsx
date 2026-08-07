@@ -69,6 +69,27 @@ function LoginPage() {
     navigate({ to: "/" });
   }
 
+  async function handleOAuth(provider: "google" | "apple") {
+    setErro("");
+    setAviso("");
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setErro(result.error.message ?? "Falha ao entrar com o provedor.");
+        setLoading(false);
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/" });
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Falha ao entrar com o provedor.");
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       {checkingSession ? (
