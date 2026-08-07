@@ -26,6 +26,7 @@ import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
 import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
 import { Route as AppBacklogRouteImport } from './routes/_app.backlog'
 import { Route as AppAtivosRouteImport } from './routes/_app.ativos'
+import { Route as ApiPublicHooksSyncSheetsRouteImport } from './routes/api/public/hooks/sync-sheets'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -111,6 +112,12 @@ const AppAtivosRoute = AppAtivosRouteImport.update({
   path: '/ativos',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicHooksSyncSheetsRoute =
+  ApiPublicHooksSyncSheetsRouteImport.update({
+    id: '/api/public/hooks/sync-sheets',
+    path: '/api/public/hooks/sync-sheets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof AppProgramacaoRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
+  '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
   '/': typeof AppIndexRoute
+  '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/temperaturas': typeof AppTemperaturasRoute
   '/_app/': typeof AppIndexRoute
+  '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/relatorios'
     | '/temperaturas'
+    | '/api/public/hooks/sync-sheets'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/temperaturas'
     | '/'
+    | '/api/public/hooks/sync-sheets'
   id:
     | '__root__'
     | '/_app'
@@ -224,11 +236,13 @@ export interface FileRouteTypes {
     | '/_app/relatorios'
     | '/_app/temperaturas'
     | '/_app/'
+    | '/api/public/hooks/sync-sheets'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ApiPublicHooksSyncSheetsRoute: typeof ApiPublicHooksSyncSheetsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAtivosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/hooks/sync-sheets': {
+      id: '/api/public/hooks/sync-sheets'
+      path: '/api/public/hooks/sync-sheets'
+      fullPath: '/api/public/hooks/sync-sheets'
+      preLoaderRoute: typeof ApiPublicHooksSyncSheetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -396,17 +417,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  ApiPublicHooksSyncSheetsRoute: ApiPublicHooksSyncSheetsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
