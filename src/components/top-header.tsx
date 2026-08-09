@@ -9,6 +9,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { syncSheetsNow } from "@/lib/sync-sheets.functions";
 
 export function TopHeader() {
   const qc = useQueryClient();
@@ -30,7 +31,7 @@ export function TopHeader() {
 
   const handleRefresh = async () => {
     try {
-      await fetch("/api/public/hooks/sync-sheets", { method: "POST" });
+      await syncSheetsNow();
     } catch (err) {
       console.warn("[top-header] sync falhou:", err);
     }
