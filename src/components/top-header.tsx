@@ -30,7 +30,7 @@ export function TopHeader() {
 
   const handleRefresh = async () => {
     try {
-      await fetch("/api/public/hooks/sync-sheets", { method: "POST" });
+      await syncSheetsNow();
     } catch (err) {
       console.warn("[top-header] sync falhou:", err);
     }

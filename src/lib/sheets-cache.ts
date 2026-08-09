@@ -1,6 +1,7 @@
 import { fetchSheetsData } from "./sheets";
 import type { SheetsData } from "./sheets-types";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { syncSheetsNow } from "./sync-sheets.functions";
 
 /** Idade máxima aceita para o cache do banco antes de disparar novo ETL. */
 export const CACHE_MAX_AGE_MS = 5 * 60_000;
@@ -11,7 +12,7 @@ let syncInFlight = false;
 function triggerSync() {
   if (syncInFlight || typeof window === "undefined") return;
   syncInFlight = true;
-  fetch("/api/public/hooks/sync-sheets", { method: "POST" })
+  syncSheetsNow()
     .catch((err) => console.warn("[sheets-cache] sync falhou:", err))
     .finally(() => {
       syncInFlight = false;
