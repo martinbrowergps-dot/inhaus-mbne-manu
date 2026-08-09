@@ -9,6 +9,7 @@ import { sheetsQueryOptions } from "@/lib/sheets";
 import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { syncSheetsNow } from "@/lib/sync-sheets.functions";
 
 export function TopHeader() {
   const qc = useQueryClient();
