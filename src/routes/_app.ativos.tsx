@@ -156,17 +156,8 @@ function AtivosPage() {
     [filtered, selectedTag],
   );
 
-  if (isError) {
-    return <DataErrorState error={error} onRetry={() => refetch()} />;
-  }
 
-  if (isLoading)
-    return (
-      <div className="space-y-4">
-        <KpiSkeletonGrid count={4} className="sm:grid-cols-4" heightClass="h-24" />
-        <Skeleton className="h-96" />
-      </div>
-    );
+
 
   const currentTag = selectedTag === "__all__" ? null : selectedTag;
   const currentLabel = currentTag ? assetLabel(currentTag, tagMap) : null;
