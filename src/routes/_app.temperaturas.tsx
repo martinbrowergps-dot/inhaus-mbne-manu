@@ -44,12 +44,6 @@ function TemperaturasPage() {
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
 
-  if (isError) {
-    return <DataErrorState error={error} onRetry={() => refetch()} />;
-  }
-
-  if (isLoading) return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
-
   const medicoes = data?.medicoes ?? [];
   const filteredMedicoes = filterByRange(medicoes, range);
   const locais = summarizeLocais(medicoes);
@@ -129,6 +123,12 @@ function TemperaturasPage() {
     }
     return { locais: allLocais, days, cells };
   }, [medicoes, allLocais]);
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
+  if (isLoading) return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   return (
     <div ref={pdfRef} className="space-y-6">
