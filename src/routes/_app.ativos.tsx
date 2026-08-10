@@ -199,6 +199,20 @@ function AtivosPage() {
   const byMes = useMemo(() => aggregateByMonth(rows), [rows]);
   const observacoes = useMemo(() => extractObservations(rowsRaw), [rowsRaw]);
 
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
+  if (isLoading)
+    return (
+      <div className="space-y-4">
+        <KpiSkeletonGrid count={4} className="sm:grid-cols-4" heightClass="h-24" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+
+
+
   const subtitle =
     (currentLabel ? `Ativo ${currentLabel} · ` : "Todos os ativos · ") +
     (dateFilter.isActive
