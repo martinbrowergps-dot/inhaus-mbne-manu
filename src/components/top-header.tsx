@@ -30,14 +30,21 @@ export function TopHeader() {
   }, []);
 
   const handleRefresh = async () => {
+    let syncOk = true;
     try {
       await syncSheetsNow();
     } catch (err) {
+      syncOk = false;
       console.warn("[top-header] sync falhou:", err);
     }
     await qc.invalidateQueries({ queryKey: ["sheets"] });
-    toast.success("Dados atualizados");
+    if (syncOk) {
+      toast.success("Dados atualizados");
+    } else {
+      toast.error("Não foi possível sincronizar a planilha. Exibindo os dados em cache.");
+    }
   };
+
 
   const lastUpdate = data ? new Date(data.fetchedAt) : null;
   const minutesAgo = lastUpdate
