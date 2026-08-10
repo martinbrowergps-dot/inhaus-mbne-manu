@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Activity, CheckCircle2, Clock } from "lucide-react";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PreditivaRow } from "@/lib/sheets-types";
 import { StatusBadge } from "@/components/status-badge";
@@ -57,11 +58,15 @@ const columns: ColumnDef<PreditivaRow>[] = [
 ];
 
 function PreditivasPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const preditiva = useMemo(
     () => data?.preditiva ?? [],
     [data?.preditiva],
   );
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return (

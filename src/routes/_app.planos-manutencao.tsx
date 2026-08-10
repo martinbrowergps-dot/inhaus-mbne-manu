@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, DoorOpen, Activity } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { ChecklistRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
@@ -110,8 +111,12 @@ const detailCols: ColumnDef<ChecklistEnriched>[] = [
 ];
 
 function ChecklistsPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const [tab, setTab] = useState("docas");
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return (

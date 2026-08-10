@@ -156,6 +156,10 @@ function AtivosPage() {
     [filtered, selectedTag],
   );
 
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
   if (isLoading)
     return (
       <div className="space-y-4">

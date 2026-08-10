@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { TempCard } from "@/components/temp-card";
@@ -39,9 +40,13 @@ function TemperaturasPage() {
   const { range } = Route.useSearch();
   const pdfRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate({ from: "/temperaturas" });
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;

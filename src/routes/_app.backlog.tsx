@@ -15,6 +15,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import type { BacklogRow } from "@/lib/sheets-types";
@@ -145,7 +146,7 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
 ];
 
 function BacklogPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
@@ -299,6 +300,10 @@ function BacklogPage() {
       console.error("Erro ao exportar backlog:", err);
     }
   };
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading) {
     return (

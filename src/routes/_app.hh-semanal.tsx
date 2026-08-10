@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -25,9 +26,13 @@ function normalize(s: string) {
 }
 
 function HHPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;

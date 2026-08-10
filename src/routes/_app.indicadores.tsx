@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { Gauge, Timer } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/_app/indicadores")({
 });
 
 function IndicadoresPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const dateFilter = useDateFilter();
@@ -273,6 +274,10 @@ function IndicadoresPage() {
         mtbfDias,
       };
   }, [data, dateFilter]);
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading || !data || !computed)
     return (

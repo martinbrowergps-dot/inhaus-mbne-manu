@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Calendar, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -115,7 +116,7 @@ const fullCols: ColumnDef<EnrichedRow>[] = [
 ];
 
 function ProgramacaoPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const [q, setQ] = useState("");
   const [sistemaF, setSistemaF] = useState<string | null>(null);
   const [critF, setCritF] = useState<string | null>(null);
@@ -286,7 +287,9 @@ function ProgramacaoPage() {
         }
       />
 
-      {isLoading ? (
+      {isError ? (
+            <DataErrorState error={error} onRetry={() => refetch()} />
+          ) : isLoading ? (
         <div className="space-y-4">
           <div className="flex gap-2">
             <Skeleton className="h-8 w-96" />

@@ -16,6 +16,7 @@ import {
   LabelList,
 } from "recharts";
 import { ClipboardList, Clock, CheckCircle2, AlertOctagon, Calendar, Play, PauseCircle } from "lucide-react";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import {
@@ -57,10 +58,14 @@ type PeriodRow = {
 };
 
 function RelatoriosPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
   const [visao, setVisao] = useState<"semanal" | "mensal" | "dia">("dia");
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading) {
     return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, CheckCircle2, ClipboardList, FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { NcRow } from "@/lib/sheets-types";
 import { statusBadge } from "@/lib/chart-utils";
@@ -83,7 +84,7 @@ const columns: ColumnDef<NcRow>[] = [
 ];
 
 function NcPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const nc = useMemo(() => data?.nc ?? [], [data?.nc]);
 
   const byResponsavel = useMemo(() => {
@@ -111,6 +112,10 @@ function NcPage() {
   const total = nc.length;
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
   const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return (
