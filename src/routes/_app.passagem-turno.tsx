@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { PassagemTurnoRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
@@ -92,7 +93,7 @@ const cols: ColumnDef<PassagemTurnoRow>[] = [
 ];
 
 function PassagemPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
 
   return (
@@ -144,7 +145,9 @@ function PassagemPage() {
         insight={`${data?.passagemTurno?.length ?? 0} passagens de turno registradas`}
       >
         <Panel>
-          {isLoading ? (
+          {isError ? (
+            <DataErrorState error={error} onRetry={() => refetch()} />
+          ) : isLoading ? (
             <Skeleton className="h-80" />
           ) : (
             <DataTable

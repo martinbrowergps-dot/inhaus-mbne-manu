@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { UserCircle2, Users, Layers } from "lucide-react";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { TecnicoRow } from "@/lib/sheets-types";
 import { aggregate } from "@/lib/chart-utils";
@@ -36,7 +37,7 @@ const cols: ColumnDef<TecnicoRow>[] = [
 ];
 
 function EquipePage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
 
   const tecnicos = useMemo(() => data?.tecnicos ?? [], [data?.tecnicos]);
   const byCargo = useMemo(() => aggregate(tecnicos, (r) => r.Cargo || "—"), [tecnicos]);
@@ -65,8 +66,18 @@ function EquipePage() {
         insight={`${tecnicos.length} técnicos · ${byCargo.length} cargos distintos`}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <KpiCard label="Total de técnicos" value={tecnicos.length} icon={Users} variant="primary" />
-          <KpiCard label="Cargos distintos" value={byCargo.length} icon={Layers} variant="neutral" />
+          <KpiCard
+            label="Total de técnicos"
+            value={tecnicos.length}
+            icon={Users}
+            variant="primary"
+          />
+          <KpiCard
+            label="Cargos distintos"
+            value={byCargo.length}
+            icon={Layers}
+            variant="neutral"
+          />
         </div>
       </SectionHeader>
 
@@ -82,7 +93,9 @@ function EquipePage() {
 
       <SectionHeader label="Registro" insight={`${tecnicos.length} técnicos cadastrados`}>
         <Panel title={`${tecnicos.length} TÉCNICOS ATIVOS`}>
-          {isLoading ? (
+          {isError ? (
+            <DataErrorState error={error} onRetry={() => refetch()} />
+          ) : isLoading ? (
             <Skeleton className="h-80" />
           ) : (
             <DataTable

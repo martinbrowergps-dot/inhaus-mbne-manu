@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
@@ -25,12 +26,15 @@ function normalize(s: string) {
 }
 
 function HHPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
 
-  if (isLoading)
-    return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
+  if (isLoading) return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   if (!data) return null;
 
@@ -178,7 +182,8 @@ function Gauge({
       {ocupacao > 100 && (
         <div className="mt-2 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1.5 text-[11px] text-destructive">
           <AlertOctagon className="h-3.5 w-3.5" />
-          Sobrecarga: {formatBRNumber(ocupacao, 1)}% da capacidade — {formatBRNumber(alocado - disponivel, 1)}h excedentes
+          Sobrecarga: {formatBRNumber(ocupacao, 1)}% da capacidade —{" "}
+          {formatBRNumber(alocado - disponivel, 1)}h excedentes
         </div>
       )}
     </div>

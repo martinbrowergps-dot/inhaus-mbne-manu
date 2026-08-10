@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { TempCard } from "@/components/temp-card";
@@ -39,12 +40,9 @@ function TemperaturasPage() {
   const { range } = Route.useSearch();
   const pdfRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate({ from: "/temperaturas" });
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const setRange = (r: TempRange) =>
     navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
-
-  if (isLoading)
-    return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   const medicoes = data?.medicoes ?? [];
   const filteredMedicoes = filterByRange(medicoes, range);
@@ -80,14 +78,17 @@ function TemperaturasPage() {
       const d = (m.DATA || "").trim();
       if (!l || !d) continue;
       const tipo = classifyLocal(l);
-      const temps = [m.TEMPERATURA_01, m.TEMPERATURA_02].filter(
-        (t): t is number => t !== null,
-      );
+      const temps = [m.TEMPERATURA_01, m.TEMPERATURA_02].filter((t): t is number => t !== null);
       if (temps.length === 0) continue;
       const key = `${l}|${d}`;
-      const cur =
-        acc.get(key) ??
-        ({ sum: 0, count: 0, min: Infinity, max: -Infinity, worst: "normal" as TempStatus, out: 0 });
+      const cur = acc.get(key) ?? {
+        sum: 0,
+        count: 0,
+        min: Infinity,
+        max: -Infinity,
+        worst: "normal" as TempStatus,
+        out: 0,
+      };
       for (const t of temps) {
         cur.sum += t;
         cur.count++;
@@ -101,7 +102,14 @@ function TemperaturasPage() {
     }
     const cells = new Map<
       string,
-      { temp: number | null; status: TempStatus; min: number; max: number; out: number; count: number }
+      {
+        temp: number | null;
+        status: TempStatus;
+        min: number;
+        max: number;
+        out: number;
+        count: number;
+      }
     >();
     for (const [key, v] of acc) {
       cells.set(key, {
@@ -115,6 +123,12 @@ function TemperaturasPage() {
     }
     return { locais: allLocais, days, cells };
   }, [medicoes, allLocais]);
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
+  if (isLoading) return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   return (
     <div ref={pdfRef} className="space-y-6">
@@ -201,12 +215,7 @@ function TemperaturasPage() {
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {allLocais.map((local) => (
-                <TempTrendChart
-                  key={local}
-                  local={local}
-                  medicoes={medicoes}
-                  range={range}
-                />
+                <TempTrendChart key={local} local={local} medicoes={medicoes} range={range} />
               ))}
             </div>
           )}

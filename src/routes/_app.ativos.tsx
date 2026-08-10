@@ -1,3 +1,4 @@
+import { DataErrorState } from "@/components/data-error-state";
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
@@ -17,10 +18,7 @@ import type { ProgramacaoRow } from "@/lib/sheets-types";
 import { SERIES_COLORS, STATUS_COLORS } from "@/lib/chart-utils";
 import { useProgramacaoFilter } from "@/lib/domain/programacao-filter";
 import { assetLabel } from "@/lib/domain/tag-map";
-import {
-  aggregateByMonth,
-  aggregateHHByCargo,
-} from "@/lib/domain/aggregates";
+import { aggregateByMonth, aggregateHHByCargo } from "@/lib/domain/aggregates";
 import { extractObservations } from "@/lib/domain/observations";
 import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { ChartDonut } from "@/components/visao-geral/chart-donut";
@@ -40,13 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  formatBRNumber,
-  formatInt,
-  formatDateBR,
-  parseBRDate,
-  formatBRDate,
-} from "@/lib/format";
+import { formatBRNumber, formatInt, formatDateBR, parseBRDate, formatBRDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/ativos")({
   component: AtivosPage,
@@ -65,7 +57,7 @@ const columns: ColumnDef<AtivoRow>[] = [
     header: "Data",
     cell: ({ getValue }) => {
       const d = parseBRDate(getValue() as string);
-      return <span className="num">{d ? formatBRDate(d) : ((getValue() as string) || "—")}</span>;
+      return <span className="num">{d ? formatBRDate(d) : (getValue() as string) || "—"}</span>;
     },
   },
   { accessorKey: "Sistema", header: "Sistema" },
@@ -100,7 +92,9 @@ const columns: ColumnDef<AtivoRow>[] = [
   {
     accessorKey: "HH",
     header: "HH",
-    cell: ({ getValue }) => <span className="num">{formatBRNumber(Number(getValue() ?? 0), 1)}</span>,
+    cell: ({ getValue }) => (
+      <span className="num">{formatBRNumber(Number(getValue() ?? 0), 1)}</span>
+    ),
   },
   { accessorKey: "Executante", header: "Executante" },
   {
@@ -117,7 +111,12 @@ const columns: ColumnDef<AtivoRow>[] = [
               ? "border-warning/40 bg-warning/15 text-warning"
               : "border-border/40 bg-card/50 text-muted-foreground";
       return (
-        <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider", cls)}>
+        <span
+          className={cn(
+            "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider",
+            cls,
+          )}
+        >
           {s}
         </span>
       );
@@ -126,7 +125,8 @@ const columns: ColumnDef<AtivoRow>[] = [
 ];
 
 function AtivosPage() {
-  const { isLoading, raw, filtered, enriched, tagMap, dateFilter } = useProgramacaoFilter();
+  const { isLoading, isError, error, refetch, raw, filtered, enriched, tagMap, dateFilter } =
+    useProgramacaoFilter();
   const [selectedTag, setSelectedTag] = useState<string>("__all__");
 
   const tags = useMemo(() => {
@@ -155,14 +155,6 @@ function AtivosPage() {
         : filtered.filter((p) => (p.TAG || "").trim() === selectedTag),
     [filtered, selectedTag],
   );
-
-  if (isLoading)
-    return (
-      <div className="space-y-4">
-        <KpiSkeletonGrid count={4} className="sm:grid-cols-4" heightClass="h-24" />
-        <Skeleton className="h-96" />
-      </div>
-    );
 
   const currentTag = selectedTag === "__all__" ? null : selectedTag;
   const currentLabel = currentTag ? assetLabel(currentTag, tagMap) : null;
@@ -204,6 +196,18 @@ function AtivosPage() {
   const byMes = useMemo(() => aggregateByMonth(rows), [rows]);
   const observacoes = useMemo(() => extractObservations(rowsRaw), [rowsRaw]);
 
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
+  if (isLoading)
+    return (
+      <div className="space-y-4">
+        <KpiSkeletonGrid count={4} className="sm:grid-cols-4" heightClass="h-24" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+
   const subtitle =
     (currentLabel ? `Ativo ${currentLabel} · ` : "Todos os ativos · ") +
     (dateFilter.isActive
@@ -228,7 +232,10 @@ function AtivosPage() {
             rows={rowsRaw}
             columns={[
               { header: "Nº OS", value: (r) => r.NumeroOS },
-              { header: "Equipamento/Máquina", value: (r) => tagMap.get((r.TAG || "").trim()) || "—" },
+              {
+                header: "Equipamento/Máquina",
+                value: (r) => tagMap.get((r.TAG || "").trim()) || "—",
+              },
               { header: "TAG", value: (r) => r.TAG },
               { header: "Data", value: (r) => r.DataProgramada },
               { header: "Sistema", value: (r) => r.Sistema },
@@ -284,10 +291,25 @@ function AtivosPage() {
           >
             <div className="grid gap-3 sm:grid-cols-4">
               <KpiCard label="Total de OS" value={total} icon={ClipboardList} variant="primary" />
-              <KpiCard label="Finalizadas" value={finalizadas} icon={CheckCircle2} variant="success" />
-              <KpiCard label="Pendentes" value={programadas} icon={CalendarClock} variant="warning" />
+              <KpiCard
+                label="Finalizadas"
+                value={finalizadas}
+                icon={CheckCircle2}
+                variant="success"
+              />
+              <KpiCard
+                label="Pendentes"
+                value={programadas}
+                icon={CalendarClock}
+                variant="warning"
+              />
               <KpiCard label="Canceladas" value={canceladas} icon={XCircle} variant="danger" />
-              <KpiCard label="HH Total" value={`${formatBRNumber(totalHH, 1)}h`} icon={Clock} variant="neutral" />
+              <KpiCard
+                label="HH Total"
+                value={`${formatBRNumber(totalHH, 1)}h`}
+                icon={Clock}
+                variant="neutral"
+              />
               <KpiCard label="Criticidade AA" value={aa} icon={AlertOctagon} variant="danger" />
               <KpiCard label="Quebras" value={quebras} icon={AlertTriangle} variant="danger" />
             </div>
@@ -299,7 +321,10 @@ function AtivosPage() {
                 <ChartDonut data={byExec} />
               </Panel>
               <Panel title="OS POR CRITICIDADE" dataChart="ativos-criticidade">
-                <ChartDonut data={byCrit} colors={[STATUS_COLORS.AA, STATUS_COLORS.A, STATUS_COLORS.B, STATUS_COLORS.C]} />
+                <ChartDonut
+                  data={byCrit}
+                  colors={[STATUS_COLORS.AA, STATUS_COLORS.A, STATUS_COLORS.B, STATUS_COLORS.C]}
+                />
               </Panel>
             </div>
           </SectionHeader>
@@ -338,15 +363,22 @@ function AtivosPage() {
               ) : (
                 <div className="space-y-2">
                   {observacoes.map((o, i) => (
-                    <div key={i} className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
+                    <div
+                      key={i}
+                      className="rounded-lg border border-border/60 bg-card/40 p-3 text-xs"
+                    >
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <span className="id font-semibold text-foreground">{o.os}</span>
-                        {o.data && <span className="num text-muted-foreground">{o.dataFormatted}</span>}
+                        {o.data && (
+                          <span className="num text-muted-foreground">{o.dataFormatted}</span>
+                        )}
                       </div>
                       {o.obs && <p className="text-foreground/90">{o.obs}</p>}
                       {o.nc && (
                         <p className="mt-1 text-destructive/90">
-                          <span className="font-semibold uppercase tracking-wider">Não conformidade: </span>
+                          <span className="font-semibold uppercase tracking-wider">
+                            Não conformidade:{" "}
+                          </span>
                           {o.nc}
                         </p>
                       )}
@@ -365,7 +397,15 @@ function AtivosPage() {
               data={rows}
               columns={columns}
               pageSize={15}
-              searchKeys={["NumeroOS", "TAG", "_equip", "Descricao", "Sistema", "Executante", "Cargo"]}
+              searchKeys={[
+                "NumeroOS",
+                "TAG",
+                "_equip",
+                "Descricao",
+                "Sistema",
+                "Executante",
+                "Cargo",
+              ]}
               detailTitle={(r) => r.NumeroOS}
               detailSubtitle={(r) => `${r.Descricao} — ${r.Sistema}`}
             />

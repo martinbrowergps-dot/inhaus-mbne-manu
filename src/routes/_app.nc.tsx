@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, CheckCircle2, ClipboardList, FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { NcRow } from "@/lib/sheets-types";
 import { statusBadge } from "@/lib/chart-utils";
@@ -83,7 +84,7 @@ const columns: ColumnDef<NcRow>[] = [
 ];
 
 function NcPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const nc = useMemo(() => data?.nc ?? [], [data?.nc]);
 
   const byResponsavel = useMemo(() => {
@@ -111,6 +112,10 @@ function NcPage() {
   const total = nc.length;
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
   const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return (
@@ -181,7 +186,10 @@ function NcPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Análise" insight="NCs distribuídas por responsável e status de fechamento">
+      <SectionHeader
+        label="Análise"
+        insight="NCs distribuídas por responsável e status de fechamento"
+      >
         <div className="grid gap-4 lg:grid-cols-2">
           {byResponsavel.length > 0 && (
             <Panel title="NC POR RESPONSÁVEL" glass>
@@ -223,13 +231,7 @@ function NcPage() {
           data={nc}
           columns={columns}
           pageSize={15}
-          searchKeys={[
-            "Codigo",
-            "Ocorrencia",
-            "Responsavel",
-            "OQueFazer",
-            "Status",
-          ]}
+          searchKeys={["Codigo", "Ocorrencia", "Responsavel", "OQueFazer", "Status"]}
           searchPlaceholder="Buscar NC por código, ocorrência, responsável, status…"
           detailTitle={(r) => r.Codigo}
           detailSubtitle={(r) => r.Ocorrencia}

@@ -29,7 +29,7 @@ export function filterByDate(
 }
 
 export function useProgramacaoFilter() {
-  const { data, isLoading, error } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
 
   const plano = data?.planoManutencao ?? [];
@@ -53,5 +53,5 @@ export function useProgramacaoFilter() {
 
   const enriched = useMemo(() => enrichProgramacao(filtered, tagMap), [filtered, tagMap]);
 
-  return { data, isLoading, error, raw, filtered, enriched, tagMap, dateFilter };
+  return { data, isLoading, isError, error, refetch, raw, filtered, enriched, tagMap, dateFilter };
 }

@@ -15,7 +15,16 @@ import {
   Legend,
   LabelList,
 } from "recharts";
-import { ClipboardList, Clock, CheckCircle2, AlertOctagon, Calendar, Play, PauseCircle } from "lucide-react";
+import {
+  ClipboardList,
+  Clock,
+  CheckCircle2,
+  AlertOctagon,
+  Calendar,
+  Play,
+  PauseCircle,
+} from "lucide-react";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import {
@@ -57,10 +66,14 @@ type PeriodRow = {
 };
 
 function RelatoriosPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
   const dateFilter = useDateFilter();
   const [visao, setVisao] = useState<"semanal" | "mensal" | "dia">("dia");
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading) {
     return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;
@@ -143,7 +156,12 @@ function RelatoriosPage() {
               pdfTitle={`Relatório de Programação · ${visao === "semanal" ? "Semanal" : visao === "mensal" ? "Mensal" : "Diário"}`}
               pdfSubtitle={
                 dateFilter.isActive
-                  ? formatDateBR(dateFilter.startDate) + " a " + formatDateBR(dateFilter.endDate) + " · " + formatInt(totalOS) + " OS"
+                  ? formatDateBR(dateFilter.startDate) +
+                    " a " +
+                    formatDateBR(dateFilter.endDate) +
+                    " · " +
+                    formatInt(totalOS) +
+                    " OS"
                   : formatInt(totalOS) + " OS no total"
               }
             />
@@ -253,14 +271,21 @@ function RelatoriosPage() {
                   margin={{ top: 35, right: 20, left: 20, bottom: 4 }}
                 >
                   <CartesianGrid {...chartGridProps} />
-<XAxis dataKey="periodLabel" {...chartAxisProps} />
+                  <XAxis dataKey="periodLabel" {...chartAxisProps} />
                   <YAxis {...chartAxisProps} allowDecimals={false} />
                   <ReTooltip {...chartTooltipProps} />
                   <Legend
                     wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(value) => (value === "planejado" ? "Planejado" : "Não Planejado")}
                   />
-                  <Bar dataKey="planejadas" name="planejado" stackId="a" fill={SERIES_COLORS.planejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  <Bar
+                    dataKey="planejadas"
+                    name="planejado"
+                    stackId="a"
+                    fill={SERIES_COLORS.planejado}
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  >
                     <LabelList
                       content={({ x, y, width, height, index }) => {
                         const d = index !== undefined ? periods[index] : undefined;
@@ -268,20 +293,40 @@ function RelatoriosPage() {
                         const numH = Number(height);
                         if (!numH || numH < 14) {
                           return (
-                            <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>
+                            <text
+                              x={Number(x) + Number(width) / 2}
+                              y={Number(y) - 6}
+                              textAnchor="middle"
+                              fill="#F1F5F9"
+                              fontSize={10}
+                            >
                               {d.planejadas}/{d.naoPlanejadas}
                             </text>
                           );
                         }
                         return (
-                          <text x={Number(x) + Number(width) / 2} y={Number(y) + Number(height) / 2} textAnchor="middle" dominantBaseline="central" fill="#F1F5F9" fontSize={10}>
+                          <text
+                            x={Number(x) + Number(width) / 2}
+                            y={Number(y) + Number(height) / 2}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fill="#F1F5F9"
+                            fontSize={10}
+                          >
                             {d.planejadas}/{d.naoPlanejadas}
                           </text>
                         );
                       }}
                     />
                   </Bar>
-                  <Bar dataKey="naoPlanejadas" name="naoPlanejado" stackId="a" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                  <Bar
+                    dataKey="naoPlanejadas"
+                    name="naoPlanejado"
+                    stackId="a"
+                    fill={SERIES_COLORS.naoPlanejado}
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -303,11 +348,17 @@ function RelatoriosPage() {
                   margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
                 >
                   <CartesianGrid {...chartGridProps} />
-<XAxis dataKey="periodLabel" {...chartAxisProps} />
+                  <XAxis dataKey="periodLabel" {...chartAxisProps} />
                   <YAxis {...chartAxisProps} allowDecimals={false} />
                   <ReTooltip {...chartTooltipProps} />
                   <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                  <Bar dataKey="totalHH" name="HH" fill={SERIES_COLORS.hh} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  <Bar
+                    dataKey="totalHH"
+                    name="HH"
+                    fill={SERIES_COLORS.hh}
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  >
                     <LabelList
                       content={({ x, y, width, value }) => {
                         const numVal = Number(value);
@@ -398,9 +449,14 @@ function RelatoriosPage() {
                   <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
                   <YAxis type="category" dataKey="name" {...chartAxisProps} width={140} />
                   <ReTooltip {...chartTooltipProps} />
-                    <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                      <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
-                    </Bar>
+                  <Bar
+                    dataKey="value"
+                    fill={SERIES_COLORS.naoPlanejado}
+                    radius={[0, 4, 4, 0]}
+                    isAnimationActive={false}
+                  >
+                    <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { Gauge, Timer } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/_app/indicadores")({
 });
 
 function IndicadoresPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const dateFilter = useDateFilter();
@@ -208,7 +209,20 @@ function IndicadoresPage() {
     const aderenciaMensal = Array.from(monthMap.entries())
       .map(([key, v]) => {
         const [y, m] = key.split("-");
-        const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+        const meses = [
+          "Jan",
+          "Fev",
+          "Mar",
+          "Abr",
+          "Mai",
+          "Jun",
+          "Jul",
+          "Ago",
+          "Set",
+          "Out",
+          "Nov",
+          "Dez",
+        ];
         return {
           label: `${meses[Number(m) - 1]}/${y.slice(2)}`,
           value: v.total > 0 ? Number(((v.ok / v.total) * 100).toFixed(1)) : 0,
@@ -228,26 +242,26 @@ function IndicadoresPage() {
       /finaliz|conclu|cancel/i.test(p.StatusExecucao || p.Status || ""),
     ).length;
 
-      // MTBF / MTTR (versão simples)
-      const finalizadasM = programacaoFiltrada.filter((p) =>
-        /finaliz|conclu/i.test(p.StatusExecucao || p.Status || ""),
-      );
-      const mttrHH =
-        finalizadasM.length > 0
-          ? finalizadasM.reduce((s, p) => s + (p.HH || 0), 0) / finalizadasM.length
-          : null;
-      const datasFim = finalizadasM
-        .map((p) => parseBRDate(p.DataProgramada))
-        .filter((d): d is Date => d != null)
-        .sort((a, b) => a.getTime() - b.getTime());
-      let mtbfDias: number | null = null;
-      if (datasFim.length >= 2) {
-        let tot = 0;
-        for (let i = 1; i < datasFim.length; i++) {
-          tot += (datasFim[i].getTime() - datasFim[i - 1].getTime()) / 86_400_000;
-        }
-        mtbfDias = tot / (datasFim.length - 1);
+    // MTBF / MTTR (versão simples)
+    const finalizadasM = programacaoFiltrada.filter((p) =>
+      /finaliz|conclu/i.test(p.StatusExecucao || p.Status || ""),
+    );
+    const mttrHH =
+      finalizadasM.length > 0
+        ? finalizadasM.reduce((s, p) => s + (p.HH || 0), 0) / finalizadasM.length
+        : null;
+    const datasFim = finalizadasM
+      .map((p) => parseBRDate(p.DataProgramada))
+      .filter((d): d is Date => d != null)
+      .sort((a, b) => a.getTime() - b.getTime());
+    let mtbfDias: number | null = null;
+    if (datasFim.length >= 2) {
+      let tot = 0;
+      for (let i = 1; i < datasFim.length; i++) {
+        tot += (datasFim[i].getTime() - datasFim[i - 1].getTime()) / 86_400_000;
       }
+      mtbfDias = tot / (datasFim.length - 1);
+    }
 
     return {
       aderencia,
@@ -268,11 +282,15 @@ function IndicadoresPage() {
       hhPlanejado,
       hhExecutado,
       osProgramadas,
-        osRealizadas,
-        mttrHH,
-        mtbfDias,
-      };
+      osRealizadas,
+      mttrHH,
+      mtbfDias,
+    };
   }, [data, dateFilter]);
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading || !data || !computed)
     return (
@@ -285,7 +303,10 @@ function IndicadoresPage() {
 
   const bySistema = aggregate(programacaoFiltrada, (p) => p.Sistema || "—");
   const byTipo = aggregate(programacaoFiltrada, (p) => p.Tipo || "—");
-  const byLocal = aggregate(programacaoFiltrada, (p) => p.LocalMacro || p.Localidade || "—").slice(0, 10);
+  const byLocal = aggregate(programacaoFiltrada, (p) => p.LocalMacro || p.Localidade || "—").slice(
+    0,
+    10,
+  );
 
   const locais = summarizeLocais(data.medicoes);
   const statusTemp = [
@@ -340,11 +361,7 @@ function IndicadoresPage() {
               <LineChart data={computed.semanal}>
                 <CartesianGrid {...chartGridProps} />
                 <XAxis dataKey="label" {...chartAxisProps} />
-                <YAxis
-                  domain={[0, 100]}
-                  {...chartAxisProps}
-                  unit="%"
-                />
+                <YAxis domain={[0, 100]} {...chartAxisProps} unit="%" />
                 <ReTooltip
                   {...chartTooltipProps}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
@@ -380,7 +397,13 @@ function IndicadoresPage() {
           />
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
             Meta indústria: ≥ {computed.metaPlanejamento}% planejadas ·{" "}
-            <span className={computed.pctPlanejado >= computed.metaPlanejamento ? "text-success" : "text-destructive"}>
+            <span
+              className={
+                computed.pctPlanejado >= computed.metaPlanejamento
+                  ? "text-success"
+                  : "text-destructive"
+              }
+            >
               {computed.pctPlanejado >= computed.metaPlanejamento ? "✓ atingido" : "✗ abaixo"}
             </span>
           </p>
@@ -497,10 +520,17 @@ function IndicadoresPage() {
                   <ReTooltip
                     {...chartTooltipProps}
                     formatter={(v: number, n: string) =>
-                      n === "acum" ? [`${formatBRNumber(v, 1)}%`, "Acumulado"] : [formatInt(Number(v)), "OS"]
+                      n === "acum"
+                        ? [`${formatBRNumber(v, 1)}%`, "Acumulado"]
+                        : [formatInt(Number(v)), "OS"]
                     }
                   />
-                  <Bar dataKey="value" fill={SERIES_COLORS.planejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                  <Bar
+                    dataKey="value"
+                    fill={SERIES_COLORS.planejado}
+                    radius={[0, 4, 4, 0]}
+                    isAnimationActive={false}
+                  >
                     <LabelList
                       dataKey="value"
                       position="right"
@@ -534,18 +564,8 @@ function IndicadoresPage() {
                 margin={{ left: 20, right: 48, top: 8, bottom: 4 }}
               >
                 <CartesianGrid {...chartGridProps} horizontal={false} />
-                <XAxis
-                  type="number"
-                  domain={[0, 100]}
-                  unit="%"
-                  {...chartAxisProps}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  {...chartAxisProps}
-                  width={140}
-                />
+                <XAxis type="number" domain={[0, 100]} unit="%" {...chartAxisProps} />
+                <YAxis type="category" dataKey="name" {...chartAxisProps} width={140} />
                 <ReTooltip
                   {...chartTooltipProps}
                   formatter={(v: number) => [`${formatBRNumber(v, 1)}%`, "Aderência"]}
@@ -579,18 +599,50 @@ function IndicadoresPage() {
           ) : (
             <div className="h-72">
               <ResponsiveContainer>
-                <BarChart data={computed.backlogArr} margin={{ top: 18, right: 24, left: 20, bottom: 4 }}>
+                <BarChart
+                  data={computed.backlogArr}
+                  margin={{ top: 18, right: 24, left: 20, bottom: 4 }}
+                >
                   <CartesianGrid {...chartGridProps} />
                   <XAxis dataKey="name" {...chartAxisProps} fontSize={11} />
                   <YAxis yAxisId="left" {...chartAxisProps} allowDecimals={false} />
-                  <YAxis yAxisId="right" orientation="right" {...chartAxisProps} stroke={SERIES_COLORS.hh} />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    {...chartAxisProps}
+                    stroke={SERIES_COLORS.hh}
+                  />
                   <ReTooltip {...chartTooltipProps} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar yAxisId="left" dataKey="OS" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                    <LabelList dataKey="OS" position="top" fill="#F1F5F9" fontSize={10} formatter={(v: number) => formatInt(Number(v))} />
+                  <Bar
+                    yAxisId="left"
+                    dataKey="OS"
+                    fill={SERIES_COLORS.naoPlanejado}
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  >
+                    <LabelList
+                      dataKey="OS"
+                      position="top"
+                      fill="#F1F5F9"
+                      fontSize={10}
+                      formatter={(v: number) => formatInt(Number(v))}
+                    />
                   </Bar>
-                  <Bar yAxisId="right" dataKey="HH" fill={SERIES_COLORS.hh} radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                    <LabelList dataKey="HH" position="top" fill="#F1F5F9" fontSize={10} formatter={(v: number) => formatBRNumber(Number(v), 1)} />
+                  <Bar
+                    yAxisId="right"
+                    dataKey="HH"
+                    fill={SERIES_COLORS.hh}
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  >
+                    <LabelList
+                      dataKey="HH"
+                      position="top"
+                      fill="#F1F5F9"
+                      fontSize={10}
+                      formatter={(v: number) => formatBRNumber(Number(v), 1)}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -685,21 +737,28 @@ function IndicadoresPage() {
                     layout="vertical"
                     margin={{ left: 20, right: 40, top: 8, bottom: 4 }}
                   >
-                  <CartesianGrid {...chartGridProps} horizontal={false} />
-                  <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    {...chartAxisProps}
-                    width={120}
-                  />
-                  <ReTooltip {...chartTooltipProps} />
-                  <Legend
-                    wrapperStyle={{ fontSize: 11 }}
-                    formatter={(value) => (value === "duracao" ? "Duração real" : "HH Planejado")}
-                  />
-                  <Bar dataKey="duracao" name="duracao" fill={SERIES_COLORS.executado} radius={[0, 4, 4, 0]} isAnimationActive={false} />
-                  <Bar dataKey="hhPlan" name="hhPlan" fill={SERIES_COLORS.hh} radius={[0, 4, 4, 0]} isAnimationActive={false} />
+                    <CartesianGrid {...chartGridProps} horizontal={false} />
+                    <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
+                    <ReTooltip {...chartTooltipProps} />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value) => (value === "duracao" ? "Duração real" : "HH Planejado")}
+                    />
+                    <Bar
+                      dataKey="duracao"
+                      name="duracao"
+                      fill={SERIES_COLORS.executado}
+                      radius={[0, 4, 4, 0]}
+                      isAnimationActive={false}
+                    />
+                    <Bar
+                      dataKey="hhPlan"
+                      name="hhPlan"
+                      fill={SERIES_COLORS.hh}
+                      radius={[0, 4, 4, 0]}
+                      isAnimationActive={false}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -727,12 +786,7 @@ function MetaItem({
   suffix: "meta" | "abs";
 }) {
   const atingido = meta !== null && real >= meta;
-  const cls =
-    meta === null
-      ? "text-foreground"
-      : atingido
-        ? "text-success"
-        : "text-destructive";
+  const cls = meta === null ? "text-foreground" : atingido ? "text-success" : "text-destructive";
   return (
     <div className="border-l-2 border-border/40 pl-3">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -743,7 +797,8 @@ function MetaItem({
         {unit && <span className="ml-0.5 text-sm text-muted-foreground">{unit}</span>}
         {suffix === "meta" && meta !== null && (
           <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
-            / meta {formatBRNumber(meta, 0)}{unit}
+            / meta {formatBRNumber(meta, 0)}
+            {unit}
           </span>
         )}
       </p>
@@ -760,12 +815,7 @@ function BarH({ data, fill }: { data: { name: string; value: number }[]; fill: s
         <BarChart data={data} layout="vertical" margin={{ left: 20, right: 40, top: 8, bottom: 4 }}>
           <CartesianGrid {...chartGridProps} horizontal={false} />
           <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-          <YAxis
-            type="category"
-            dataKey="name"
-            {...chartAxisProps}
-            width={140}
-          />
+          <YAxis type="category" dataKey="name" {...chartAxisProps} width={140} />
           <ReTooltip {...chartTooltipProps} />
           <Bar dataKey="value" fill={fill} radius={[0, 4, 4, 0]} isAnimationActive={false}>
             <LabelList
@@ -830,7 +880,12 @@ function PieView({
             ))}
           </Pie>
           <ReTooltip {...chartTooltipProps} />
-          <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11 }} />
+          <Legend
+            layout="vertical"
+            align="right"
+            verticalAlign="middle"
+            wrapperStyle={{ fontSize: 11 }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>

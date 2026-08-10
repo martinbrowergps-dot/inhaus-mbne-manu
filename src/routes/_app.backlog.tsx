@@ -15,6 +15,7 @@ import {
   Cell,
   LabelList,
 } from "recharts";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import type { BacklogRow } from "@/lib/sheets-types";
@@ -145,7 +146,7 @@ const columns: ColumnDef<BacklogRow & { _idade: number | null; _vencido: boolean
 ];
 
 function BacklogPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
   const [q, setQ] = useState("");
   const [priFilter, setPriFilter] = useState<string | null>(null);
@@ -300,6 +301,10 @@ function BacklogPage() {
     }
   };
 
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -442,7 +447,11 @@ function BacklogPage() {
           </div>
           {(priFilter || stateFilter || q.trim()) && (
             <button
-              onClick={() => { setPriFilter(null); setStateFilter(null); setQ(""); }}
+              onClick={() => {
+                setPriFilter(null);
+                setStateFilter(null);
+                setQ("");
+              }}
               className="mb-3 inline-flex items-center gap-1 rounded-full border border-border/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:border-border"
             >
               <X className="h-3 w-3" />
@@ -477,20 +486,12 @@ function ChartBars({
   const color = (name: string, i: number) => {
     if (colorBy === "priority") {
       const r = priorityRank(name);
-return r === 0
-        ? "#EF4444"
-        : r === 1
-          ? "#F59E0B"
-          : SERIES_COLORS.planejado;
+      return r === 0 ? "#EF4444" : r === 1 ? "#F59E0B" : SERIES_COLORS.planejado;
     }
     if (colorBy === "age") {
       return (
-        [
-          SERIES_COLORS.planejado,
-          "#F2C80F",
-          SERIES_COLORS.hh,
-          "#FD625E",
-        ][i] || SERIES_COLORS.planejado
+        [SERIES_COLORS.planejado, "#F2C80F", SERIES_COLORS.hh, "#FD625E"][i] ||
+        SERIES_COLORS.planejado
       );
     }
     return SERIES_COLORS.executado;
@@ -506,31 +507,25 @@ return r === 0
         {horizontal ? (
           <>
             <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-            <YAxis
-              type="category"
-              dataKey="name"
-              {...chartAxisProps}
-              width={80}
-            />
+            <YAxis type="category" dataKey="name" {...chartAxisProps} width={80} />
           </>
         ) : (
           <>
-<XAxis dataKey="name" {...chartAxisProps} />
-            <YAxis
-              {...chartAxisProps}
-              allowDecimals={false}
-            />
+            <XAxis dataKey="name" {...chartAxisProps} />
+            <YAxis {...chartAxisProps} allowDecimals={false} />
           </>
         )}
-        <Tooltip
-          {...chartTooltipProps}
-          formatter={(v: number) => [formatBRNumber(v, 0), "OS"]}
-        />
+        <Tooltip {...chartTooltipProps} formatter={(v: number) => [formatBRNumber(v, 0), "OS"]} />
         <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
           {data.map((d, i) => (
             <Cell key={d.name} fill={color(d.name, i)} />
           ))}
-<LabelList position={horizontal ? "right" : "top"} fill="#F1F5F9" fontSize={10} formatter={(v: number) => v > 0 ? formatBRNumber(v, 0) : ""} />
+          <LabelList
+            position={horizontal ? "right" : "top"}
+            fill="#F1F5F9"
+            fontSize={10}
+            formatter={(v: number) => (v > 0 ? formatBRNumber(v, 0) : "")}
+          />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

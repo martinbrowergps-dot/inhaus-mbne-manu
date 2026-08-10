@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardCheck, DoorOpen, Activity } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
+import { DataErrorState } from "@/components/data-error-state";
 import { sheetsQueryOptions } from "@/lib/sheets";
 import type { ChecklistRow } from "@/lib/sheets-types";
 import { Panel } from "@/components/panel";
@@ -31,12 +32,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import {
-  COLORS,
-  chartAxisProps,
-  chartGridProps,
-  chartTooltipProps,
-} from "@/lib/chart-utils";
+import { COLORS, chartAxisProps, chartGridProps, chartTooltipProps } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/planos-manutencao")({
@@ -110,8 +106,12 @@ const detailCols: ColumnDef<ChecklistEnriched>[] = [
 ];
 
 function ChecklistsPage() {
-  const { data, isLoading } = useQuery(sheetsQueryOptions);
+  const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const [tab, setTab] = useState("docas");
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (isLoading)
     return (
@@ -222,7 +222,7 @@ function ChecklistsPage() {
         {distTipo.length === 0 ? (
           <EmptyState />
         ) : (
-<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
               <div className="h-64">
                 <ResponsiveContainer>

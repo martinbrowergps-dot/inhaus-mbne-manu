@@ -150,15 +150,15 @@ function MatrizPriorizacaoPage() {
             Metodologia baseada em Probabilidade × Impacto para definição de prioridades
           </p>
         </div>
-        <ExportButton
-          filename="matriz-priorizacao"
-          rows={[]}
-          columns={[]}
-          pdfTargetRef={pageRef}
-        />
+        <ExportButton filename="matriz-priorizacao" rows={[]} columns={[]} pdfTargetRef={pageRef} />
       </div>
 
-      <SectionHeader label="Fluxo do Processo" insight="8 etapas da solicitação ao encerramento" icon={FileCheck} colorIndex={0}>
+      <SectionHeader
+        label="Fluxo do Processo"
+        insight="8 etapas da solicitação ao encerramento"
+        icon={FileCheck}
+        colorIndex={0}
+      >
         <div className="grid grid-cols-8 gap-2">
           {FLUXO_ETAPAS.map((etapa, i) => (
             <div key={etapa.num} className="flex flex-col items-center gap-2">
@@ -177,7 +177,12 @@ function MatrizPriorizacaoPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Matriz Probabilidade × Impacto" insight="Classificação P1 a P4 com base na combinação dos fatores" icon={LayoutGrid} colorIndex={1}>
+      <SectionHeader
+        label="Matriz Probabilidade × Impacto"
+        insight="Classificação P1 a P4 com base na combinação dos fatores"
+        icon={LayoutGrid}
+        colorIndex={1}
+      >
         <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
           <Panel glass>
             <div className="overflow-x-auto">
@@ -220,7 +225,9 @@ function MatrizPriorizacaoPage() {
             </div>
           </Panel>
           <Panel className="flex flex-col gap-2" glass>
-            <span className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">Classificação</span>
+            <span className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">
+              Classificação
+            </span>
             {LEGENDA_CLASSIFICACAO.map((item) => (
               <div key={item.label} className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
@@ -231,7 +238,12 @@ function MatrizPriorizacaoPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Critérios de Impacto" insight="Fatores avaliados na determinação do nível de impacto" icon={Target} colorIndex={2}>
+      <SectionHeader
+        label="Critérios de Impacto"
+        insight="Fatores avaliados na determinação do nível de impacto"
+        icon={Target}
+        colorIndex={2}
+      >
         <div className="grid gap-3 sm:grid-cols-5">
           {CRITERIOS.map((criterio) => (
             <Panel key={criterio.title} glass className="flex flex-col gap-2 p-4">
@@ -247,7 +259,12 @@ function MatrizPriorizacaoPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Níveis de Prioridade" insight="Prazos de atendimento conforme classificação" icon={Flag} colorIndex={3}>
+      <SectionHeader
+        label="Níveis de Prioridade"
+        insight="Prazos de atendimento conforme classificação"
+        icon={Flag}
+        colorIndex={3}
+      >
         <div className="grid gap-3 sm:grid-cols-4">
           {PRIORIDADES.map((pri) => (
             <div
@@ -279,25 +296,21 @@ function MatrizPriorizacaoPage() {
 
       <Panel glass className="p-6">
         <div className="flex items-center justify-center gap-1 sm:gap-3">
-          {["Solicitação", "Avaliação", "Priorização", "Planejamento", "Execução"].map((step, i) => (
-            <div key={step} className="flex items-center gap-1 sm:gap-3">
-              <div className="flex flex-col items-center gap-1">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary sm:h-10 sm:w-12 sm:rounded-md sm:text-xs">
-                  {i + 1}
+          {["Solicitação", "Avaliação", "Priorização", "Planejamento", "Execução"].map(
+            (step, i) => (
+              <div key={step} className="flex items-center gap-1 sm:gap-3">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary sm:h-10 sm:w-12 sm:rounded-md sm:text-xs">
+                    {i + 1}
+                  </div>
+                  <span className="text-[9px] text-muted-foreground sm:text-[11px]">{step}</span>
                 </div>
-                <span className="text-[9px] text-muted-foreground sm:text-[11px]">{step}</span>
+                {i < 4 && <ArrowRight className="h-4 w-4 text-primary/30 sm:h-5 sm:w-8" />}
               </div>
-              {i < 4 && (
-                <ArrowRight className="h-4 w-4 text-primary/30 sm:h-5 sm:w-8" />
-              )}
-            </div>
-          ))}
+            ),
+          )}
         </div>
       </Panel>
     </div>
   );
 }
-
-
-
-
