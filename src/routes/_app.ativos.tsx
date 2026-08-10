@@ -126,7 +126,8 @@ const columns: ColumnDef<AtivoRow>[] = [
 ];
 
 function AtivosPage() {
-  const { isLoading, raw, filtered, enriched, tagMap, dateFilter } = useProgramacaoFilter();
+  const { isLoading, isError, error, refetch, raw, filtered, enriched, tagMap, dateFilter } =
+    useProgramacaoFilter();
   const [selectedTag, setSelectedTag] = useState<string>("__all__");
 
   const tags = useMemo(() => {
