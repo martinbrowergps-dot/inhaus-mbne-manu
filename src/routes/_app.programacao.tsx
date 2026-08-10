@@ -13,7 +13,15 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { formatBRNumber, parseBRDate, getWeekStart, formatDateBR, fmtISO, isoToDate, sameDay } from "@/lib/format";
+import {
+  formatBRNumber,
+  parseBRDate,
+  getWeekStart,
+  formatDateBR,
+  fmtISO,
+  isoToDate,
+  sameDay,
+} from "@/lib/format";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
@@ -24,10 +32,7 @@ import {
   PROGRAMADO_STATUSES,
   type ExecStatus,
 } from "@/lib/status";
-import {
-  EnrichedRow,
-  daysOverdue,
-} from "@/components/programacao/types";
+import { EnrichedRow, daysOverdue } from "@/components/programacao/types";
 import { DateNav } from "@/components/programacao/date-nav";
 import { Stat } from "@/components/programacao/stat";
 import { FilterRow } from "@/components/programacao/filter-row";
@@ -288,8 +293,8 @@ function ProgramacaoPage() {
       />
 
       {isError ? (
-            <DataErrorState error={error} onRetry={() => refetch()} />
-          ) : isLoading ? (
+        <DataErrorState error={error} onRetry={() => refetch()} />
+      ) : isLoading ? (
         <div className="space-y-4">
           <div className="flex gap-2">
             <Skeleton className="h-8 w-96" />
@@ -494,7 +499,12 @@ function ProgramacaoPage() {
                   }
                 />
                 <div className="grid gap-3 md:grid-cols-3">
-                  <KpiCard label="OS no mês" value={rowsMes.length} icon={Calendar} variant="primary" />
+                  <KpiCard
+                    label="OS no mês"
+                    value={rowsMes.length}
+                    icon={Calendar}
+                    variant="primary"
+                  />
                   <KpiCard
                     label="HH alocados"
                     value={formatBRNumber(sumHH(rowsMes), 1)}

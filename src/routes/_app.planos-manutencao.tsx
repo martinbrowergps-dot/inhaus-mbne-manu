@@ -32,12 +32,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import {
-  COLORS,
-  chartAxisProps,
-  chartGridProps,
-  chartTooltipProps,
-} from "@/lib/chart-utils";
+import { COLORS, chartAxisProps, chartGridProps, chartTooltipProps } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
 export const Route = createFileRoute("/_app/planos-manutencao")({
@@ -227,7 +222,7 @@ function ChecklistsPage() {
         {distTipo.length === 0 ? (
           <EmptyState />
         ) : (
-<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Panel dataChart="itens-tipo" title="ITENS POR TIPO">
               <div className="h-64">
                 <ResponsiveContainer>

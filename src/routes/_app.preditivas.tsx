@@ -30,7 +30,7 @@ const columns: ColumnDef<PreditivaRow>[] = [
     header: "Data",
     cell: ({ getValue }) => {
       const d = parseBRDate(getValue() as string);
-      return <span className="num">{d ? formatBRDate(d) : ((getValue() as string) || "—")}</span>;
+      return <span className="num">{d ? formatBRDate(d) : (getValue() as string) || "—"}</span>;
     },
   },
   { accessorKey: "Servico", header: "Serviço" },
@@ -59,10 +59,7 @@ const columns: ColumnDef<PreditivaRow>[] = [
 
 function PreditivasPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
-  const preditiva = useMemo(
-    () => data?.preditiva ?? [],
-    [data?.preditiva],
-  );
+  const preditiva = useMemo(() => data?.preditiva ?? [], [data?.preditiva]);
 
   if (isError) {
     return <DataErrorState error={error} onRetry={() => refetch()} />;
@@ -121,32 +118,29 @@ function PreditivasPage() {
         }
       />
 
-      <SectionHeader
-        label="Panorama"
-        insight={`${total} relatórios · ${finalizadas} finalizados`}
-      >
+      <SectionHeader label="Panorama" insight={`${total} relatórios · ${finalizadas} finalizados`}>
         <div className="grid gap-3 sm:grid-cols-3">
           <KpiCard label="Total de relatórios" value={total} icon={Activity} variant="primary" />
-          <KpiCard
-            label="Finalizados"
-            value={finalizadas}
-            icon={CheckCircle2}
-            variant="success"
-          />
+          <KpiCard label="Finalizados" value={finalizadas} icon={CheckCircle2} variant="success" />
           <KpiCard label="Pendentes" value={pendentes} icon={Clock} variant="warning" />
         </div>
       </SectionHeader>
 
-      <SectionHeader
-        label="Relatórios"
-        insight={`${preditiva.length} registros`}
-      >
+      <SectionHeader label="Relatórios" insight={`${preditiva.length} registros`}>
         <Panel title="LISTA DE RELATÓRIOS PREDITIVOS">
           <DataTable
             data={preditiva}
             columns={columns}
             pageSize={15}
-            searchKeys={["NumeroRelatorio", "Servico", "TipoEquipamento", "Equipamento", "Area", "Setor", "Acoes"]}
+            searchKeys={[
+              "NumeroRelatorio",
+              "Servico",
+              "TipoEquipamento",
+              "Equipamento",
+              "Area",
+              "Setor",
+              "Acoes",
+            ]}
             detailTitle={(r) => `Nº ${r.NumeroRelatorio}`}
             detailSubtitle={(r) => `${r.Servico} — ${r.Equipamento || r.TipoEquipamento}`}
           />

@@ -1,14 +1,7 @@
 import { useRef } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Play,
-  CheckCircle2,
-  AlertOctagon,
-  Users,
-  Thermometer,
-  CalendarX,
-} from "lucide-react";
+import { Play, CheckCircle2, AlertOctagon, Users, Thermometer, CalendarX } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -140,7 +133,9 @@ function VisaoGeral() {
         let dt: Date | null = null;
         try {
           dt = new Date(String(d).split("/").reverse().join("-") + "T00:00:00");
-        } catch { /* empty */ }
+        } catch {
+          /* empty */
+        }
         if (!dt) return false;
         const pStart = new Date(prevRange.start + "T00:00:00");
         const pEnd = new Date(prevRange.end + "T00:00:00");
@@ -252,22 +247,28 @@ function VisaoGeral() {
         <div className="flex flex-wrap items-stretch gap-3 rounded-lg border border-border/60 bg-card/30 p-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {aa > 0 && (
-              <button onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[11px] font-bold text-destructive transition-colors hover:bg-destructive/25">
+              <button
+                onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[11px] font-bold text-destructive transition-colors hover:bg-destructive/25"
+              >
                 <AlertOctagon className="h-3 w-3" />
                 {aa} AA
               </button>
             )}
             {atrasadas > 0 && (
-              <button onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-1 text-[11px] font-bold text-warning transition-colors hover:bg-warning/25">
+              <button
+                onClick={() => navigate({ to: "/programacao" })}
+                className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-1 text-[11px] font-bold text-warning transition-colors hover:bg-warning/25"
+              >
                 <CalendarX className="h-3 w-3" />
                 {atrasadas} atrasadas
               </button>
             )}
             {tempAlerta > 0 && (
-              <button onClick={() => navigate({ to: "/temperaturas" })}
-                className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:bg-rose-500/25">
+              <button
+                onClick={() => navigate({ to: "/temperaturas" })}
+                className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:bg-rose-500/25"
+              >
                 <Thermometer className="h-3 w-3" />
                 {tempAlerta} térmicos
               </button>
@@ -275,20 +276,36 @@ function VisaoGeral() {
           </div>
           <div className="ml-auto flex items-center divide-x divide-border/30">
             <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-foreground leading-none">{formatInt(total)}</div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Total OS</div>
+              <div className="num text-lg font-bold text-foreground leading-none">
+                {formatInt(total)}
+              </div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Total OS
+              </div>
             </div>
             <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-warning leading-none">{formatInt(emAndamento)}</div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Execução</div>
+              <div className="num text-lg font-bold text-warning leading-none">
+                {formatInt(emAndamento)}
+              </div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Execução
+              </div>
             </div>
             <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-success leading-none">{formatInt(finalizadas)}</div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Finalizadas</div>
+              <div className="num text-lg font-bold text-success leading-none">
+                {formatInt(finalizadas)}
+              </div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Finalizadas
+              </div>
             </div>
             <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-destructive leading-none">{formatInt(atrasadas)}</div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Atrasadas</div>
+              <div className="num text-lg font-bold text-destructive leading-none">
+                {formatInt(atrasadas)}
+              </div>
+              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                Atrasadas
+              </div>
             </div>
           </div>
         </div>
@@ -301,19 +318,33 @@ function VisaoGeral() {
           colorIndex={0}
         >
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Panel dataChart="os-por-dia" title="OS POR DIA" subtitle="Próximas 2 semanas" className="lg:col-span-2">
+            <Panel
+              dataChart="os-por-dia"
+              title="OS POR DIA"
+              subtitle="Próximas 2 semanas"
+              className="lg:col-span-2"
+            >
               {byDia.length === 0 ? (
                 <EmptyState className="h-64" />
               ) : (
                 <div className="h-72 md:h-64">
                   <ResponsiveContainer>
-                    <BarChart data={byDia} barCategoryGap="5%" margin={{ top: 30, right: 20, left: 20, bottom: 4 }}>
+                    <BarChart
+                      data={byDia}
+                      barCategoryGap="5%"
+                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
+                    >
                       <CartesianGrid {...chartGridProps} />
                       <XAxis dataKey="label" {...chartAxisProps} />
                       <YAxis {...chartAxisProps} allowDecimals={false} />
                       <ReTooltip {...chartTooltipProps} />
                       <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                      <Bar dataKey="value" name="OS" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      <Bar
+                        dataKey="value"
+                        name="OS"
+                        radius={[4, 4, 0, 0]}
+                        isAnimationActive={false}
+                      >
                         {byDia.map((_, i) => (
                           <Cell key={i} fill={COLORS[i % COLORS.length]} />
                         ))}
@@ -322,7 +353,15 @@ function VisaoGeral() {
                             const numVal = Number(value);
                             if (!numVal || numVal <= 0) return null;
                             return (
-                              <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>{value}</text>
+                              <text
+                                x={Number(x) + Number(width) / 2}
+                                y={Number(y) - 6}
+                                textAnchor="middle"
+                                fill="#F1F5F9"
+                                fontSize={10}
+                              >
+                                {value}
+                              </text>
                             );
                           }}
                         />
@@ -337,7 +376,11 @@ function VisaoGeral() {
             </Panel>
           </div>
           <div className="mt-4">
-            <Panel dataChart="planejamento-dia" title="PLANEJADO vs NÃO PLANEJADO POR DIA" subtitle="Últimos 14 dias">
+            <Panel
+              dataChart="planejamento-dia"
+              title="PLANEJADO vs NÃO PLANEJADO POR DIA"
+              subtitle="Últimos 14 dias"
+            >
               {byPlanejamentoDia.length === 0 ? (
                 <EmptyState className="h-64" />
               ) : (
@@ -358,15 +401,35 @@ function VisaoGeral() {
                           value === "planejado" ? "Planejado" : "Não Planejado"
                         }
                       />
-                      <Bar dataKey="planejado" name="planejado" stackId="a" fill={SERIES_COLORS.planejado} radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                      <Bar dataKey="naoPlanejado" name="naoPlanejado" stackId="a" fill={SERIES_COLORS.naoPlanejado} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      <Bar
+                        dataKey="planejado"
+                        name="planejado"
+                        stackId="a"
+                        fill={SERIES_COLORS.planejado}
+                        radius={[4, 4, 0, 0]}
+                        isAnimationActive={false}
+                      />
+                      <Bar
+                        dataKey="naoPlanejado"
+                        name="naoPlanejado"
+                        stackId="a"
+                        fill={SERIES_COLORS.naoPlanejado}
+                        radius={[4, 4, 0, 0]}
+                        isAnimationActive={false}
+                      >
                         <LabelList
                           content={({ x, y, width, index }) => {
                             const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
                             if (!d) return null;
                             if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
                             return (
-                              <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle" fill="#F1F5F9" fontSize={10}>
+                              <text
+                                x={Number(x) + Number(width) / 2}
+                                y={Number(y) - 6}
+                                textAnchor="middle"
+                                fill="#F1F5F9"
+                                fontSize={10}
+                              >
                                 {d.planejado}/{d.naoPlanejado}
                               </text>
                             );
@@ -417,18 +480,36 @@ function VisaoGeral() {
             <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
               <ChartDonut data={byCriticidade} onCellClick={chartClick} />
             </Panel>
-            <Panel dataChart="quebras" title="QUEBRAS POR SOLICITANTE" subtitle="OS tipo quebra" className="lg:col-span-2">
+            <Panel
+              dataChart="quebras"
+              title="QUEBRAS POR SOLICITANTE"
+              subtitle="OS tipo quebra"
+              className="lg:col-span-2"
+            >
               {quebras.length === 0 ? (
-                <EmptyState title="Nenhuma quebra" description="de programação no período" className="h-40" />
+                <EmptyState
+                  title="Nenhuma quebra"
+                  description="de programação no período"
+                  className="h-40"
+                />
               ) : (
                 <div className="h-48">
                   <ResponsiveContainer>
-                    <BarChart data={quebras} layout="vertical" margin={{ left: 16, right: 32, top: 4, bottom: 4 }}>
+                    <BarChart
+                      data={quebras}
+                      layout="vertical"
+                      margin={{ left: 16, right: 32, top: 4, bottom: 4 }}
+                    >
                       <CartesianGrid {...chartGridProps} horizontal={false} />
                       <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
                       <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
                       <ReTooltip {...chartTooltipProps} />
-                      <Bar dataKey="value" fill={SERIES_COLORS.naoPlanejado} radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                      <Bar
+                        dataKey="value"
+                        fill={SERIES_COLORS.naoPlanejado}
+                        radius={[0, 4, 4, 0]}
+                        isAnimationActive={false}
+                      >
                         <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
                       </Bar>
                     </BarChart>
@@ -450,23 +531,29 @@ function VisaoGeral() {
             <Panel dataChart="hh-cargo" title="HH POR CARGO" className="lg:col-span-2">
               {(() => {
                 const hhData = aggregateHH(programacaoFiltrada);
-                const avg = hhData.length > 0
-                  ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length
-                  : 0;
+                const avg =
+                  hhData.length > 0 ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length : 0;
                 return (
                   <ChartBarHorizontal
                     data={hhData}
-                    refLine={avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined}
+                    refLine={
+                      avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined
+                    }
                   />
                 );
               })()}
             </Panel>
             <Panel title="TÉCNICOS" glass>
-              <div className="num text-2xl font-bold text-foreground">{formatInt(tecnicos.length)}</div>
+              <div className="num text-2xl font-bold text-foreground">
+                {formatInt(tecnicos.length)}
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">Ativos na plataforma</p>
             </Panel>
             <Panel title="HH TOTAL" glass>
-              <div className="num text-2xl font-bold text-foreground">{formatBRNumber(totalHH, 1)}<span className="text-xs font-normal text-muted-foreground">h</span></div>
+              <div className="num text-2xl font-bold text-foreground">
+                {formatBRNumber(totalHH, 1)}
+                <span className="text-xs font-normal text-muted-foreground">h</span>
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">Horas-homem programadas</p>
             </Panel>
           </div>

@@ -66,8 +66,18 @@ function EquipePage() {
         insight={`${tecnicos.length} técnicos · ${byCargo.length} cargos distintos`}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <KpiCard label="Total de técnicos" value={tecnicos.length} icon={Users} variant="primary" />
-          <KpiCard label="Cargos distintos" value={byCargo.length} icon={Layers} variant="neutral" />
+          <KpiCard
+            label="Total de técnicos"
+            value={tecnicos.length}
+            icon={Users}
+            variant="primary"
+          />
+          <KpiCard
+            label="Cargos distintos"
+            value={byCargo.length}
+            icon={Layers}
+            variant="neutral"
+          />
         </div>
       </SectionHeader>
 

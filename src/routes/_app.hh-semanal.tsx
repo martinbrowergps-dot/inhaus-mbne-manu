@@ -34,8 +34,7 @@ function HHPage() {
     return <DataErrorState error={error} onRetry={() => refetch()} />;
   }
 
-  if (isLoading)
-    return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
+  if (isLoading) return <KpiSkeletonGrid count={6} className="md:grid-cols-3" heightClass="h-40" />;
 
   if (!data) return null;
 
@@ -183,7 +182,8 @@ function Gauge({
       {ocupacao > 100 && (
         <div className="mt-2 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1.5 text-[11px] text-destructive">
           <AlertOctagon className="h-3.5 w-3.5" />
-          Sobrecarga: {formatBRNumber(ocupacao, 1)}% da capacidade — {formatBRNumber(alocado - disponivel, 1)}h excedentes
+          Sobrecarga: {formatBRNumber(ocupacao, 1)}% da capacidade —{" "}
+          {formatBRNumber(alocado - disponivel, 1)}h excedentes
         </div>
       )}
     </div>

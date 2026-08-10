@@ -186,7 +186,10 @@ function NcPage() {
         </div>
       </SectionHeader>
 
-      <SectionHeader label="Análise" insight="NCs distribuídas por responsável e status de fechamento">
+      <SectionHeader
+        label="Análise"
+        insight="NCs distribuídas por responsável e status de fechamento"
+      >
         <div className="grid gap-4 lg:grid-cols-2">
           {byResponsavel.length > 0 && (
             <Panel title="NC POR RESPONSÁVEL" glass>
@@ -228,13 +231,7 @@ function NcPage() {
           data={nc}
           columns={columns}
           pageSize={15}
-          searchKeys={[
-            "Codigo",
-            "Ocorrencia",
-            "Responsavel",
-            "OQueFazer",
-            "Status",
-          ]}
+          searchKeys={["Codigo", "Ocorrencia", "Responsavel", "OQueFazer", "Status"]}
           searchPlaceholder="Buscar NC por código, ocorrência, responsável, status…"
           detailTitle={(r) => r.Codigo}
           detailSubtitle={(r) => r.Ocorrencia}
