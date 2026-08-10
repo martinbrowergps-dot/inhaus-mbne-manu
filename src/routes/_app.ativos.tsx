@@ -156,9 +156,6 @@ function AtivosPage() {
     [filtered, selectedTag],
   );
 
-
-
-
   const currentTag = selectedTag === "__all__" ? null : selectedTag;
   const currentLabel = currentTag ? assetLabel(currentTag, tagMap) : null;
 
@@ -210,8 +207,6 @@ function AtivosPage() {
         <Skeleton className="h-96" />
       </div>
     );
-
-
 
   const subtitle =
     (currentLabel ? `Ativo ${currentLabel} · ` : "Todos os ativos · ") +
