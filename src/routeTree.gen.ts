@@ -22,6 +22,7 @@ import { Route as AppNcRouteImport } from './routes/_app.nc'
 import { Route as AppMatrizPriorizacaoRouteImport } from './routes/_app.matriz-priorizacao'
 import { Route as AppIndicadoresRouteImport } from './routes/_app.indicadores'
 import { Route as AppHhSemanalRouteImport } from './routes/_app.hh-semanal'
+import { Route as AppEtlRouteImport } from './routes/_app.etl'
 import { Route as AppEquipeRouteImport } from './routes/_app.equipe'
 import { Route as AppChecklistsRouteImport } from './routes/_app.checklists'
 import { Route as AppBacklogRouteImport } from './routes/_app.backlog'
@@ -92,6 +93,11 @@ const AppHhSemanalRoute = AppHhSemanalRouteImport.update({
   path: '/hh-semanal',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEtlRoute = AppEtlRouteImport.update({
+  id: '/etl',
+  path: '/etl',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEquipeRoute = AppEquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
   '/equipe': typeof AppEquipeRoute
+  '/etl': typeof AppEtlRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
   '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/backlog': typeof AppBacklogRoute
   '/checklists': typeof AppChecklistsRoute
   '/equipe': typeof AppEquipeRoute
+  '/etl': typeof AppEtlRoute
   '/hh-semanal': typeof AppHhSemanalRoute
   '/indicadores': typeof AppIndicadoresRoute
   '/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_app/backlog': typeof AppBacklogRoute
   '/_app/checklists': typeof AppChecklistsRoute
   '/_app/equipe': typeof AppEquipeRoute
+  '/_app/etl': typeof AppEtlRoute
   '/_app/hh-semanal': typeof AppHhSemanalRoute
   '/_app/indicadores': typeof AppIndicadoresRoute
   '/_app/matriz-priorizacao': typeof AppMatrizPriorizacaoRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/backlog'
     | '/checklists'
     | '/equipe'
+    | '/etl'
     | '/hh-semanal'
     | '/indicadores'
     | '/matriz-priorizacao'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/backlog'
     | '/checklists'
     | '/equipe'
+    | '/etl'
     | '/hh-semanal'
     | '/indicadores'
     | '/matriz-priorizacao'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_app/backlog'
     | '/_app/checklists'
     | '/_app/equipe'
+    | '/_app/etl'
     | '/_app/hh-semanal'
     | '/_app/indicadores'
     | '/_app/matriz-priorizacao'
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHhSemanalRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/etl': {
+      id: '/_app/etl'
+      path: '/etl'
+      fullPath: '/etl'
+      preLoaderRoute: typeof AppEtlRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/equipe': {
       id: '/_app/equipe'
       path: '/equipe'
@@ -381,6 +400,7 @@ interface AppRouteChildren {
   AppBacklogRoute: typeof AppBacklogRoute
   AppChecklistsRoute: typeof AppChecklistsRoute
   AppEquipeRoute: typeof AppEquipeRoute
+  AppEtlRoute: typeof AppEtlRoute
   AppHhSemanalRoute: typeof AppHhSemanalRoute
   AppIndicadoresRoute: typeof AppIndicadoresRoute
   AppMatrizPriorizacaoRoute: typeof AppMatrizPriorizacaoRoute
@@ -399,6 +419,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBacklogRoute: AppBacklogRoute,
   AppChecklistsRoute: AppChecklistsRoute,
   AppEquipeRoute: AppEquipeRoute,
+  AppEtlRoute: AppEtlRoute,
   AppHhSemanalRoute: AppHhSemanalRoute,
   AppIndicadoresRoute: AppIndicadoresRoute,
   AppMatrizPriorizacaoRoute: AppMatrizPriorizacaoRoute,
