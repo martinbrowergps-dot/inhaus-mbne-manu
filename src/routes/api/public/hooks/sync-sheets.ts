@@ -15,7 +15,7 @@ async function handle({ request }: { request: Request }) {
   }
   try {
     const { runSync } = await import("@/lib/sync-sheets.server");
-    const result = await runSync();
+    const result = await runSync({ origem: "cron" });
     return Response.json(result);
   } catch (err) {
     console.error("[sync-sheets] falha:", err);

@@ -15,6 +15,7 @@ import {
   FileText,
   LayoutGrid,
   Boxes,
+  HeartPulse,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -61,6 +62,7 @@ const groups = [
       { title: "Backlog", url: "/backlog", icon: Inbox },
       { title: "Ativos", url: "/ativos", icon: Boxes },
       { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
+      { title: "Saúde do ETL", url: "/etl", icon: HeartPulse },
     ],
   },
 ] as const;
