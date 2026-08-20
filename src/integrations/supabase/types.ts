@@ -62,6 +62,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_log: {
+        Row: {
+          counts: Json | null
+          created_at: string
+          duracao_ms: number | null
+          erro: string | null
+          id: string
+          origem: string
+          sucesso: boolean
+          user_email: string | null
+          user_id: string | null
+          warnings: Json | null
+        }
+        Insert: {
+          counts?: Json | null
+          created_at?: string
+          duracao_ms?: number | null
+          erro?: string | null
+          id?: string
+          origem?: string
+          sucesso: boolean
+          user_email?: string | null
+          user_id?: string | null
+          warnings?: Json | null
+        }
+        Update: {
+          counts?: Json | null
+          created_at?: string
+          duracao_ms?: number | null
+          erro?: string | null
+          id?: string
+          origem?: string
+          sucesso?: boolean
+          user_email?: string | null
+          user_id?: string | null
+          warnings?: Json | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
