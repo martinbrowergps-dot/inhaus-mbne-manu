@@ -15,7 +15,6 @@ import {
   FileText,
   LayoutGrid,
   Boxes,
-  Activity as ActivityIcon,
   HeartPulse,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
