@@ -1,68 +1,47 @@
-# Auditoria — Gráficos vs. padrão Power BI
+# Lista de melhorias e implementações possíveis
 
-Comparei os gráficos atuais (Recharts) com o que se espera de um dashboard estilo Power BI. Abaixo, o que já está OK e o que falta para bater o padrão.
+Levantamento do estado atual do Centro de Controle (dados verificados: 14 telas em `src/routes`, tabelas `profiles`, `user_roles`, `sheets_snapshot`, `sync_log`, e apenas 1 usuário cadastrado hoje com papel `visualizador`).
 
-## Já está no padrão
+## P0 — Corrigir agora (impacto direto de uso)
 
-- Paleta consistente Deep Ocean (ciano/verde/âmbar/vermelho) por semântica de status.
-- Grid discreto (`rgba(255,255,255,0.06)`) e eixos em ciano suave (`#93C5D8`).
-- Tooltip customizado (`CHART_TOOLTIP_STYLE`) com fundo escuro e borda ciano.
-- Cantos arredondados nas barras, donut com `paddingAngle`, radial de aderência.
-- Aderência com breakdown numérico + meta.
+1. **Gestão de papéis (admin/gestor/visualizador)**
+   O enum de papéis e a função de verificação existem, mas o app nunca lê o papel do usuário e não há tela para conceder papéis. Hoje o único usuário é `visualizador`, então, com a nova regra de acesso, ele não enxerga o histórico completo de sincronizações.
+   - Hook `useRole()` lendo o papel do usuário logado.
+   - Tela de administração de usuários (listar, promover a gestor/admin) visível só para admin.
+   - Promover o usuário atual a admin na mesma entrega.
 
-## O que falta para virar "Power BI-like"
+2. **Menu e ações sensíveis por papel**
+   Esconder "Saúde do ETL" e o botão "Sincronizar agora" de quem é apenas visualizador, em vez de mostrar tela vazia.
 
-### 1. Data labels sempre visíveis
-- Power BI mostra o valor em cima de cada barra/fatia por padrão. Hoje:
-  - `HhComparisonChart` (barras planejado/executado) — sem `LabelList`.
-  - `chart-donut` — sem rótulo nas fatias.
-  - `chart-pie` — mostra só o número cru, sem `%` nem nome.
-  - `chart-bar-horizontal` — OK, já tem `LabelList`.
-  - Gráficos de dia/status na Visão Geral e Relatórios — sem rótulos.
+## P1 — Confiabilidade dos dados
 
-### 2. Formatação BR nos eixos e tooltips
-- Eixos Y numéricos mostram `1000` em vez de `1.000`. Aplicar `formatBRNumber` no `tickFormatter`.
-- HH deve exibir sufixo `h`; percentuais `%`; datas no formato `dd/mm`.
-- Tooltip deve reformatar valor + nome amigável (hoje vários gráficos usam a chave crua tipo `planejado`).
+3. **Alerta de ETL parado**: banner no topo quando a última sincronização automática passou de 30 min, com link para a tela de ETL.
+4. **Indicador de dados em cache**: mostrar em todas as telas quando o dado veio do cache do banco e há quanto tempo, não só na tela de ETL.
+5. **Retenção do histórico**: limpeza automática de registros de sincronização com mais de 90 dias, para a tabela não crescer sem limite.
 
-### 3. Legenda e títulos consistentes
-- Legenda no topo (Power BI padrão), com bullets quadrados coloridos e capitalização correta.
-- Título do gráfico + subtítulo + unidade (ex.: "HH por dia · horas") padronizados via `Panel`.
-- Remover legendas redundantes quando há só 1 série.
+## P2 — Funcionalidades novas
 
-### 4. Interatividade
-- `activeDot` e `cursor` destacando a categoria/hover (linhas de temperatura já têm; barras não).
-- Cursor customizado nas barras (`cursor={{ fill: 'rgba(6,182,212,0.08)' }}`).
-- Ordenação consistente (donut/pie sempre desc por valor; barras horizontais idem).
+6. **Busca global (Ctrl+K)**: procurar OS, ativo, técnico ou tag e ir direto ao registro.
+7. **Favoritos / filtros salvos**: salvar combinações de filtros por usuário (persistidas no banco).
+8. **Comparativo de períodos em Relatórios**: semana atual vs. anterior, mês vs. mês, com variação percentual.
+9. **Alertas configuráveis de temperatura**: limite e janela de tolerância ajustáveis por câmara, hoje fixos em 4h.
+10. **Exportação agendada**: gerar o resumo executivo em PDF automaticamente toda segunda-feira.
 
-### 5. Empty state e loading
-- `Empty` existe em Visão Geral, mas outros gráficos (HH, temperatura multi) mostram texto solto. Padronizar componente único.
-- Skeleton nos gráficos durante o `loading` (hoje só KPIs têm).
+## P3 — Qualidade e experiência
 
-### 6. Escalas e eixos
-- Barras com `domain={[0, 'dataMax + padding']}` para não colar no topo.
-- Eixo Y do multi-temperatura fica melhor com `allowDecimals={false}` quando a série é inteira.
-- Rotacionar `XAxis` labels quando há >10 categorias (`angle={-30}`, `textAnchor="end"`).
+11. **Modo offline básico**: manter o último snapshot no navegador e exibir aviso claro quando a rede cair.
+12. **Acessibilidade**: revisão de contraste, foco visível e navegação por teclado nas tabelas.
+13. **Testes E2E dos fluxos críticos**: login, sincronização, filtro de datas e exportação.
+14. **Performance das tabelas grandes**: virtualização em Programação e Plano de Manutenção.
 
-### 7. Cores por status (semântica global)
-- Hoje cada gráfico define seu array de cores local (`HH_COLORS`, `PALETTE`, `COLORS`). Centralizar em `chart-utils.ts`:
-  - `STATUS_COLORS.planejado / naoPlanejado / finalizada / cancelada / pendente`
-  - `SERIES_COLORS.planejado / executado`
-  - Garantir que a mesma categoria tem sempre a mesma cor em todo o app.
+## Detalhes técnicos
 
-### 8. Detalhes visuais Power BI
-- Borda inferior de 2px na cor da série sob KPIs (accent line) — já parcial em `KpiCard`.
-- Sombra sutil no tooltip.
-- Fonte mono (`JetBrains Mono`) nos números dos rótulos e eixos (já ativa em KPIs, faltam gráficos).
+- Papéis: nova função de servidor autenticada para conceder/remover papel, sempre validando no backend que quem chama é admin; a tabela `user_roles` continua sem escrita direta pelo cliente.
+- Alerta de ETL: derivado da consulta já existente de `sync_log`, sem nova tabela.
+- Retenção: função no banco agendada pelo cron já configurado.
+- Filtros salvos: nova tabela com regras de acesso restritas ao próprio usuário.
+- Nada de dados inventados: telas sem dado continuam mostrando "Não disponível".
 
-## Escopo se você aprovar a padronização
+## Próximo passo
 
-Se topar, o próximo passo é uma passada única aplicando:
-1. `STATUS_COLORS` + `SERIES_COLORS` centralizados.
-2. `LabelList` + `tickFormatter` BR em todos os gráficos de barras/pizza.
-3. Tooltip e legenda padronizados via helpers em `chart-utils.ts`.
-4. Fonte mono nos rótulos, cursor destacado, empty/skeleton unificado.
-
-Arquivos que seriam tocados: `src/lib/chart-utils.ts`, `src/components/visao-geral/chart-*.tsx`, `src/components/programacao/hh-comparison-chart.tsx`, `src/components/temp-multi-chart.tsx`, `src/components/temp-trend-chart.tsx`, `src/components/aderencia-card.tsx`, e os gráficos inline em `_app.index.tsx` e `_app.relatorios.tsx`.
-
-Quer que eu prossiga com essa padronização?
+Escolha os itens que quer nesta rodada. Sugestão: itens 1 e 2 (P0) primeiro, pois destravam o acesso administrativo, e depois 3 e 4.
