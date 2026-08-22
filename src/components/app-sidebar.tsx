@@ -16,8 +16,10 @@ import {
   LayoutGrid,
   Boxes,
   HeartPulse,
+  Users,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { useRole } from "@/hooks/use-role";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { formatDateBR } from "@/lib/format";
@@ -62,13 +64,23 @@ const groups = [
       { title: "Backlog", url: "/backlog", icon: Inbox },
       { title: "Ativos", url: "/ativos", icon: Boxes },
       { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
-      { title: "Saúde do ETL", url: "/etl", icon: HeartPulse },
     ],
+  },
+  {
+    label: "ADMINISTRAÇÃO",
+    requires: "gestor" as const,
+    items: [{ title: "Saúde do ETL", url: "/etl", icon: HeartPulse }],
+  },
+  {
+    label: "CONFIGURAÇÕES",
+    requires: "admin" as const,
+    items: [{ title: "Usuários", url: "/usuarios", icon: Users }],
   },
 ] as const;
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin, isGestor } = useRole();
   const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
     useDateFilter();
   const [openStartCalendar, setOpenStartCalendar] = useState(false);
@@ -103,39 +115,46 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-[11px] tracking-[0.18em] text-muted-foreground">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const active = pathname === item.url;
-                  return (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        tooltip={item.title}
-                        className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
-                      >
-                        <Link
-                          to={item.url}
-                          className="flex items-center gap-3"
-                          aria-current={active ? "page" : undefined}
+        {groups
+          .filter((group) => {
+            const req = "requires" in group ? group.requires : undefined;
+            if (req === "admin") return isAdmin;
+            if (req === "gestor") return isGestor;
+            return true;
+          })
+          .map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel className="text-[11px] tracking-[0.18em] text-muted-foreground">
+                {group.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const active = pathname === item.url;
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={item.title}
+                          className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-medium"
                         >
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+                          <Link
+                            to={item.url}
+                            className="flex items-center gap-3"
+                            aria-current={active ? "page" : undefined}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-0">
         <div className="group-data-[collapsible=icon]:hidden">

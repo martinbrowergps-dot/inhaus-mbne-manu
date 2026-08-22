@@ -11,8 +11,10 @@ import {
   Database,
   UserRound,
   Timer,
+  ShieldAlert,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { useRole } from "@/hooks/use-role";
 import { Panel } from "@/components/panel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,8 +82,9 @@ function minutesAgo(iso: string | number | null) {
 
 function EtlPage() {
   const qc = useQueryClient();
+  const { isGestor, isLoading: roleLoading } = useRole();
   const sheets = useQuery(sheetsQueryOptions);
-  const logs = useQuery(syncLogQuery);
+  const logs = useQuery({ ...syncLogQuery, enabled: isGestor });
   const [syncing, setSyncing] = useState(false);
 
   const lastCron = useMemo(
@@ -123,6 +126,23 @@ function EtlPage() {
   const fails24h = (logs.data ?? []).filter(
     (l) => !l.sucesso && Date.now() - new Date(l.created_at).getTime() < 86_400_000,
   );
+
+  if (roleLoading) {
+    return <Skeleton className="h-40" />;
+  }
+
+  if (!isGestor) {
+    return (
+      <div className="space-y-4">
+        <PageHeader title="Saúde do ETL" />
+        <EmptyState
+          icon={ShieldAlert}
+          title="Acesso restrito"
+          description="Somente gestores e administradores podem acompanhar a sincronização de dados."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -263,7 +283,9 @@ function EtlPage() {
                 key={l.id}
                 className={cn(
                   "rounded-lg border p-3 text-xs",
-                  l.sucesso ? "border-border/50 bg-card/40" : "border-destructive/40 bg-destructive/5",
+                  l.sucesso
+                    ? "border-border/50 bg-card/40"
+                    : "border-destructive/40 bg-destructive/5",
                 )}
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

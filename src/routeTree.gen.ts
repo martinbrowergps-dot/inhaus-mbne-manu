@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppUsuariosRouteImport } from './routes/_app.usuarios'
 import { Route as AppTemperaturasRouteImport } from './routes/_app.temperaturas'
 import { Route as AppRelatoriosRouteImport } from './routes/_app.relatorios'
 import { Route as AppProgramacaoRouteImport } from './routes/_app.programacao'
@@ -41,6 +42,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsuariosRoute = AppUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTemperaturasRoute = AppTemperaturasRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/programacao': typeof AppProgramacaoRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
+  '/usuarios': typeof AppUsuariosRoute
   '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
 export interface FileRoutesByTo {
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/programacao': typeof AppProgramacaoRoute
   '/relatorios': typeof AppRelatoriosRoute
   '/temperaturas': typeof AppTemperaturasRoute
+  '/usuarios': typeof AppUsuariosRoute
   '/': typeof AppIndexRoute
   '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/_app/programacao': typeof AppProgramacaoRoute
   '/_app/relatorios': typeof AppRelatoriosRoute
   '/_app/temperaturas': typeof AppTemperaturasRoute
+  '/_app/usuarios': typeof AppUsuariosRoute
   '/_app/': typeof AppIndexRoute
   '/api/public/hooks/sync-sheets': typeof ApiPublicHooksSyncSheetsRoute
 }
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/relatorios'
     | '/temperaturas'
+    | '/usuarios'
     | '/api/public/hooks/sync-sheets'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/programacao'
     | '/relatorios'
     | '/temperaturas'
+    | '/usuarios'
     | '/'
     | '/api/public/hooks/sync-sheets'
   id:
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/_app/programacao'
     | '/_app/relatorios'
     | '/_app/temperaturas'
+    | '/_app/usuarios'
     | '/_app/'
     | '/api/public/hooks/sync-sheets'
   fileRoutesById: FileRoutesById
@@ -278,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/usuarios': {
+      id: '/_app/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AppUsuariosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/temperaturas': {
@@ -411,6 +430,7 @@ interface AppRouteChildren {
   AppProgramacaoRoute: typeof AppProgramacaoRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
   AppTemperaturasRoute: typeof AppTemperaturasRoute
+  AppUsuariosRoute: typeof AppUsuariosRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -430,6 +450,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProgramacaoRoute: AppProgramacaoRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
   AppTemperaturasRoute: AppTemperaturasRoute,
+  AppUsuariosRoute: AppUsuariosRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
