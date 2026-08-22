@@ -140,14 +140,22 @@ export function TopHeader() {
                   : "--:--"}
               </p>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isFetching}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 hover:border-primary/50 disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-              Atualizar dados
-            </button>
+            {isGestor ? (
+              <button
+                onClick={handleRefresh}
+                disabled={isFetching}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 hover:border-primary/50 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+                Atualizar dados
+              </button>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                A sincronização é automática a cada 5 minutos. Atualização manual disponível para
+                gestores e administradores.
+              </p>
+            )}
+
           </div>
         </PopoverContent>
       </Popover>
