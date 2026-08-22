@@ -62,10 +62,20 @@ const groups = [
       { title: "Backlog", url: "/backlog", icon: Inbox },
       { title: "Ativos", url: "/ativos", icon: Boxes },
       { title: "Matriz de Priorização", url: "/matriz-priorizacao", icon: LayoutGrid },
-      { title: "Saúde do ETL", url: "/etl", icon: HeartPulse },
     ],
   },
+  {
+    label: "ADMINISTRAÇÃO",
+    requires: "gestor" as const,
+    items: [{ title: "Saúde do ETL", url: "/etl", icon: HeartPulse }],
+  },
+  {
+    label: "CONFIGURAÇÕES",
+    requires: "admin" as const,
+    items: [{ title: "Usuários", url: "/usuarios", icon: Users }],
+  },
 ] as const;
+
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
