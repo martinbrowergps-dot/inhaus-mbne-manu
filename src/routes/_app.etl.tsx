@@ -283,7 +283,9 @@ function EtlPage() {
                 key={l.id}
                 className={cn(
                   "rounded-lg border p-3 text-xs",
-                  l.sucesso ? "border-border/50 bg-card/40" : "border-destructive/40 bg-destructive/5",
+                  l.sucesso
+                    ? "border-border/50 bg-card/40"
+                    : "border-destructive/40 bg-destructive/5",
                 )}
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

@@ -47,7 +47,6 @@ export function TopHeader() {
     }
   };
 
-
   const lastUpdate = data ? new Date(data.fetchedAt) : null;
   const minutesAgo = lastUpdate
     ? Math.max(0, Math.floor((Date.now() - lastUpdate.getTime()) / 60_000))
@@ -155,7 +154,6 @@ export function TopHeader() {
                 gestores e administradores.
               </p>
             )}
-
           </div>
         </PopoverContent>
       </Popover>
