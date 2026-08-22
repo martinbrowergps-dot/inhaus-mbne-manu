@@ -10,12 +10,14 @@ import { formatBRDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { syncSheetsNow } from "@/lib/sync-sheets.functions";
+import { useRole } from "@/hooks/use-role";
 
 export function TopHeader() {
   const qc = useQueryClient();
   const { data, isFetching } = useQuery(sheetsQueryOptions);
   const [now, setNow] = useState<Date | null>(null);
   const navigate = useNavigate();
+  const { isGestor } = useRole();
 
   const handleLogout = async () => {
     qc.clear();
