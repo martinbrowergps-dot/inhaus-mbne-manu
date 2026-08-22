@@ -16,8 +16,10 @@ import {
   LayoutGrid,
   Boxes,
   HeartPulse,
+  Users,
 } from "lucide-react";
 import { useDateFilter } from "@/hooks/use-date-filter";
+import { useRole } from "@/hooks/use-role";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { formatDateBR } from "@/lib/format";
@@ -79,6 +81,7 @@ const groups = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin, isGestor } = useRole();
   const { startDate, endDate, setStartDate, setEndDate, clearFilter, setPreset, isActive } =
     useDateFilter();
   const [openStartCalendar, setOpenStartCalendar] = useState(false);
@@ -113,7 +116,14 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {groups.map((group) => (
+        {groups
+          .filter((group) => {
+            const req = "requires" in group ? group.requires : undefined;
+            if (req === "admin") return isAdmin;
+            if (req === "gestor") return isGestor;
+            return true;
+          })
+          .map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-[11px] tracking-[0.18em] text-muted-foreground">
               {group.label}
