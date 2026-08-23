@@ -157,41 +157,41 @@ function EtlPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Panel title="ÚLTIMA SINCRONIZAÇÃO">
-          <p className="num text-lg text-foreground">
-            {sheets.data ? formatBRDateTime(new Date(sheets.data.fetchedAt)) : "—"}
+          <p className="num text-2xl font-bold text-foreground">
+            {sheets.data ? formatBRDateTime(new Date(sheets.data.fetchedAt)).split(" ")[1] : "—"}
           </p>
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
+          <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            <Clock className="h-3 w-3 text-primary" />
             {dataAge === null ? "Sem dados" : dataAge < 1 ? "agora" : `há ${dataAge} min`}
-            {sheets.data?.fromCache ? " · via cache" : " · leitura direta"}
+            {sheets.data?.fromCache ? " · cache" : " · live"}
           </p>
         </Panel>
 
         <Panel title="CRON (5 MIN)">
-          <p className={cn("text-lg font-bold", cronStatus.tone)}>{cronStatus.label}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className={cn("text-2xl font-black tracking-tighter", cronStatus.tone)}>{cronStatus.label}</p>
+          <p className="mt-1 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
             {lastCron
-              ? `Última execução automática: ${formatBRDateTime(new Date(lastCron.created_at))}`
-              : "Nenhuma execução automática registrada ainda"}
+              ? `Execução: ${formatBRDateTime(new Date(lastCron.created_at)).split(" ")[1]}`
+              : "Sem registros"}
           </p>
         </Panel>
 
         <Panel title="FALHAS (24H)">
           <p
             className={cn(
-              "num text-lg font-bold",
+              "num text-2xl font-bold",
               fails24h.length > 0 ? "text-destructive" : "text-success",
             )}
           >
             {logs.isLoading ? "—" : fails24h.length}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
             {lastLog
               ? lastLog.sucesso
-                ? "Última execução com sucesso"
-                : "Última execução falhou"
+                ? "Estável"
+                : "Atenção: falhou"
               : "Sem histórico"}
           </p>
         </Panel>
@@ -199,14 +199,14 @@ function EtlPage() {
         <Panel title="COLUNAS AUSENTES">
           <p
             className={cn(
-              "num text-lg font-bold",
+              "num text-2xl font-bold",
               missing.length > 0 ? "text-warning" : "text-success",
             )}
           >
             {missing.length}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {missing.length > 0 ? "abas com campos faltando" : "todas as abas completas"}
+          <p className="mt-1 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            {missing.length > 0 ? "Inconsistente" : "Integro"}
           </p>
         </Panel>
       </div>
