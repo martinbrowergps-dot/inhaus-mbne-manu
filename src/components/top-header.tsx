@@ -97,13 +97,13 @@ export function TopHeader() {
           <Button
             size="sm"
             variant="outline"
-            className="gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
+            className="gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60 rounded-lg text-xs font-bold tracking-widest uppercase shadow-glow"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-64 border-border/40 bg-card/95 backdrop-blur-xl">
+        <PopoverContent align="end" className="w-64 border-white/5 bg-card/95 backdrop-blur-xl shadow-elevated">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs">
               <Circle className="h-2 w-2 fill-success text-success" />
