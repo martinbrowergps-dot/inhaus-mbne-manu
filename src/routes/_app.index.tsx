@@ -65,7 +65,7 @@ function VisaoGeral() {
         { label: "Criticidade AA", value: formatInt(counts.aa), variant: "danger" },
         { label: "OS Pendentes", value: formatInt(counts.programadas), variant: "neutral" },
         { label: "HH Programado", value: `${formatBRNumber(counts.totalHH, 1)}h`, variant: "primary" },
-        { label: "Técnicos Ativos", value: formatInt(tecnicosCount), variant: "neutral" },
+        { label: "Técnicos Ativos", value: formatInt(counts.tecnicos), variant: "neutral" },
         {
           label: "Temp. em Alerta",
           value: formatInt(counts.tempAlerta),
