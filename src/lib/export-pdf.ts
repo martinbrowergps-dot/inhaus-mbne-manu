@@ -214,11 +214,6 @@ export interface VisualPdfOptions extends PdfLayoutOptions {
   orientation?: "landscape" | "portrait";
 }
 
-const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }> = {
-  low: { scale: 1.0, jpeg: 0.72 },
-  medium: { scale: 1.5, jpeg: 0.85 },
-  high: { scale: 2.2, jpeg: 0.92 },
-};
 
 function collectBreakCandidates(root: HTMLElement): number[] {
   const rootRect = root.getBoundingClientRect();
