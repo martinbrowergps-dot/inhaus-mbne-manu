@@ -61,8 +61,8 @@ function TemperaturasPage() {
     return filterByRange(medicoes, effectiveRange as TempRange);
   }, [medicoes, effectiveRange, dateFilter]);
 
-  const locais = summarizeLocais(filteredMedicoes);
-  const durationAlerts = computeDurationAlerts(filteredMedicoes);
+  const locais = useMemo(() => summarizeLocais(filteredMedicoes), [filteredMedicoes]);
+  const durationAlerts = useMemo(() => computeDurationAlerts(filteredMedicoes), [filteredMedicoes]);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
