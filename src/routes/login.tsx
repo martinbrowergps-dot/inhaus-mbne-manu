@@ -95,13 +95,15 @@ function LoginPage() {
       {checkingSession ? (
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       ) : (
-        <div className="w-full max-w-sm rounded-lg border border-border/60 bg-card p-6 shadow-lg">
-          <div className="mb-6 text-center">
-            <h1 className="text-xl font-bold text-foreground">IN HAUS</h1>
-            <p className="mt-1 text-xs text-muted-foreground">Centro de Controle de Manutenção</p>
+        <div className="w-full max-w-sm rounded-2xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl shadow-elevated">
+          <div className="mb-8 text-center">
+            <h1 className="text-2xl font-black tracking-[0.3em] text-primary drop-shadow-sm">IN HAUS</h1>
+            <p className="mt-1 text-[10px] font-bold tracking-[0.1em] text-muted-foreground/60 uppercase italic">
+              Centro de Controle de Manutenção
+            </p>
           </div>
 
-          <div className="mb-4 grid grid-cols-2 gap-1 rounded-md border border-border/60 p-1">
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-white/5 bg-white/5 p-1">
             {(["login", "cadastro"] as const).map((m) => (
               <button
                 key={m}
@@ -162,7 +164,7 @@ function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-black tracking-widest uppercase text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-glow"
             >
               {loading
                 ? "Aguarde..."
@@ -183,7 +185,7 @@ function LoginPage() {
               type="button"
               disabled={loading}
               onClick={() => handleOAuth("google")}
-              className="flex w-full items-center justify-center gap-2 rounded-md border border-border/60 bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-2.5 text-xs font-bold tracking-widest uppercase text-foreground transition-all hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
                 <path
@@ -210,7 +212,7 @@ function LoginPage() {
               type="button"
               disabled={loading}
               onClick={() => handleOAuth("apple")}
-              className="flex w-full items-center justify-center gap-2 rounded-md border border-border/60 bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-2.5 text-xs font-bold tracking-widest uppercase text-foreground transition-all hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
                 <path d="M16.37 12.78c.03 3.2 2.8 4.26 2.83 4.28-.02.08-.44 1.52-1.46 3-.88 1.29-1.8 2.57-3.25 2.6-1.42.02-1.88-.85-3.51-.85s-2.13.82-3.48.87c-1.4.05-2.46-1.39-3.35-2.67-1.82-2.63-3.21-7.44-1.34-10.68.93-1.61 2.58-2.63 4.38-2.66 1.37-.03 2.66.92 3.5.92.84 0 2.41-1.14 4.06-.97.69.03 2.63.28 3.87 2.1-.1.06-2.31 1.35-2.29 4.03M13.9 3.9c.74-.9 1.24-2.15 1.1-3.4-1.07.05-2.36.72-3.13 1.61-.68.79-1.28 2.06-1.12 3.28 1.19.09 2.41-.6 3.15-1.49" />
