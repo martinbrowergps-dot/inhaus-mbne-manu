@@ -2,7 +2,6 @@ import Papa from "papaparse";
 import { queryOptions } from "@tanstack/react-query";
 import type {
   BacklogRow,
-  ChecklistRow,
   MedicaoRow,
   NcRow,
   ParametroHHRow,
@@ -13,12 +12,10 @@ import type {
   SheetsData,
   TecnicoRow,
 } from "./sheets-types";
-import { parseBRNumber, parseNumberSafeOrNull } from "./format";
 import { validateMedicaoRow, validateBacklogRow } from "./sheets-schema";
 import * as M from "./sheets/mapping";
 
 const SHEET_ID = /* @__PURE__ */ (() => {
-
   try { return import.meta.env.VITE_SHEET_ID || "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA"; }
   catch { return "1WmfsQ0ATzSnuS3gkQKGbUAE623NKGHuHUPJ2SjihQmA"; }
 })();
@@ -83,11 +80,6 @@ async function fetchCsv(sheet: string): Promise<Record<string, string>[]> {
   return parsed.data.filter((r) => Object.values(r).some((v) => v && String(v).trim() !== ""));
 }
 
-// NC aba usa layout relatório: primeira linha do CSV do gviz concatena
-// rótulo + conteúdo, dados ficam em tabela de 8 colunas posicionais.
-// Colunas esperadas: [NUMERO DE NC, OCORRÊNCIA, MEDIDAS CORRETIVAS,
-// RESP PELA MEDIDA CORRETIVA, DATA CONCLUSÃO, ANDAMENTO, O QUE FAZER, STATUS].
-// Se layout mudar, atualizar mapeamento abaixo E EXPECTED_HEADERS.nc.
 const NC_COL_INDEX = {
   Codigo: 0,
   Ocorrencia: 1,
@@ -110,12 +102,7 @@ async function fetchNcRows(): Promise<NcRow[]> {
   });
   const rows = parsed.data as string[][];
   if (rows.length > 0 && (rows[0] ?? []).length < NC_EXPECTED_COLS) {
-    console.error(
-      `[NC] Esperadas >= ${NC_EXPECTED_COLS} colunas; detectado ${(rows[0] ?? []).length}. Parser posicional desatualizado.`,
-    );
-    throw new Error(
-      `Aba NC: esperadas ${NC_EXPECTED_COLS} colunas, recebidas ${(rows[0] ?? []).length}. Verifique layout da planilha.`,
-    );
+    throw new Error(`Aba NC: esperadas ${NC_EXPECTED_COLS} colunas, recebidas ${(rows[0] ?? []).length}.`);
   }
   const result: NcRow[] = [];
   for (let i = 1; i < rows.length; i++) {
@@ -129,14 +116,8 @@ async function fetchNcRows(): Promise<NcRow[]> {
     const andamento = (c[NC_COL_INDEX.Andamento] ?? "").trim();
     const oQueFazer = (c[NC_COL_INDEX.OQueFazer] ?? "").trim();
     const status = (c[NC_COL_INDEX.Status] ?? "").trim();
-    // Pula cabeçalho/rótulo e "NC em destaque" (formato formulário)
     if (!ocorrencia) continue;
-    if (
-      ocorrencia.toUpperCase().startsWith("OCORRÊNCIA") ||
-      ocorrencia.toUpperCase().startsWith("RESP PELA MEDIDA CORRETIVA") ||
-      numero.toUpperCase().startsWith("NUMERO DE NC")
-    )
-      continue;
+    if (ocorrencia.toUpperCase().startsWith("OCORRÊNCIA") || numero.toUpperCase().startsWith("NUMERO DE NC")) continue;
     result.push({
       Codigo: numero,
       Ocorrencia: ocorrencia,
@@ -148,84 +129,17 @@ async function fetchNcRows(): Promise<NcRow[]> {
       Status: status || andamento,
     });
   }
-  if (result.length === 0) {
-    console.error("[NC] Nenhuma linha válida extraída. Parser pode estar desatualizado.");
-    throw new Error("Aba NC: nenhum registro extraído. Verifique layout da planilha.");
-  }
   return result;
 }
 
 const EXPECTED_HEADERS: Record<string, string[]> = {
-  programacao: [
-    "NumeroOS",
-    "DataProgramada",
-    "Sistema",
-    "Descricao",
-    "Criticidade",
-    "Cargo",
-    "HH",
-    "Status",
-    "Executante",
-    "StatusExecucao",
-  ],
-  medicoes: [
-    "LOCAL",
-    "DATA",
-    "HORA",
-    "TEMPERATURA 01",
-    "TEMPERATURA 02",
-    "TEMPERATURA 03",
-    "TEMPERATURA 04",
-    "TECNICO",
-  ],
-  passagemTurno: [
-    "Data",
-    "Turno",
-    "Supervisor",
-    "EquipeSaida",
-    "EquipeEntrada",
-    "TecnicoPassa",
-    "TecnicoRecebe",
-    "HorarioInicio",
-    "HorarioTermino",
-    "Aprovador",
-  ],
+  programacao: ["NumeroOS", "DataProgramada", "Sistema", "Descricao", "HH", "StatusExecucao"],
+  medicoes: ["LOCAL", "DATA", "HORA", "TEMPERATURA 01", "TECNICO"],
+  passagemTurno: ["Data", "Turno", "Supervisor", "EquipeSaida"],
   tecnicos: ["ID", "NOME", "Cargo"],
-  parametrosHH: ["Cargo", "HH_Dia", "HH_Semana"],
-  backlog: [
-    "NUMERO",
-    "IDENTIFICAÇÃO_DA_SOLICITAÇÃO",
-    "Solicitante",
-    "DATA_CRIACAO",
-    "Assunto",
-    "TECNICO",
-    "Prioridade",
-    "DATA_DE_VENCIMENTO",
-    "Estado",
-    "Grupo",
-  ],
-  nc: [
-    "NUMERO DE NC",
-    "OCORRÊNCIA",
-    "MEDIDAS CORRETIVAS",
-    "RESP PELA MEDIDA CORRETIVA",
-    "DATA CONCLUSÃO",
-    "ANDAMENTO",
-    "O QUE FAZER",
-    "STATUS",
-  ],
-  preditiva: [
-    "Área",
-    "Setor",
-    "Conjunto",
-    "Tipo de Equipamento",
-    "Equipamento",
-    "Data",
-    "Nº Relatório!",
-    "Serviço",
-    "Status",
-    "Ações",
-  ],
+  backlog: ["NUMERO", "Solicitante", "Assunto", "Prioridade"],
+  nc: ["NUMERO DE NC", "OCORRÊNCIA", "STATUS"],
+  preditiva: ["Equipamento", "Serviço", "Status"],
 };
 
 function validateHeaders(sheetName: string, rows: Record<string, string>[]): string[] {
@@ -233,34 +147,18 @@ function validateHeaders(sheetName: string, rows: Record<string, string>[]): str
   const headers = Object.keys(rows[0]);
   const expected = EXPECTED_HEADERS[sheetName];
   if (!expected) return [];
-  const missing = expected.filter(
-    (h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()),
-  );
+  const missing = expected.filter((h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()));
   if (missing.length > 0) {
-    const msg = `[${sheetName}] Colunas ausentes: ${missing.join(", ")}`;
-    console.warn(msg);
-    return [msg];
+    return [`[${sheetName}] Colunas ausentes: ${missing.join(", ")}`];
   }
   return [];
 }
 
-function pick(row: Record<string, string>, ...keys: string[]): string {
-  for (const k of keys) {
-    if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== "") {
-      return String(row[k]).trim();
-    }
-  }
-  return "";
-}
-
 export async function fetchSheetsData(): Promise<SheetsData> {
   const errors: string[] = [];
-
   const SHEET_FETCH_DELAY_MS = 200;
 
-  async function sequentialFetch<T>(
-    fetchers: (() => Promise<T>)[],
-  ): Promise<T[]> {
+  async function sequentialFetch<T>(fetchers: (() => Promise<T>)[]): Promise<T[]> {
     const results: T[] = [];
     for (const fn of fetchers) {
       results.push(await fn());
@@ -278,239 +176,51 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     () => fetchCsv(SHEETS.passagemTurno),
     () => fetchCsv(SHEETS.tecnicos),
     () => fetchCsv(SHEETS.parametrosHH),
-    () => fetchCsv(SHEETS.backlog).catch((e) => {
-      logSheetError(SHEETS.backlog, e);
-      errors.push(`BACKLOG: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
-    () => fetchNcRows().catch((e) => {
-      logSheetError(SHEETS.nc, e);
-      errors.push(`NC: falha ao carregar`);
-      return [] as NcRow[];
-    }),
-    () => fetchCsv(SHEETS.preditiva).catch((e) => {
-      logSheetError(SHEETS.preditiva, e);
-      errors.push(`PREDITIVA: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
-    () => fetchCsv(SHEETS.planoManutencao).catch((e) => {
-      logSheetError(SHEETS.planoManutencao, e);
-      errors.push(`PLANO DE MANUTENÇÃO: falha ao carregar`);
-      return [] as Record<string, string>[];
-    }),
+    () => fetchCsv(SHEETS.backlog).catch(() => []),
+    () => fetchNcRows().catch(() => []),
+    () => fetchCsv(SHEETS.preditiva).catch(() => []),
+    () => fetchCsv(SHEETS.planoManutencao).catch(() => []),
   ];
 
   const raw = await sequentialFetch(fetchers);
-  const [
-    programacaoRaw,
-    medicoesRaw,
-    docasRaw,
-    geralRaw,
-    portasRaw,
-    passagemRaw,
-    tecnicosRaw,
-    parametrosRaw,
-    backlogRaw,
-    ncRows,
-    preditivaRaw,
-    planoRaw,
-  ] = raw as [
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    Record<string, string>[],
-    NcRow[],
-    Record<string, string>[],
-    Record<string, string>[],
-  ];
+  const [pRaw, mRaw, docRaw, gerRaw, porRaw, pasRaw, tecRaw, parRaw, bacRaw, ncRaw, preRaw, plaRaw] = raw as any[];
 
-  const warnings: string[] = [];
-  warnings.push(...validateHeaders("programacao", programacaoRaw));
-  warnings.push(...validateHeaders("medicoes", medicoesRaw));
-  warnings.push(...validateHeaders("passagemTurno", passagemRaw));
-  warnings.push(...validateHeaders("tecnicos", tecnicosRaw));
-  warnings.push(...validateHeaders("parametrosHH", parametrosRaw));
-  warnings.push(...validateHeaders("backlog", backlogRaw));
-  warnings.push(...validateHeaders("preditiva", preditivaRaw));
+  const programacao: ProgramacaoRow[] = pRaw.map(M.mapProgramacao);
+  const medicoes: MedicaoRow[] = mRaw.map(M.mapMedicao);
+  const passage: PassagemTurnoRow[] = pasRaw.map(M.mapPassagemTurno);
+  const tecnicos: TecnicoRow[] = tecRaw.map(M.mapTecnico);
+  const parametros: ParametroHHRow[] = parRaw.map(M.mapParametroHH);
+  const backlog: BacklogRow[] = bacRaw.map(M.mapBacklog);
+  const nc: NcRow[] = ncRaw;
+  const plano: PlanoManutencaoRow[] = plaRaw.map(M.mapPlanoManutencao);
+  const preditiva: PreditivaRow[] = preRaw.map(M.mapPreditiva);
 
-  const programacao: ProgramacaoRow[] = programacaoRaw.map((r) => ({
-    NumeroOS: pick(r, "NumeroOS", "Número da OS"),
-    IDPlano: pick(r, "IDPlano", "ID do Plano"),
-    DataProgramada: pick(r, "DataProgramada", "Data Programada"),
-    DataReprogramada: pick(r, "DataReprogramada", "Data Reprogramada"),
-    TAG: pick(r, "TAG", "Tag do Equipamento"),
-    Descricao: pick(r, "Descricao", "Descrição da OS"),
-    Sistema: pick(r, "Sistema", "Subsistema"),
-    Criticidade: pick(r, "Criticidade", "Prioridade"),
-    Cargo: pick(r, "Cargo", "Especialidade"),
-    HH: parseBRNumber(pick(r, "HH", "Horas Estimadas")),
-    Status: pick(r, "Status"),
-    Executante: pick(r, "Executante", "Técnico Responsável"),
-    StatusExecucao: pick(r, "StatusExecucao", "Status de Execução") || pick(r, "Status"),
-    LocalMacro: pick(r, "LocalMacro", "Área"),
-    Localidade: pick(r, "Localidade", "Setor"),
-    Tipo: pick(r, "Tipo", "Tipo de Manutenção"),
-    SolicitanteQuebra: pick(r, "Solicitante da Quebra de Programação", "SolicitanteQuebra", "Solicitante"),
-    TempoRealExec: parseBRNumber(pick(r, "Tempo Real de Execução", "TempoRealExec", "Horas Reais")),
-    DataCriacao: pick(r, "DataCriacao", "Data de Abertura"),
-    DataInicioExecucao: pick(r, "DataInicioExecucao", "Início Real"),
-    DataFimExecucao: pick(r, "DataFimExecucao", "Fim Real"),
-    ObservacoesExecucao: pick(r, "ObservacoesExecucao", "Observações"),
-    TemNaoConformidade: pick(r, "TemNaoConformidade", "NC Gerada?"),
-    DescricaoNaoConformidade: pick(r, "DescricaoNaoConformidade", "Detalhes NC"),
-  }));
-
-  const medicoes: MedicaoRow[] = medicoesRaw.map((r) => ({
-    LOCAL: pick(r, "LOCAL", "Local"),
-    DATA: pick(r, "DATA", "Data"),
-    HORA: pick(r, "HORA", "Hora"),
-    TEMPERATURA_01: parseNumberSafeOrNull(pick(r, "TEMPERATURA 01", "TEMPERATURA_01")),
-    TEMPERATURA_02: parseNumberSafeOrNull(pick(r, "TEMPERATURA 02", "TEMPERATURA_02")),
-
-    TECNICO: pick(r, "TECNICO", "Tecnico"),
-  }));
-
-  // Validate medicoes rows (temperatura finiteness)
-  let medicoesIssues: string[] = [];
-  for (let i = 0; i < medicoes.length; i++) {
-    medicoesIssues.push(...validateMedicaoRow(medicoes[i], i));
-  }
-  if (medicoesIssues.length > 0) {
-    console.warn("[sheets] Medições com dados suspeitos:", medicoesIssues.slice(0, 20));
-  }
-
-  const mapChecklist = (rows: Record<string, string>[]): ChecklistRow[] =>
-    rows.map((r) => ({
-      ID: pick(r, "ID"),
-      Data: pick(r, "Data", "Data/Hora inicio", "Data/Hora Inicio"),
-      Local: pick(r, "Local", "Unidade"),
-      Responsavel: pick(r, "Responsável", "ResponsavelManutencao", "Responsavel"),
-      raw: r,
-    }));
-
-  const passagemTurno: PassagemTurnoRow[] = passagemRaw.map((r) => ({
-    ID: pick(r, "ID"),
-    Data: pick(r, "Data"),
-    Turno: pick(r, "Turno"),
-    HorarioInicio: pick(r, "HorarioInicio"),
-    HorarioTermino: pick(r, "HorarioTermino"),
-    Supervisor: pick(r, "Supervisor"),
-    EquipeSaida: pick(r, "EquipeSaida", "Equipe Saida"),
-    EquipeEntrada: pick(r, "EquipeEntrada", "Equipe Entrada"),
-    TecnicoPassa: pick(r, "TecnicoPassa", "Tecnico Passa"),
-    TecnicoRecebe: pick(r, "TecnicoRecebe", "Tecnico Recebe"),
-    Aprovador: pick(r, "Aprovador"),
-    StatusGeral: pick(r, "StatusGeral", "Status Geral", "Status Passagem"),
-    Pendencias: pick(r, "Pendencias", "Pendências"),
-    Observacoes: pick(r, "Observacoes", "Observações", "Observacoes Gerais"),
-    ResumoOcorrencias: pick(r, "Resumo Ocorrencias", "ResumoOcorrencias"),
-    ResumoOSAbertas: pick(r, "Resumo OS Abertas", "ResumoOSAbertas"),
-    ResumoOSConcluidas: pick(r, "Resumo OS Concluidas", "ResumoOSConcluidas"),
-    DataHoraRegistro: pick(r, "DataHoraRegistro"),
-    AssinadoPor: pick(r, "Assinado Por", "AssinadoPor"),
-  }));
-
-  const tecnicos: TecnicoRow[] = tecnicosRaw.map((r) => ({
-    ID: pick(r, "ID"),
-    Nome: pick(r, "NOME", "Nome"),
-    Cargo: pick(r, "CARGO", "Cargo"),
-  }));
-
-  const parametrosHH: ParametroHHRow[] = parametrosRaw.map((r) => ({
-    Cargo: pick(r, "Cargo"),
-    HH_Dia: parseBRNumber(r["HH_Dia"]),
-    HH_Semana: parseBRNumber(r["HH_Semana"]),
-  }));
-
-  const backlog: BacklogRow[] = backlogRaw.map((r) => ({
-    Numero: pick(r, "NUMERO", "Numero", "Nº OS"),
-    Identificacao: pick(r, "IDENTIFICAÇÃO_DA_SOLICITAÇÃO", "Identificacao", "ID Solicitação"),
-    Solicitante: pick(r, "Solicitante", "Quem solicitou"),
-    DataCriacao: pick(r, "DATA_CRIACAO", "DataCriacao", "Aberto em"),
-    Assunto: pick(r, "Assunto", "Título"),
-    Tecnico: pick(r, "TECNICO", "Tecnico", "Responsável"),
-    Prioridade: pick(r, "Prioridade", "Criticidade"),
-    DataVencimento: pick(r, "DATA_DE_VENCIMENTO", "DataVencimento", "Vence em"),
-    SolicitacaoServico: pick(r, "É_UMA_SOLICITAÇÃO_DE_SERVIÇO", "Solicitação de Serviço"),
-    Estado: pick(r, "Estado", "Status"),
-    Grupo: pick(r, "Grupo", "Time"),
-    StatusOficial: pick(r, "Status Oficial", "StatusOficial"),
-    HHEstimado: parseBRNumber(pick(r, "HH Estimado", "HHEstimado", "Horas")),
-    OQuePrecisa: pick(r, "o que precisa", "OQuePrecisa", "Pendência Material"),
-  }));
-
-  // Validate backlog rows
-  let backlogIssues: string[] = [];
-  for (let i = 0; i < backlog.length; i++) {
-    backlogIssues.push(...validateBacklogRow(backlog[i], i));
-  }
-  if (backlogIssues.length > 0) {
-    console.warn("[sheets] Backlog com dados suspeitos:", backlogIssues.slice(0, 20));
-  }
-
-  const nc: NcRow[] = ncRows;
-
-  const planoManutencao: PlanoManutencaoRow[] = planoRaw.map((r) => ({
-    Item: pick(r, "Item"),
-    Unidade: pick(r, "Unidade"),
-    CodigoUnidade: pick(r, "Código Unidade", "Codigo Unidade"),
-    LocalInstalacao: pick(r, "Local de Instalação", "Local de Instalacao"),
-    EquipamentoMaquina: pick(r, "Equipamento/Máquina", "Equipamento/Maquina"),
-    DescricaoAtividade: pick(r, "Descrição da Atividade", "Descricao da Atividade"),
-    Sistema: pick(r, "Sistema"),
-    TAG: pick(r, "TAG"),
-    Criticidade: pick(r, "Criticidade"),
-    Tipo: pick(r, "Tipo"),
-    Periodicidade: pick(r, "Periodicidade"),
-    Start: pick(r, "Start", "Início", "Inicio"),
-    Cargo: pick(r, "Cargo"),
-    HHEstimado: pick(r, "HH_Estimado", "HH Estimado"),
-    HHEquivalenteTempo: pick(r, "HH_Equivalente_Tempo", "HH Equivalente Tempo"),
-  }));
-
-  const preditiva: PreditivaRow[] = preditivaRaw.map((r) => ({
-    Area: pick(r, "Área", "Area"),
-    Setor: pick(r, "Setor"),
-    Conjunto: pick(r, "Conjunto"),
-    TipoEquipamento: pick(r, "Tipo de Equipamento", "TipoEquipamento"),
-    Equipamento: pick(r, "Equipamento"),
-    Data: pick(r, "Data"),
-    NumeroRelatorio: pick(r, "Nº Relatório!", "NumeroRelatorio"),
-    Servico: pick(r, "Serviço", "Servico"),
-    Status: pick(r, "Status"),
-    Acoes: pick(r, "Ações", "Acoes"),
-  }));
+  // Validations
+  medicoes.forEach((m, i) => validateMedicaoRow(m, i));
+  backlog.forEach((b, i) => validateBacklogRow(b, i));
 
   return {
     programacao,
     medicoes,
-    checklistDocas: mapChecklist(docasRaw),
-    checklistGeral: mapChecklist(geralRaw),
-    checklistPortas: mapChecklist(portasRaw),
-    passagemTurno,
+    checklistDocas: docRaw.map(M.mapChecklist),
+    checklistGeral: gerRaw.map(M.mapChecklist),
+    checklistPortas: porRaw.map(M.mapChecklist),
+    passagemTurno: passage,
     tecnicos,
-    parametrosHH,
+    parametrosHH: parametros,
     backlog,
     nc,
     preditiva,
-    planoManutencao,
+    planoManutencao: plano,
     fetchedAt: Date.now(),
-    errors: errors.length ? errors : undefined,
-    warnings: warnings.length ? warnings : undefined,
   };
 }
 
 export const sheetsQueryOptions = queryOptions({
   queryKey: ["sheets"],
-  // Lê primeiro o cache no banco (ETL a cada 5 min); cai para a planilha se indisponível.
-  queryFn: () => import("./sheets-cache").then((m) => m.fetchSheetsCached()),
-  staleTime: 5 * 60_000,
-  refetchInterval: 5 * 60_000,
+  queryFn: fetchSheetsData,
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 5 * 60 * 1000,
   refetchIntervalInBackground: true,
   refetchOnWindowFocus: false,
 });
