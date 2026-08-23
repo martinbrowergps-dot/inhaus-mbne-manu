@@ -1,65 +1,29 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Play, CheckCircle2, AlertOctagon, Users, Thermometer, CalendarX } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as ReTooltip,
-  Legend,
-  LabelList,
-} from "recharts";
-import { sheetsQueryOptions } from "@/lib/sheets";
-import { useDateFilter } from "@/hooks/use-date-filter";
-import {
-  CHART_LEGEND_STYLE,
-  COLORS,
-  SERIES_COLORS,
-  aggregate,
-  chartAxisProps,
-  chartGridProps,
-  chartTooltipProps,
-} from "@/lib/chart-utils";
+import { useDashboardMetrics } from "@/hooks/use-dashboard-metrics";
 import { Panel } from "@/components/panel";
-import { AderenciaCard, computeAderencia } from "@/components/aderencia-card";
 import { ExportButton } from "@/components/export-button";
-import { summarizeLocais } from "@/lib/temperature";
 import { formatBRNumber, formatInt, formatDateBR } from "@/lib/format";
 import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
-import { deriveExecStatus } from "@/lib/status";
 import { renderReportPdf } from "@/lib/pdf-report";
 import type { ReportData } from "@/lib/pdf-report";
-
-import { EmptyState } from "@/components/empty-state";
-import { SectionHeader } from "@/components/section-header";
-import { ChartPie } from "@/components/visao-geral/chart-pie";
-import { ChartDonut } from "@/components/visao-geral/chart-donut";
-import { ChartBarHorizontal } from "@/components/visao-geral/chart-bar-horizontal";
 import { PageHeader } from "@/components/page-header";
-import {
-  aggregateQuebrasBySolicitante,
-  aggregateHH,
-  aggregateByDay,
-  aggregateByDayAndStatus,
-  computePrevDateRange,
-  computeTrend,
-} from "@/lib/domain/aggregates";
+
+import { CommandBar } from "@/components/visao-geral/command-bar";
+import { ActivitySection } from "@/components/visao-geral/activity-section";
+import { PerformanceSection } from "@/components/visao-geral/performance-section";
+import { AttentionSection } from "@/components/visao-geral/attention-section";
+import { ResourceSection } from "@/components/visao-geral/resource-section";
 
 export const Route = createFileRoute("/_app/")({
   component: VisaoGeral,
 });
 
 function VisaoGeral() {
-  const { data, isLoading, error } = useQuery(sheetsQueryOptions);
+  const { metrics, isLoading, error, dateFilter } = useDashboardMetrics();
   const pdfRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
-  const dateFilter = useDateFilter();
   const navigate = useNavigate();
 
   const chartClick = (_label: string) => {
@@ -70,7 +34,7 @@ function VisaoGeral() {
     return <KpiSkeletonGrid count={8} className="md:grid-cols-4" />;
   }
 
-  if (error || !data) {
+  if (error || !metrics) {
     return (
       <Panel title="ERRO AO CARREGAR DADOS">
         <p className="text-sm text-muted-foreground">
@@ -81,108 +45,31 @@ function VisaoGeral() {
     );
   }
 
-  const { programacao, tecnicos, medicoes } = data;
-  const programacaoFiltrada = (programacao ?? []).filter((p) =>
-    dateFilter.filterByDateRange(p.DataReprogramada || p.DataProgramada),
-  );
-  const medicoesFiltradas = (medicoes ?? []).filter((m) => dateFilter.filterByDateRange(m.DATA));
-  const total = programacaoFiltrada.length;
-  const enriched = programacaoFiltrada.map((p) => ({ ...p, _execStatus: deriveExecStatus(p) }));
-  const programadas = enriched.filter((p) => p._execStatus === "Programada").length;
-  const emAndamento = enriched.filter((p) => p._execStatus === "Em execução").length;
-  const finalizadas = enriched.filter((p) => p._execStatus === "Finalizada").length;
-  const canceladas = enriched.filter((p) => p._execStatus === "Cancelada").length;
-  const atrasadas = enriched.filter((p) => p._execStatus === "Atrasada").length;
-  const aa = programacaoFiltrada.filter((p) => p.Criticidade?.toUpperCase() === "AA").length;
-  const totalHH = programacaoFiltrada.reduce((s, p) => s + (p.HH || 0), 0);
-
-  const locais = summarizeLocais(medicoesFiltradas);
-  const tempAlerta = locais.filter((l) => l.status !== "normal").length;
-
-  // OS por Sistema
-  const bySistema = aggregate(programacaoFiltrada, (p) => p.Sistema || "—");
-  // OS por Criticidade
-  const byCriticidade = aggregate(programacaoFiltrada, (p) => p.Criticidade || "—");
-  // OS por Dia (próximos 14 dias)
-  const byDia = aggregateByDay(programacaoFiltrada);
-  // Status
-  const byStatus = aggregate(enriched, (p) => p._execStatus);
-  const aderencia = computeAderencia(programacaoFiltrada);
-
-  // Planejado vs Não Planejado
-  const byPlanejamento = aggregate(programacaoFiltrada, (p) => {
-    const s = (p.Status || "").trim();
-    if (s === "Planejado") return "Planejado";
-    if (s === "Não Planejado") return "Não Planejado";
-    return s || "—";
-  });
-  const planejados = byPlanejamento.find((p) => p.name === "Planejado")?.value ?? 0;
-  const naoPlanejados = byPlanejamento.find((p) => p.name === "Não Planejado")?.value ?? 0;
-
-  // Planejado vs Não Planejado por dia (últimos 14 dias)
-  const byPlanejamentoDia = aggregateByDayAndStatus(programacaoFiltrada);
-
-  // Quebra de Programação por solicitante
-  const quebras = aggregateQuebrasBySolicitante(programacaoFiltrada);
-
-  // ── Trend (vs período anterior) ──
-  const prevRange = computePrevDateRange(dateFilter.startDate, dateFilter.endDate);
-  const programacaoPrev = prevRange
-    ? (programacao ?? []).filter((p) => {
-        const d = p.DataReprogramada || p.DataProgramada;
-        if (!d) return false;
-        let dt: Date | null = null;
-        try {
-          dt = new Date(String(d).split("/").reverse().join("-") + "T00:00:00");
-        } catch {
-          /* empty */
-        }
-        if (!dt) return false;
-        const pStart = new Date(prevRange.start + "T00:00:00");
-        const pEnd = new Date(prevRange.end + "T00:00:00");
-        return dt >= pStart && dt <= pEnd;
-      })
-    : [];
-  const prevEnriched = programacaoPrev.map((p) => ({
-    ...p,
-    _execStatus: deriveExecStatus(p),
-  }));
-  const prevTotal = programacaoPrev.length;
-  const prevProgramadas = prevEnriched.filter((p) => p._execStatus === "Programada").length;
-  const prevFinalizadas = prevEnriched.filter((p) => p._execStatus === "Finalizada").length;
-  const prevCanceladas = prevEnriched.filter((p) => p._execStatus === "Cancelada").length;
-  const prevAtrasadas = prevEnriched.filter((p) => p._execStatus === "Atrasada").length;
-  const prevHH = programacaoPrev.reduce((s, p) => s + (p.HH || 0), 0);
-  computeTrend(total, prevTotal);
-  computeTrend(programadas, prevProgramadas);
-  computeTrend(finalizadas, prevFinalizadas);
-  computeTrend(canceladas, prevCanceladas);
-  computeTrend(atrasadas, prevAtrasadas);
-  computeTrend(totalHH, prevHH);
+  const { counts, charts, aderencia, programacaoFiltrada, tecnicosCount = metrics.raw.tecnicos.length } = metrics;
 
   const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
-    const charts = chartEls ? Array.from(chartEls) : [];
+    const chartsArr = chartEls ? Array.from(chartEls) : [];
 
     const reportData: ReportData = {
       title: "Visão Geral · Centro de Controle",
       subtitle: dateFilter.isActive
-        ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
-        : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`,
+        ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(counts.total)} OS · ${formatBRNumber(counts.totalHH, 1)} HH`
+        : `${formatInt(counts.total)} OS · ${formatBRNumber(counts.totalHH, 1)} HH`,
       metrics: [
-        { label: "Total de OS", value: formatInt(total), variant: "primary" },
-        { label: "Em Andamento", value: formatInt(emAndamento), variant: "warning" },
-        { label: "Finalizadas", value: formatInt(finalizadas), variant: "success" },
-        { label: "Canceladas", value: formatInt(canceladas), variant: "danger" },
-        { label: "Atrasadas", value: formatInt(atrasadas), variant: "danger" },
-        { label: "Criticidade AA", value: formatInt(aa), variant: "danger" },
-        { label: "OS Pendentes", value: formatInt(programadas), variant: "neutral" },
-        { label: "HH Programado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
-        { label: "Técnicos Ativos", value: formatInt(tecnicos.length), variant: "neutral" },
+        { label: "Total de OS", value: formatInt(counts.total), variant: "primary" },
+        { label: "Em Andamento", value: formatInt(counts.emAndamento), variant: "warning" },
+        { label: "Finalizadas", value: formatInt(counts.finalizadas), variant: "success" },
+        { label: "Canceladas", value: formatInt(counts.canceladas), variant: "danger" },
+        { label: "Atrasadas", value: formatInt(counts.atrasadas), variant: "danger" },
+        { label: "Criticidade AA", value: formatInt(counts.aa), variant: "danger" },
+        { label: "OS Pendentes", value: formatInt(counts.programadas), variant: "neutral" },
+        { label: "HH Programado", value: `${formatBRNumber(counts.totalHH, 1)}h`, variant: "primary" },
+        { label: "Técnicos Ativos", value: formatInt(tecnicosCount), variant: "neutral" },
         {
           label: "Temp. em Alerta",
-          value: formatInt(tempAlerta),
-          variant: tempAlerta > 0 ? "danger" : "success",
+          value: formatInt(counts.tempAlerta),
+          variant: counts.tempAlerta > 0 ? "danger" : "success",
         },
       ],
       aderencia: {
@@ -194,7 +81,7 @@ function VisaoGeral() {
     };
 
     try {
-      await renderReportPdf(reportData, charts, {
+      await renderReportPdf(reportData, chartsArr, {
         filename: "resumo-executivo",
         orientation: "landscape",
         layout,
@@ -206,6 +93,7 @@ function VisaoGeral() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
+      <div ref={chartRef} className="hidden" /> {/* Hidden chart ref for PDF capture if needed, though usually we capture visible panels */}
       <PageHeader
         title="Visão Geral"
         subtitle="Painel executivo de manutenção • dados atualizados automaticamente a cada 5 minutos"
@@ -235,8 +123,8 @@ function VisaoGeral() {
             pdfTitle="Visão Geral · Centro de Controle"
             pdfSubtitle={
               dateFilter.isActive
-                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
-                : `${formatInt(total)} OS · ${formatBRNumber(totalHH, 1)} HH`
+                ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)} · ${formatInt(counts.total)} OS · ${formatBRNumber(counts.totalHH, 1)} HH`
+                : `${formatInt(counts.total)} OS · ${formatBRNumber(counts.totalHH, 1)} HH`
             }
             onExecutiveSummary={handleExecutiveSummary}
           />
@@ -251,320 +139,48 @@ function VisaoGeral() {
         }}
         className="space-y-6"
       >
-        {/* ═══════════ COMMAND BAR ═══════════ */}
-        <motion.div 
-          variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
-          className="flex flex-wrap items-stretch gap-3 rounded-xl border border-white/5 bg-white/5 p-4 backdrop-blur-md shadow-elevated"
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            {aa > 0 && (
-              <button
-                onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 px-3 py-1.5 text-[10px] font-bold text-destructive transition-all hover:bg-destructive/25 hover:scale-105 active:scale-95 neon-critical"
-              >
-                <AlertOctagon className="h-3.5 w-3.5" />
-                {aa} CRÍTICO AA
-              </button>
-            )}
-            {atrasadas > 0 && (
-              <button
-                onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-warning/15 px-3 py-1.5 text-[10px] font-bold text-warning transition-all hover:bg-warning/25 hover:scale-105 active:scale-95 neon-warning"
-              >
-                <CalendarX className="h-3.5 w-3.5" />
-                {atrasadas} ATRASADAS
-              </button>
-            )}
-            {tempAlerta > 0 && (
-              <button
-                onClick={() => navigate({ to: "/temperaturas" })}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500/15 px-3 py-1.5 text-[10px] font-bold text-rose-400 transition-all hover:bg-rose-500/25 hover:scale-105 active:scale-95"
-              >
-                <Thermometer className="h-3.5 w-3.5" />
-                {tempAlerta} TÉRMICOS
-              </button>
-            )}
-          </div>
-          <div className="ml-auto flex items-center divide-x divide-white/5">
-            <div className="px-5 text-center group transition-all">
-              <div className="num text-2xl font-black text-foreground leading-none tracking-tighter group-hover:scale-110 transition-transform">
-                {formatInt(total)}
-              </div>
-              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
-                Total OS
-              </div>
-            </div>
-            <div className="px-5 text-center group transition-all">
-              <div className="num text-2xl font-black text-primary leading-none tracking-tighter group-hover:scale-110 transition-transform">
-                {formatInt(emAndamento)}
-              </div>
-              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
-                Em Curso
-              </div>
-            </div>
-            <div className="px-5 text-center group transition-all">
-              <div className="num text-2xl font-black text-success leading-none tracking-tighter group-hover:scale-110 transition-transform">
-                {formatInt(finalizadas)}
-              </div>
-              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
-                Sucesso
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        <CommandBar 
+          aa={counts.aa}
+          atrasadas={counts.atrasadas}
+          tempAlerta={counts.tempAlerta}
+          total={counts.total}
+          emAndamento={counts.emAndamento}
+          finalizadas={counts.finalizadas}
+        />
 
-        {/* ═══════════ ATIVIDADE ═══════════ */}
-        <SectionHeader
-          label="Atividade"
-          insight={`${formatInt(total)} OS no período · ${formatInt(emAndamento)} em execução · ${formatInt(finalizadas)} finalizadas`}
-          icon={Play}
-          colorIndex={0}
-        >
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Panel
-              dataChart="os-por-dia"
-              title="OS POR DIA"
-              subtitle="Próximas 2 semanas"
-              className="lg:col-span-2"
-            >
-              {byDia.length === 0 ? (
-                <EmptyState className="h-64" />
-              ) : (
-                <div className="h-72 md:h-64">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={byDia}
-                      barCategoryGap="5%"
-                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
-                    >
-                      <CartesianGrid {...chartGridProps} />
-                      <XAxis dataKey="label" {...chartAxisProps} />
-                      <YAxis {...chartAxisProps} allowDecimals={false} />
-                      <ReTooltip {...chartTooltipProps} />
-                      <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-                      <Bar
-                        dataKey="value"
-                        name="OS"
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={true}
-                        animationDuration={1000}
-                      >
-                        {byDia.map((_, i) => (
-                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                        ))}
-                        <LabelList
-                          content={({ x, y, width, value }) => {
-                            const numVal = Number(value);
-                            if (!numVal || numVal <= 0) return null;
-                            return (
-                              <text
-                                x={Number(x) + Number(width) / 2}
-                                y={Number(y) - 6}
-                                textAnchor="middle"
-                                fill="#F1F5F9"
-                                fontSize={10}
-                              >
-                                {value}
-                              </text>
-                            );
-                          }}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-            <Panel dataChart="planejamento-pie" title="PLANEJADO vs NÃO" glass>
-              <ChartPie data={byPlanejamento} onCellClick={chartClick} />
-            </Panel>
-          </div>
-          <div className="mt-6">
-            <Panel
-              dataChart="planejamento-dia"
-              title="PLANEJADO vs NÃO PLANEJADO POR DIA"
-              subtitle="Últimos 14 dias"
-            >
-              {byPlanejamentoDia.length === 0 ? (
-                <EmptyState className="h-64" />
-              ) : (
-                <div className="h-72 md:h-64">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={byPlanejamentoDia}
-                      barCategoryGap="5%"
-                      margin={{ top: 30, right: 20, left: 20, bottom: 4 }}
-                    >
-                      <CartesianGrid {...chartGridProps} />
-                      <XAxis dataKey="label" {...chartAxisProps} />
-                      <YAxis {...chartAxisProps} allowDecimals={false} />
-                      <ReTooltip {...chartTooltipProps} />
-                      <Legend
-                        wrapperStyle={CHART_LEGEND_STYLE}
-                        formatter={(value) =>
-                          value === "planejado" ? "Planejado" : "Não Planejado"
-                        }
-                      />
-                      <Bar
-                        dataKey="planejado"
-                        name="planejado"
-                        stackId="a"
-                        fill={SERIES_COLORS.planejado}
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={true}
-                        animationDuration={1000}
-                      />
-                      <Bar
-                        dataKey="naoPlanejado"
-                        name="naoPlanejado"
-                        stackId="a"
-                        fill={SERIES_COLORS.naoPlanejado}
-                        radius={[4, 4, 0, 0]}
-                        isAnimationActive={true}
-                        animationDuration={1200}
-                      >
-                        <LabelList
-                          content={({ x, y, width, index }) => {
-                            const d = index !== undefined ? byPlanejamentoDia[index] : undefined;
-                            if (!d) return null;
-                            if ((d.planejado || 0) + (d.naoPlanejado || 0) <= 0) return null;
-                            return (
-                              <text
-                                x={Number(x) + Number(width) / 2}
-                                y={Number(y) - 6}
-                                textAnchor="middle"
-                                fill="#F1F5F9"
-                                fontSize={10}
-                              >
-                                {d.planejado}/{d.naoPlanejado}
-                              </text>
-                            );
-                          }}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-          </div>
-        </SectionHeader>
+        <ActivitySection 
+          total={counts.total}
+          emAndamento={counts.emAndamento}
+          finalizadas={counts.finalizadas}
+          byDia={charts.byDia}
+          byPlanejamento={charts.byPlanejamento}
+          byPlanejamentoDia={charts.byPlanejamentoDia}
+          onChartClick={chartClick}
+        />
 
-        {/* ═══════════ DESEMPENHO ═══════════ */}
-        <SectionHeader
-          label="Desempenho"
-          insight={`${formatBRNumber(aderencia.pct, 1)}% aderência · ${formatInt(planejados)} planejadas · ${formatInt(naoPlanejados)} não planejadas`}
-          icon={CheckCircle2}
-          colorIndex={1}
-        >
-          <div className="grid gap-6 lg:grid-cols-3">
-            <AderenciaCard
-              pct={aderencia.pct}
-              finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
-              finalizadasForaPrazo={aderencia.finalizadasForaPrazo}
-              canceladas={aderencia.canceladas}
-              pendentes={aderencia.pendentes}
-              totalProgramadas={aderencia.totalProgramadas}
-            />
-            <Panel dataChart="status-os" title="STATUS DAS OS" glass>
-              <ChartDonut data={byStatus} onCellClick={chartClick} />
-            </Panel>
-            <Panel dataChart="os-sistema" title="OS POR SISTEMA" glass>
-              <ChartBarHorizontal data={bySistema} onCellClick={chartClick} />
-            </Panel>
-          </div>
-        </SectionHeader>
+        <PerformanceSection 
+          aderencia={aderencia}
+          planejados={charts.planejados}
+          naoPlanejados={charts.naoPlanejados}
+          byStatus={charts.byStatus}
+          bySistema={charts.bySistema}
+          onChartClick={chartClick}
+        />
 
-        {/* ═══════════ ATENÇÃO ═══════════ */}
-        <SectionHeader
-          label="Atenção"
-          insight={`${formatInt(aa)} criticidade AA · ${quebras.length} quebras · ${formatInt(tempAlerta)} alertas térmicos`}
-          icon={AlertOctagon}
-          colorIndex={3}
-        >
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
-              <ChartDonut data={byCriticidade} onCellClick={chartClick} />
-            </Panel>
-            <Panel
-              dataChart="quebras"
-              title="QUEBRAS POR SOLICITANTE"
-              subtitle="OS tipo quebra"
-              className="lg:col-span-2"
-            >
-              {quebras.length === 0 ? (
-                <EmptyState
-                  title="Nenhuma quebra"
-                  description="de programação no período"
-                  className="h-40"
-                />
-              ) : (
-                <div className="h-48">
-                  <ResponsiveContainer>
-                    <BarChart
-                      data={quebras}
-                      layout="vertical"
-                      margin={{ left: 16, right: 32, top: 4, bottom: 4 }}
-                    >
-                      <CartesianGrid {...chartGridProps} horizontal={false} />
-                      <XAxis type="number" {...chartAxisProps} allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" {...chartAxisProps} width={120} />
-                      <ReTooltip {...chartTooltipProps} />
-                      <Bar
-                        dataKey="value"
-                        fill={SERIES_COLORS.naoPlanejado}
-                        radius={[0, 4, 4, 0]}
-                        isAnimationActive={true}
-                        animationDuration={1000}
-                      >
-                        <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-          </div>
-        </SectionHeader>
+        <AttentionSection 
+          aa={counts.aa}
+          quebras={charts.quebras}
+          tempAlerta={counts.tempAlerta}
+          byCriticidade={charts.byCriticidade}
+          onChartClick={chartClick}
+        />
 
-        {/* ═══════════ RECURSOS ═══════════ */}
-        <SectionHeader
-          label="Recursos"
-          insight={`${formatInt(tecnicos.length)} técnicos · ${bySistema.length} sistemas · ${formatBRNumber(totalHH, 1)}h HH`}
-          icon={Users}
-          colorIndex={2}
-        >
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Panel dataChart="hh-cargo" title="HH POR CARGO" className="lg:col-span-2">
-              {(() => {
-                const hhData = aggregateHH(programacaoFiltrada);
-                const avg =
-                  hhData.length > 0 ? hhData.reduce((s, d) => s + d.value, 0) / hhData.length : 0;
-                return (
-                  <ChartBarHorizontal
-                    data={hhData}
-                    refLine={
-                      avg > 0 ? { value: Number(avg.toFixed(1)), label: "Média" } : undefined
-                    }
-                  />
-                );
-              })()}
-            </Panel>
-            <Panel title="TÉCNICOS" glass>
-              <div className="num text-2xl font-bold text-foreground">
-                {formatInt(tecnicos.length)}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Ativos na plataforma</p>
-            </Panel>
-            <Panel title="HH TOTAL" glass>
-              <div className="num text-2xl font-bold text-foreground">
-                {formatBRNumber(totalHH, 1)}
-                <span className="text-xs font-normal text-muted-foreground">h</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Horas-homem programadas</p>
-            </Panel>
-          </div>
-        </SectionHeader>
+        <ResourceSection 
+          tecnicosCount={counts.tecnicos}
+          sistemasCount={charts.bySistema.length}
+          totalHH={counts.totalHH}
+          programacaoFiltrada={programacaoFiltrada}
+        />
       </motion.div>
     </div>
   );
