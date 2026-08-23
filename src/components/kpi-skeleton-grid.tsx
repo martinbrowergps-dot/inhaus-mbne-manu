@@ -11,9 +11,9 @@ export function KpiSkeletonGrid({
   heightClass?: string;
 }) {
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-4", className)}>
+    <div className={cn("grid gap-6 sm:grid-cols-2 lg:grid-cols-4", className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className={heightClass} />
+        <Skeleton key={i} className={cn("rounded-xl border border-white/5", heightClass)} />
       ))}
     </div>
   );

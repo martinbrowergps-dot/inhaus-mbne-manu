@@ -5,14 +5,15 @@ import { formatBRNumber, formatInt } from "@/lib/format";
 export const CHART_FONT = "'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif";
 
 export const CHART_TOOLTIP_STYLE: CSSProperties = {
-  background: "#1F2937",
-  border: "1px solid #374151",
-  borderRadius: 4,
+  background: "rgba(2, 21, 45, 0.8)",
+  border: "1px solid rgba(255, 255, 255, 0.05)",
+  borderRadius: 12,
   fontSize: 12,
   color: "#F1F5F9",
-  boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
-  padding: "8px 10px",
+  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+  padding: "12px 16px",
   fontFamily: CHART_FONT,
+  backdropFilter: "blur(20px) saturate(1.8)",
 };
 
 export const CHART_LEGEND_STYLE: CSSProperties = {
@@ -35,8 +36,8 @@ export const CHART_LABEL_STYLE = {
   fontWeight: 600,
 } as const;
 
-export const CHART_GRID_STROKE = "rgba(255,255,255,0.06)";
-export const CHART_AXIS_STROKE = "#93C5D8";
+export const CHART_GRID_STROKE = "rgba(255, 255, 255, 0.03)";
+export const CHART_AXIS_STROKE = "rgba(255, 255, 255, 0.1)";
 
 export const CHART_CURSOR_STYLE = { stroke: "rgba(148,163,184,0.35)" };
 export const CHART_BAR_CURSOR = { fill: "rgba(148,163,184,0.12)" };

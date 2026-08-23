@@ -60,7 +60,7 @@ export function ChartBarHorizontal({
               }}
             />
           )}
-          <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} isAnimationActive={false} onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")} style={{ cursor: onCellClick ? "pointer" : undefined }}>
+          <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} isAnimationActive={true} animationDuration={1000} onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")} style={{ cursor: onCellClick ? "pointer" : undefined }}>
             <LabelList
               position="right"
               offset={8}

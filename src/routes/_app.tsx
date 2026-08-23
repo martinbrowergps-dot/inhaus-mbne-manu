@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { createFileRoute, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, X, Loader2 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -118,23 +119,31 @@ function AppLayout() {
               </button>
             </div>
           )}
-          <main className="flex-1 p-4 md:p-6">
-            <div key={pathname} className="page-enter">
-              <Suspense
-                fallback={
-                  <div className="grid gap-4 md:grid-cols-4">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-28 animate-pulse rounded-lg bg-card/40 border border-border/30"
-                      />
-                    ))}
-                  </div>
-                }
+          <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                <Outlet />
-              </Suspense>
-            </div>
+                <Suspense
+                  fallback={
+                    <div className="grid gap-4 md:grid-cols-4">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-28 animate-pulse rounded-lg bg-card/40 border border-border/30"
+                        />
+                      ))}
+                    </div>
+                  }
+                >
+                  <Outlet />
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
           </main>
         </SidebarInset>
       </div>

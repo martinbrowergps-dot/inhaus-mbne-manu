@@ -215,14 +215,14 @@ export function ExportButton<T>({
             size="sm"
             variant="outline"
             disabled={disabled || rows.length === 0}
-            className="h-8 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
+            className="h-8 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60 rounded-lg text-xs font-bold tracking-widest uppercase shadow-glow"
             title={rows.length === 0 && !disabled ? "Nenhum registro para exportar" : undefined}
           >
             <Download className="h-3.5 w-3.5" />
             <span className="text-xs">Exportar</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end" className="w-64 bg-card/95 backdrop-blur-xl border-white/5 shadow-elevated">
           <DropdownMenuItem onClick={handleCsv} className="gap-2 text-xs">
             <FileSpreadsheet className="h-3.5 w-3.5 text-success" />
             Exportar CSV

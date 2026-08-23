@@ -71,13 +71,13 @@ export function TopHeader() {
           : "text-destructive";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/5 bg-background/70 px-4 backdrop-blur-md">
       <SidebarTrigger className="text-primary hover:bg-primary/10" />
       <div className="flex-1">
-        <h1 className="text-sm font-bold tracking-[0.22em] text-gradient sm:text-base">
+        <h1 className="text-sm font-black tracking-[0.3em] text-gradient sm:text-lg drop-shadow-sm">
           MARTIN BROWER CDNE
         </h1>
-        <p className="text-[11px] text-muted-foreground tracking-wider">
+        <p className="text-[10px] text-muted-foreground/60 tracking-[0.1em] font-medium uppercase">
           Centro de Controle de Manutenção Industrial • Recife/PE
         </p>
       </div>
@@ -97,13 +97,13 @@ export function TopHeader() {
           <Button
             size="sm"
             variant="outline"
-            className="gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60"
+            className="gap-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary hover:border-primary/60 rounded-lg text-xs font-bold tracking-widest uppercase shadow-glow"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-64 border-border/40 bg-card/95 backdrop-blur-xl">
+        <PopoverContent align="end" className="w-64 border-white/5 bg-card/95 backdrop-blur-xl shadow-elevated">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs">
               <Circle className="h-2 w-2 fill-success text-success" />
