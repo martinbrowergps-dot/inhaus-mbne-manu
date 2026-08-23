@@ -12,7 +12,7 @@ import {
   computePrevDateRange,
 } from "@/lib/domain/aggregates";
 import { aggregate } from "@/lib/chart-utils";
-import type { ProgramacaoRow, MedicaoRow } from "@/lib/sheets-types";
+import type { ProgramacaoRow } from "@/lib/sheets-types";
 
 export function useDashboardMetrics() {
 
