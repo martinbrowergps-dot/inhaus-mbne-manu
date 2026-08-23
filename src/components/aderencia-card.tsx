@@ -24,6 +24,7 @@ export function AderenciaCard({
   totalProgramadas,
   className,
   loading,
+  glass,
 }: {
   pct: number;
   finalizadasNoPrazo: number;
@@ -33,6 +34,7 @@ export function AderenciaCard({
   totalProgramadas: number;
   className?: string;
   loading?: boolean;
+  glass?: boolean;
 }) {
   if (loading) {
     return (
