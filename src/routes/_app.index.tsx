@@ -420,7 +420,8 @@ function VisaoGeral() {
                         stackId="a"
                         fill={SERIES_COLORS.naoPlanejado}
                         radius={[4, 4, 0, 0]}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={1200}
                       >
                         <LabelList
                           content={({ x, y, width, index }) => {
@@ -513,7 +514,8 @@ function VisaoGeral() {
                         dataKey="value"
                         fill={SERIES_COLORS.naoPlanejado}
                         radius={[0, 4, 4, 0]}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={1000}
                       >
                         <LabelList position="right" fill="#F1F5F9" fontSize={10} offset={8} />
                       </Bar>
