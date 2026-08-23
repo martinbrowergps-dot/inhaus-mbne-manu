@@ -24,9 +24,9 @@ import {
   chartTooltipProps,
 } from "@/lib/chart-utils";
 import { formatInt } from "@/lib/format";
-import { Play as PlayIcon } from "lucide-react";
 
 interface ActivitySectionProps {
+
   total: number;
   emAndamento: number;
   finalizadas: number;
