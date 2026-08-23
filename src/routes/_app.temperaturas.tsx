@@ -30,7 +30,7 @@ import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
 
 const searchSchema = z.object({
-  range: fallback(z.enum(["24h", "7d", "30d", "filter"]), "24h").default("24h"),
+  range: fallback(z.enum(["24h", "7d", "30d", "filter"]), "filter").default("filter"),
 });
 
 export const Route = createFileRoute("/_app/temperaturas")({
@@ -51,7 +51,7 @@ function TemperaturasPage() {
   const medicoes = data?.medicoes ?? [];
 
   // Se o filtro global estiver ativo e o range for "filter", priorizamos o filtro global.
-  // Caso contrário, usamos o range fixo (24h, 7d, 30d).
+  // Caso contrário, usamos o range fixo (24h, 7d, 30d). Se o range for "filter" mas não houver filtro ativo, mostramos as últimas 24h.
   const effectiveRange = range === "filter" && !dateFilter.isActive ? "24h" : range;
 
   const filteredMedicoes = useMemo(() => {
@@ -61,18 +61,18 @@ function TemperaturasPage() {
     return filterByRange(medicoes, effectiveRange as TempRange);
   }, [medicoes, effectiveRange, dateFilter]);
 
-  const locais = summarizeLocais(filteredMedicoes);
-  const durationAlerts = computeDurationAlerts(filteredMedicoes);
+  const locais = useMemo(() => summarizeLocais(filteredMedicoes), [filteredMedicoes]);
+  const durationAlerts = useMemo(() => computeDurationAlerts(filteredMedicoes), [filteredMedicoes]);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
-  const allLocais = uniqueLocais(medicoes); // Locais únicos do histórico total para manter consistência nos gráficos
+  const allLocais = uniqueLocais(filteredMedicoes); // Locais únicos do histórico filtrado
 
   // Heatmap LOCAL x DIA (todo o histórico disponível)
   const heatmap = useMemo(() => {
     const rank = (s: TempStatus) => (s === "critico" ? 2 : s === "alerta" ? 1 : 0);
     const dayMap = new Map<string, { label: string; ts: number }>();
-    for (const m of medicoes) {
+    for (const m of filteredMedicoes) {
       const d = (m.DATA || "").trim();
       if (!d || dayMap.has(d)) continue;
       const dt = parseBRDate(d);
@@ -88,7 +88,7 @@ function TemperaturasPage() {
       string,
       { sum: number; count: number; min: number; max: number; worst: TempStatus; out: number }
     >();
-    for (const m of medicoes) {
+    for (const m of filteredMedicoes) {
       const l = (m.LOCAL || "").trim();
       const d = (m.DATA || "").trim();
       if (!l || !d) continue;
@@ -137,7 +137,7 @@ function TemperaturasPage() {
       });
     }
     return { locais: allLocais, days, cells };
-  }, [medicoes, allLocais]);
+  }, [filteredMedicoes, allLocais]);
 
   if (isError) {
     return <DataErrorState error={error} onRetry={() => refetch()} />;
@@ -258,7 +258,7 @@ function TemperaturasPage() {
         children={null}
       />
 
-      <Panel title="LOCAL × DIA" subtitle="Todo o período histórico disponível">
+      <Panel title="LOCAL × DIA" subtitle={`Período: ${effectiveRange.toUpperCase()}`}>
         {heatmap.locais.length === 0 || heatmap.days.length === 0 ? (
           <EmptyState className="h-32" />
         ) : (
