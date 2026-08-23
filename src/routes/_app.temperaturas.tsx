@@ -22,13 +22,15 @@ import {
   type TempRange,
   type TempStatus,
 } from "@/lib/temperature";
-import { parseBRDate } from "@/lib/format";
+import { parseBRDate, formatDateBR } from "@/lib/format";
+import { useDateFilter } from "@/hooks/use-date-filter";
+import { PageHeader } from "@/components/page-header";
 
 import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
 
 const searchSchema = z.object({
-  range: fallback(z.enum(["24h", "7d", "30d"]), "24h").default("24h"),
+  range: fallback(z.enum(["24h", "7d", "30d", "filter"]), "24h").default("24h"),
 });
 
 export const Route = createFileRoute("/_app/temperaturas")({
@@ -41,17 +43,30 @@ function TemperaturasPage() {
   const pdfRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate({ from: "/temperaturas" });
   const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
-  const setRange = (r: TempRange) =>
-    navigate({ search: (prev: { range: TempRange }) => ({ ...prev, range: r }) });
+  const dateFilter = useDateFilter();
+
+  const setRange = (r: TempRange | "filter") =>
+    navigate({ search: (prev: { range: TempRange | "filter" }) => ({ ...prev, range: r }) });
 
   const medicoes = data?.medicoes ?? [];
-  const filteredMedicoes = filterByRange(medicoes, range);
-  const locais = summarizeLocais(medicoes);
+
+  // Se o filtro global estiver ativo e o range for "filter", priorizamos o filtro global.
+  // Caso contrário, usamos o range fixo (24h, 7d, 30d).
+  const effectiveRange = range === "filter" && !dateFilter.isActive ? "24h" : range;
+
+  const filteredMedicoes = useMemo(() => {
+    if (effectiveRange === "filter") {
+      return medicoes.filter((m) => dateFilter.filterByDateRange(m.DATA));
+    }
+    return filterByRange(medicoes, effectiveRange as TempRange);
+  }, [medicoes, effectiveRange, dateFilter]);
+
+  const locais = summarizeLocais(filteredMedicoes);
   const durationAlerts = computeDurationAlerts(filteredMedicoes);
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
-  const allLocais = uniqueLocais(medicoes);
+  const allLocais = uniqueLocais(medicoes); // Locais únicos do histórico total para manter consistência nos gráficos
 
   // Heatmap LOCAL x DIA (todo o histórico disponível)
   const heatmap = useMemo(() => {
@@ -132,38 +147,46 @@ function TemperaturasPage() {
 
   return (
     <div ref={pdfRef} className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="fade-up text-xl font-bold tracking-tight">Monitoramento de Temperatura</h1>
-          <p className="text-xs text-muted-foreground">
-            Antecâmara 1°/7°C • Congelados -23°/-20°C • Resfriados 1°/4°C
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={range} onValueChange={(v) => setRange(v as TempRange)}>
-            <TabsList>
-              <TabsTrigger value="24h">24h</TabsTrigger>
-              <TabsTrigger value="7d">7 dias</TabsTrigger>
-              <TabsTrigger value="30d">30 dias</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <ExportButton
-            filename={`temperaturas_${range}`}
-            rows={filterByRange(medicoes, range)}
-            columns={[
-              { header: "Local", value: (r) => r.LOCAL },
-              { header: "Data", value: (r) => r.DATA },
-              { header: "Hora", value: (r) => r.HORA },
-              { header: "Temperatura 01", value: (r) => r.TEMPERATURA_01 ?? "" },
-              { header: "Temperatura 02", value: (r) => r.TEMPERATURA_02 ?? "" },
-
-              { header: "Técnico", value: (r) => r.TECNICO },
-            ]}
-            pdfTitle="Temperaturas · Centro de Controle"
-            pdfTargetRef={pdfRef as React.RefObject<HTMLElement | null>}
-          />
-        </div>
-      </div>
+      <PageHeader
+        title="Temperaturas"
+        subtitle="Antecâmara 1°/7°C • Congelados -23°/-20°C • Resfriados 1°/4°C"
+        filterBadge={
+          dateFilter.isActive ? (
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
+              {formatDateBR(dateFilter.startDate)} – {formatDateBR(dateFilter.endDate)}
+            </span>
+          ) : undefined
+        }
+        exportButton={
+          <div className="flex items-center gap-2">
+            <Tabs
+              value={effectiveRange}
+              onValueChange={(v) => setRange(v as TempRange | "filter")}
+            >
+              <TabsList>
+                <TabsTrigger value="24h">24h</TabsTrigger>
+                <TabsTrigger value="7d">7d</TabsTrigger>
+                <TabsTrigger value="30d">30d</TabsTrigger>
+                {dateFilter.isActive && <TabsTrigger value="filter">Filtro</TabsTrigger>}
+              </TabsList>
+            </Tabs>
+            <ExportButton
+              filename={`temperaturas_${effectiveRange}`}
+              rows={filteredMedicoes}
+              columns={[
+                { header: "Local", value: (r) => r.LOCAL },
+                { header: "Data", value: (r) => r.DATA },
+                { header: "Hora", value: (r) => r.HORA },
+                { header: "Temperatura 01", value: (r) => r.TEMPERATURA_01 ?? "" },
+                { header: "Temperatura 02", value: (r) => r.TEMPERATURA_02 ?? "" },
+                { header: "Técnico", value: (r) => r.TECNICO },
+              ]}
+              pdfTitle="Temperaturas · Centro de Controle"
+              pdfTargetRef={pdfRef}
+            />
+          </div>
+        }
+      />
 
       <SectionHeader
         label="Status dos Locais"
@@ -204,10 +227,10 @@ function TemperaturasPage() {
 
       <SectionHeader
         label="Análise"
-        insight={`Tendência e comparativo no período de ${range.toUpperCase()}`}
+        insight={`Tendência e comparativo no período de ${effectiveRange.toUpperCase()}`}
       >
         <Panel
-          title={`TENDÊNCIA POR LOCAL · ${range.toUpperCase()}`}
+          title={`TENDÊNCIA POR LOCAL · ${effectiveRange.toUpperCase()}`}
           subtitle="Faixa-alvo em verde · linha colorida pelo status do período"
         >
           {allLocais.length === 0 ? (
@@ -215,7 +238,7 @@ function TemperaturasPage() {
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {allLocais.map((local) => (
-                <TempTrendChart key={local} local={local} medicoes={medicoes} range={range} />
+                <TempTrendChart key={local} local={local} medicoes={filteredMedicoes} range={effectiveRange as any} />
               ))}
             </div>
           )}
@@ -225,7 +248,7 @@ function TemperaturasPage() {
           title="VISÃO COMPARATIVA"
           subtitle="Todos os locais sobrepostos · ideal para detectar desvios simultâneos"
         >
-          <TempMultiChart locais={allLocais} medicoes={medicoes} range={range} />
+          <TempMultiChart locais={allLocais} medicoes={filteredMedicoes} range={effectiveRange as any} />
         </Panel>
       </SectionHeader>
 
