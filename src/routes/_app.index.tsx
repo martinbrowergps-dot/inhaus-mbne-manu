@@ -285,28 +285,28 @@ function VisaoGeral() {
               </button>
             )}
           </div>
-          <div className="ml-auto flex items-center divide-x divide-white/10">
-            <div className="px-4 text-center">
-              <div className="num text-xl font-bold text-foreground leading-none tracking-tighter">
+          <div className="ml-auto flex items-center divide-x divide-white/5">
+            <div className="px-5 text-center group transition-all">
+              <div className="num text-2xl font-black text-foreground leading-none tracking-tighter group-hover:scale-110 transition-transform">
                 {formatInt(total)}
               </div>
-              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
                 Total OS
               </div>
             </div>
-            <div className="px-4 text-center">
-              <div className="num text-xl font-bold text-primary leading-none tracking-tighter">
+            <div className="px-5 text-center group transition-all">
+              <div className="num text-2xl font-black text-primary leading-none tracking-tighter group-hover:scale-110 transition-transform">
                 {formatInt(emAndamento)}
               </div>
-              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
                 Em Curso
               </div>
             </div>
-            <div className="px-4 text-center">
-              <div className="num text-xl font-bold text-success leading-none tracking-tighter">
+            <div className="px-5 text-center group transition-all">
+              <div className="num text-2xl font-black text-success leading-none tracking-tighter group-hover:scale-110 transition-transform">
                 {formatInt(finalizadas)}
               </div>
-              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+              <div className="mt-1.5 text-[9px] font-black tracking-[0.25em] text-muted-foreground uppercase opacity-50 group-hover:opacity-100 transition-opacity">
                 Sucesso
               </div>
             </div>
