@@ -1,4 +1,4 @@
-import { Play, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as ReTooltip, Legend, LabelList } from "lucide-react";
+import { Play as PlayIcon } from "lucide-react";
 import {
   BarChart as ReBarChart,
   Bar as ReBar,
