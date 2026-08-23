@@ -15,7 +15,7 @@ export function PageHeader({
     <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-foreground bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent drop-shadow-sm">
             {title}
           </h1>
           {filterBadge}
