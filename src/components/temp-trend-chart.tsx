@@ -18,7 +18,6 @@ import {
   getFaixa,
   buildMultiSeries,
   SENSOR_KEYS,
-  type TempRange,
   type SensorKey,
 } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
