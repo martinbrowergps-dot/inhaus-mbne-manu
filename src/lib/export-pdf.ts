@@ -42,14 +42,14 @@ function drawHeader(
   const pageW = pdf.internal.pageSize.getWidth();
   let y = margins.top;
   pdf.setFontSize(9);
-  pdf.setTextColor(14, 78, 138);
+  pdf.setTextColor(2, 21, 45);
   pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margins.left, y);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(7);
   pdf.setTextColor(100, 116, 139);
   pdf.text(stamp, pageW - margins.right, y, { align: "right" });
   y += 2.5;
-  pdf.setDrawColor(14, 78, 138);
+  pdf.setDrawColor(2, 21, 45);
   pdf.setLineWidth(0.3);
   pdf.line(margins.left, y, pageW - margins.right, y);
   y += 2;
@@ -136,7 +136,7 @@ export function exportTableToPdf<T>(opts: ExportTableOpts<T>) {
       lineWidth: 0.1,
     },
     headStyles: {
-      fillColor: [14, 78, 138],
+      fillColor: [2, 21, 45],
       textColor: [255, 255, 255],
       fontStyle: "bold",
       fontSize: rowsCount > 100 ? 6.5 : 7.5,
@@ -172,7 +172,7 @@ function drawImagePageHeader(
   const pageW = pdf.internal.pageSize.getWidth();
   let y = margins.top + 1.5;
   pdf.setFontSize(7);
-  pdf.setTextColor(14, 78, 138);
+  pdf.setTextColor(2, 21, 45);
   pdf.text("MARTIN BROWER · IN HAUS INDUSTRIAL", margins.left, y);
   const stamp = new Date().toLocaleString("pt-BR");
   pdf.setFontSize(5.5);
@@ -189,7 +189,7 @@ function drawImagePageHeader(
     pdf.text(subtitle, margins.left, y);
     y += 2.5;
   }
-  pdf.setDrawColor(14, 78, 138);
+  pdf.setDrawColor(2, 21, 45);
   pdf.setLineWidth(0.25);
   pdf.line(margins.left, y + 0.5, pageW - margins.right, y + 0.5);
   return y + 2.5;
@@ -301,7 +301,7 @@ export async function exportVisualPdf(
   try {
     dataUrl = await toPng(element, {
       pixelRatio: scale,
-      backgroundColor: "#ffffff",
+      backgroundColor: "#02152D",
       cacheBust: true,
     });
   } finally {
