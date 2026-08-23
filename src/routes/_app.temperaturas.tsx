@@ -72,7 +72,7 @@ function TemperaturasPage() {
   const heatmap = useMemo(() => {
     const rank = (s: TempStatus) => (s === "critico" ? 2 : s === "alerta" ? 1 : 0);
     const dayMap = new Map<string, { label: string; ts: number }>();
-    for (const m of medicoes) {
+    for (const m of filteredMedicoes) {
       const d = (m.DATA || "").trim();
       if (!d || dayMap.has(d)) continue;
       const dt = parseBRDate(d);
