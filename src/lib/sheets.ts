@@ -367,8 +367,8 @@ export async function fetchSheetsData(): Promise<SheetsData> {
     LOCAL: pick(r, "LOCAL", "Local"),
     DATA: pick(r, "DATA", "Data"),
     HORA: pick(r, "HORA", "Hora"),
-    TEMPERATURA_01: parseNumberSafeOrNull(r["TEMPERATURA 01"]),
-    TEMPERATURA_02: parseNumberSafeOrNull(r["TEMPERATURA 02"]),
+    TEMPERATURA_01: parseNumberSafeOrNull(pick(r, "TEMPERATURA 01", "TEMPERATURA_01")),
+    TEMPERATURA_02: parseNumberSafeOrNull(pick(r, "TEMPERATURA 02", "TEMPERATURA_02")),
 
     TECNICO: pick(r, "TECNICO", "Tecnico"),
   }));
