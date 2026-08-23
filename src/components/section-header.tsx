@@ -47,11 +47,11 @@ export function SectionHeader({
               <Icon className="h-4 w-4" />
             </div>
           )}
-          <span className={cn("text-xs font-black uppercase tracking-[0.2em]", colorClass)}>
+          <span className={cn("text-[13px] font-black uppercase tracking-[0.25em] drop-shadow-sm", colorClass)}>
             {label}
           </span>
         </div>
-        <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed max-w-2xl pl-11">
+        <p className="text-[11px] font-bold text-muted-foreground/50 leading-relaxed max-w-2xl pl-11 italic uppercase tracking-wider">
           {insight}
         </p>
       </div>
