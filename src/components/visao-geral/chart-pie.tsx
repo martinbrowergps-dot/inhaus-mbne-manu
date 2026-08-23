@@ -33,9 +33,12 @@ export function ChartPie({
             nameKey="name"
             cx="50%"
             cy="50%"
+            innerRadius={45}
             outerRadius={75}
+            paddingAngle={2}
             labelLine={false}
-            isAnimationActive={false}
+            isAnimationActive={true}
+            animationDuration={800}
             onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")}
             style={{ cursor: onCellClick ? "pointer" : undefined }}
             label={({ x, y, value, percent }) => {
