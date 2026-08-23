@@ -33,29 +33,29 @@ export function SectionHeader({
   const colorClass = SECTION_COLORS[idx];
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-3 border-b border-border/30 pb-2">
-        {Icon && (
-          <div
-            className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-md",
-              SECTION_ICON_BG[idx],
-              colorClass,
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-          </div>
-        )}
-        <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <span className={cn("text-[11px] font-bold uppercase tracking-[0.15em]", colorClass)}>
+    <section className="space-y-6 pt-2">
+      <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg shadow-sm backdrop-blur-sm border border-white/5",
+                SECTION_ICON_BG[idx],
+                colorClass,
+              )}
+            >
+              <Icon className="h-4 w-4" />
+            </div>
+          )}
+          <span className={cn("text-xs font-black uppercase tracking-[0.2em]", colorClass)}>
             {label}
           </span>
-          <p className="line-clamp-2 text-xs text-muted-foreground/70 leading-relaxed md:line-clamp-none">
-            {insight}
-          </p>
         </div>
+        <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed max-w-2xl pl-11">
+          {insight}
+        </p>
       </div>
-      {children}
+      <div className="fade-up">{children}</div>
     </section>
   );
 }
