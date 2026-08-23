@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { PageHeader } from "@/components/page-header";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { SectionHeader } from "@/components/section-header";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
