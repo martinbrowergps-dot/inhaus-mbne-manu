@@ -18,7 +18,9 @@ import { QUALITY_PRESETS, type VisualPdfQuality } from "./pdf-css-patch";
 
 export type { PdfMargins } from "./pdf-css-patch";
 export { DEFAULT_MARGINS, resolveMargins } from "./pdf-css-patch";
-export { validateLayout, type PdfLayoutOptions, type ValidationResult, type VisualPdfQuality } from "./pdf-layout";
+export { validateLayout, type PdfLayoutOptions, type ValidationResult } from "./pdf-layout";
+export { type VisualPdfQuality } from "./pdf-css-patch";
+
 
 interface ExportTableOpts<T> {
   filename: string;
