@@ -2,7 +2,7 @@ import type {
   BacklogRow,
   ChecklistRow,
   MedicaoRow,
-  NcRow,
+
   ParametroHHRow,
   PassagemTurnoRow,
   PlanoManutencaoRow,
