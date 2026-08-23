@@ -113,17 +113,17 @@ function NcPage() {
   const abertas = nc.filter((r) => !/conclu|finaliz|fechado/i.test(r.Status)).length;
   const fechadas = nc.filter((r) => /conclu|finaliz|fechado/i.test(r.Status)).length;
 
-  if (isError) {
-    return <DataErrorState error={error} onRetry={() => refetch()} />;
-  }
-
   if (isLoading)
     return (
       <div className="space-y-4">
-        <KpiSkeletonGrid count={3} className="sm:grid-cols-3" heightClass="h-24" />
-        <Skeleton className="h-96" />
+        <KpiSkeletonGrid count={4} className="sm:grid-cols-4" heightClass="h-24" />
+        <Skeleton className="h-[600px] rounded-2xl" />
       </div>
     );
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (!data) return null;
 

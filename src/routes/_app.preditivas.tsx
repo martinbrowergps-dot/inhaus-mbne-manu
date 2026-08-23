@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ExportButton } from "@/components/export-button";
 import { PageHeader } from "@/components/page-header";
+import { KpiSkeletonGrid } from "@/components/kpi-skeleton-grid";
 import { SectionHeader } from "@/components/section-header";
 import { KpiCard } from "@/components/kpi-card";
 import { Panel } from "@/components/panel";
@@ -61,17 +62,17 @@ function PreditivasPage() {
   const { data, isLoading, isError, error, refetch } = useQuery(sheetsQueryOptions);
   const preditiva = useMemo(() => data?.preditiva ?? [], [data?.preditiva]);
 
-  if (isError) {
-    return <DataErrorState error={error} onRetry={() => refetch()} />;
-  }
-
   if (isLoading)
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-96" />
+        <KpiSkeletonGrid count={3} className="sm:grid-cols-3" heightClass="h-24" />
+        <Skeleton className="h-[600px] rounded-2xl" />
       </div>
     );
+
+  if (isError) {
+    return <DataErrorState error={error} onRetry={() => refetch()} />;
+  }
 
   if (!data) return null;
 
