@@ -66,7 +66,7 @@ function TemperaturasPage() {
   const criticos = locais.filter((l) => l.status === "critico");
   const alertas = locais.filter((l) => l.status === "alerta");
   const normais = locais.filter((l) => l.status === "normal");
-  const allLocais = uniqueLocais(medicoes); // Locais únicos do histórico total para manter consistência nos gráficos
+  const allLocais = uniqueLocais(filteredMedicoes); // Locais únicos do histórico filtrado
 
   // Heatmap LOCAL x DIA (todo o histórico disponível)
   const heatmap = useMemo(() => {
