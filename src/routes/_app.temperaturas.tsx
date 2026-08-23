@@ -258,7 +258,7 @@ function TemperaturasPage() {
         children={null}
       />
 
-      <Panel title="LOCAL × DIA" subtitle="Todo o período histórico disponível">
+      <Panel title="LOCAL × DIA" subtitle={`Período: ${effectiveRange.toUpperCase()}`}>
         {heatmap.locais.length === 0 || heatmap.days.length === 0 ? (
           <EmptyState className="h-32" />
         ) : (
