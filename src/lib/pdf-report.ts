@@ -55,18 +55,18 @@ type Rgb = readonly [number, number, number];
 const BRAND = "MARTIN BROWER · IN HAUS INDUSTRIAL";
 
 const C: Record<string, Rgb> = {
-  primary: [14, 78, 138],
+  primary: [2, 21, 45],
   primaryLight: [14, 165, 233],
   text: [2, 21, 45],
-  muted: [100, 116, 139],
-  light: [241, 245, 249],
-  border: [203, 213, 225],
+  muted: [71, 85, 105],
+  light: [248, 250, 252],
+  border: [226, 232, 240],
   footer: [148, 163, 184],
   white: [255, 255, 255],
-  success: [34, 197, 94],
-  warning: [234, 179, 8],
-  danger: [239, 68, 68],
-  neutral: [100, 116, 139],
+  success: [22, 163, 74],
+  warning: [217, 119, 6],
+  danger: [220, 38, 38],
+  neutral: [71, 85, 105],
 };
 
 const VARIANT_MAP: Record<string, Rgb> = {
@@ -111,7 +111,7 @@ async function captureChartElement(element: HTMLElement): Promise<string> {
   try {
     panelDataUrl = await toPng(element, {
       pixelRatio: 1.5,
-      backgroundColor: "#0C4A6E",
+      backgroundColor: "#02152D",
       cacheBust: true,
     });
   } finally {
@@ -278,7 +278,7 @@ function drawMetrics(pdf: jsPDF, y: number, metrics: ReportMetric[], margins: Pd
     const by = y + row * (boxH + gap);
     pdf.setFillColor(C.light[0], C.light[1], C.light[2]);
     pdf.setDrawColor(C.border[0], C.border[1], C.border[2]);
-    pdf.roundedRect(x, by, boxW, boxH, 2, 2, "FD");
+    pdf.roundedRect(x, by, boxW, boxH, 1, 1, "FD");
     pdf.setFontSize(6.5);
     pdf.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
     pdf.text(metric.label, x + 2.5, by + 4.5);
