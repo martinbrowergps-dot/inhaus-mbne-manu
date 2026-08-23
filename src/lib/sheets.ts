@@ -43,10 +43,6 @@ function csvUrl(sheet: string): string {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 }
 
-function logSheetError(sheet: string, err: unknown) {
-  console.error(`[sheets] Falha ao carregar aba "${sheet}":`, err);
-}
-
 async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   try {
     const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(SHEET_FETCH_TIMEOUT_MS) });
@@ -132,30 +128,7 @@ async function fetchNcRows(): Promise<NcRow[]> {
   return result;
 }
 
-const EXPECTED_HEADERS: Record<string, string[]> = {
-  programacao: ["NumeroOS", "DataProgramada", "Sistema", "Descricao", "HH", "StatusExecucao"],
-  medicoes: ["LOCAL", "DATA", "HORA", "TEMPERATURA 01", "TECNICO"],
-  passagemTurno: ["Data", "Turno", "Supervisor", "EquipeSaida"],
-  tecnicos: ["ID", "NOME", "Cargo"],
-  backlog: ["NUMERO", "Solicitante", "Assunto", "Prioridade"],
-  nc: ["NUMERO DE NC", "OCORRÊNCIA", "STATUS"],
-  preditiva: ["Equipamento", "Serviço", "Status"],
-};
-
-function validateHeaders(sheetName: string, rows: Record<string, string>[]): string[] {
-  if (rows.length === 0) return [];
-  const headers = Object.keys(rows[0]);
-  const expected = EXPECTED_HEADERS[sheetName];
-  if (!expected) return [];
-  const missing = expected.filter((h) => !headers.some((ch) => ch.toLowerCase() === h.toLowerCase()));
-  if (missing.length > 0) {
-    return [`[${sheetName}] Colunas ausentes: ${missing.join(", ")}`];
-  }
-  return [];
-}
-
 export async function fetchSheetsData(): Promise<SheetsData> {
-  const errors: string[] = [];
   const SHEET_FETCH_DELAY_MS = 200;
 
   async function sequentialFetch<T>(fetchers: (() => Promise<T>)[]): Promise<T[]> {
