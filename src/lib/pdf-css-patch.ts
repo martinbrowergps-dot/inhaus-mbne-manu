@@ -11,45 +11,45 @@
  */
 
 export const COLOR_OVERRIDES: Record<string, string> = {
-  "--background": "#082F49",
+  "--background": "#02152D",
   "--foreground": "#E0F7FF",
-  "--card": "#0C4A6E",
+  "--card": "#05254A",
   "--card-foreground": "#FFFFFF",
-  "--popover": "#0C4A6E",
+  "--popover": "#05254A",
   "--popover-foreground": "#E0F7FF",
-  "--primary": "#06B6D4",
-  "--primary-foreground": "#042033",
-  "--secondary": "#0E5A82",
+  "--primary": "#0EA5FF",
+  "--primary-foreground": "#02152D",
+  "--secondary": "#05254A",
   "--secondary-foreground": "#FFFFFF",
   "--muted": "#0A3A55",
   "--muted-foreground": "#93C5D8",
-  "--accent": "#115E83",
+  "--accent": "#0EA5FF",
   "--accent-foreground": "#FFFFFF",
   "--destructive": "#EF4444",
   "--destructive-foreground": "#FFFFFF",
   "--success": "#10B981",
-  "--success-foreground": "#042033",
+  "--success-foreground": "#02152D",
   "--warning": "#F59E0B",
-  "--warning-foreground": "#042033",
-  "--border": "rgba(6, 182, 212, 0.12)",
+  "--warning-foreground": "#02152D",
+  "--border": "rgba(14, 165, 255, 0.12)",
   "--input": "#0A3A55",
-  "--ring": "#06B6D4",
-  "--sidebar": "#042033",
+  "--ring": "#0EA5FF",
+  "--sidebar": "#02152D",
   "--sidebar-foreground": "#B8D9E8",
-  "--sidebar-primary": "#06B6D4",
-  "--sidebar-primary-foreground": "#042033",
+  "--sidebar-primary": "#0EA5FF",
+  "--sidebar-primary-foreground": "#02152D",
   "--sidebar-accent": "#0A3A55",
   "--sidebar-accent-foreground": "#E0F7FF",
-  "--sidebar-border": "rgba(6, 182, 212, 0.12)",
-  "--sidebar-ring": "#06B6D4",
-  "--chart-1": "#06B6D4",
+  "--sidebar-border": "rgba(14, 165, 255, 0.12)",
+  "--sidebar-ring": "#0EA5FF",
+  "--chart-1": "#0EA5FF",
   "--chart-2": "#10B981",
   "--chart-3": "#F59E0B",
   "--chart-4": "#EF4444",
   "--chart-5": "#A855F7",
 };
 
-const OKLCH_FALLBACK = "#06B6D4";
+const OKLCH_FALLBACK = "#0EA5FF";
 const OKLCH_RE = /oklch\([^)]*\)/gi;
 const OKLAB_RE = /oklab\([^)]*\)/gi;
 
@@ -73,8 +73,8 @@ export function installLiveOverride(tag?: string): () => void {
   const attr = tag ?? "pdf-override";
   styleEl.setAttribute(`data-${attr}`, "true");
   styleEl.textContent = [
-    `.glass, .panel-glass { backdrop-filter: none !important; background: #0C4A6E !important; }`,
-    `.panel { background: #0C4A6E !important; isolation: auto !important; }`,
+    `.glass, .panel-glass { backdrop-filter: none !important; background: #05254A !important; }`,
+    `.panel { background: #05254A !important; isolation: auto !important; }`,
   ].join("\n");
   document.head.appendChild(styleEl);
   restored.push(() => {
@@ -129,3 +129,16 @@ export function resolveMargins(m?: Partial<PdfMargins>): PdfMargins {
     right: Math.max(5, Math.min(40, m?.right ?? DEFAULT_MARGINS.right)),
   };
 }
+
+export interface VisualPdfQualityOptions {
+  scale: number;
+  jpeg: number;
+}
+
+export type VisualPdfQuality = "low" | "medium" | "high";
+
+export const QUALITY_PRESETS: Record<VisualPdfQuality, VisualPdfQualityOptions> = {
+  low: { scale: 1.0, jpeg: 0.72 },
+  medium: { scale: 1.5, jpeg: 0.85 },
+  high: { scale: 2.2, jpeg: 0.92 },
+};

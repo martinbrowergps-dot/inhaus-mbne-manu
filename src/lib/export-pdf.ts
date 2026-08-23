@@ -12,12 +12,15 @@ import { waitForChartsReady } from "./chart-utils";
 import {
   validateLayout,
   type PdfLayoutOptions,
-  type VisualPdfQuality,
 } from "./pdf-layout";
+import { QUALITY_PRESETS, type VisualPdfQuality } from "./pdf-css-patch";
+
 
 export type { PdfMargins } from "./pdf-css-patch";
 export { DEFAULT_MARGINS, resolveMargins } from "./pdf-css-patch";
-export { validateLayout, type PdfLayoutOptions, type ValidationResult, type VisualPdfQuality } from "./pdf-layout";
+export { validateLayout, type PdfLayoutOptions, type ValidationResult } from "./pdf-layout";
+export { type VisualPdfQuality } from "./pdf-css-patch";
+
 
 interface ExportTableOpts<T> {
   filename: string;
@@ -213,11 +216,6 @@ export interface VisualPdfOptions extends PdfLayoutOptions {
   orientation?: "landscape" | "portrait";
 }
 
-const QUALITY_PRESETS: Record<VisualPdfQuality, { scale: number; jpeg: number }> = {
-  low: { scale: 1.0, jpeg: 0.72 },
-  medium: { scale: 1.5, jpeg: 0.85 },
-  high: { scale: 2.2, jpeg: 0.92 },
-};
 
 function collectBreakCandidates(root: HTMLElement): number[] {
   const rootRect = root.getBoundingClientRect();
