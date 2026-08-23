@@ -45,7 +45,7 @@ function VisaoGeral() {
     );
   }
 
-  const { counts, charts, aderencia, programacaoFiltrada, tecnicosCount = metrics.raw.tecnicos.length } = metrics;
+  const { counts, charts, aderencia, programacaoFiltrada } = metrics;
 
   const handleExecutiveSummary = async (layout?: import("@/lib/export-pdf").PdfLayoutOptions) => {
     const chartEls = chartRef.current?.querySelectorAll<HTMLElement>("[data-chart]");
