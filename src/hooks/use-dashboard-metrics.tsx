@@ -48,13 +48,13 @@ export function useDashboardMetrics() {
     const tempAlerta = locais.filter((l) => l.status !== "normal").length;
 
     // Agregações
-    const bySistema = aggregate(programacaoFiltrada, (p) => p.Sistema || "—");
-    const byCriticidade = aggregate(programacaoFiltrada, (p) => p.Criticidade || "—");
+    const bySistema = aggregate(programacaoFiltrada, (p: ProgramacaoRow) => p.Sistema || "—");
+    const byCriticidade = aggregate(programacaoFiltrada, (p: ProgramacaoRow) => p.Criticidade || "—");
     const byDia = aggregateByDay(programacaoFiltrada);
-    const byStatus = aggregate(enriched, (p) => p._execStatus);
+    const byStatus = aggregate(enriched, (p: any) => p._execStatus);
     const aderencia = computeAderencia(programacaoFiltrada);
 
-    const byPlanejamento = aggregate(programacaoFiltrada, (p) => {
+    const byPlanejamento = aggregate(programacaoFiltrada, (p: ProgramacaoRow) => {
       const s = (p.Status || "").trim();
       if (s === "Planejado") return "Planejado";
       if (s === "Não Planejado") return "Não Planejado";
@@ -62,6 +62,7 @@ export function useDashboardMetrics() {
     });
     const planejados = byPlanejamento.find((p) => p.name === "Planejado")?.value ?? 0;
     const naoPlanejados = byPlanejamento.find((p) => p.name === "Não Planejado")?.value ?? 0;
+
 
     const byPlanejamentoDia = aggregateByDayAndStatus(programacaoFiltrada);
     const quebras = aggregateQuebrasBySolicitante(programacaoFiltrada);
