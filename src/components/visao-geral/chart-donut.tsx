@@ -38,7 +38,7 @@ export function ChartDonut({
               {...chartTooltipProps}
               formatter={(v: number, name) => [tooltipValueFormatter(v, "int"), name as string]}
             />
-            <Bar dataKey="value" fill={SERIES_COLORS.executado} radius={[0, 4, 4, 0]} isAnimationActive={false} onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")} style={{ cursor: onCellClick ? "pointer" : undefined }}>
+            <Bar dataKey="value" fill={SERIES_COLORS.executado} radius={[0, 4, 4, 0]} isAnimationActive={true} animationDuration={1000} onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")} style={{ cursor: onCellClick ? "pointer" : undefined }}>
               <LabelList dataKey="value" position="right" fill="#F1F5F9" fontSize={10} offset={6} formatter={(v: number) => formatInt(Number(v))} />
             </Bar>
           </BarChart>
@@ -61,7 +61,8 @@ export function ChartDonut({
             outerRadius={75}
             paddingAngle={3}
             labelLine={false}
-            isAnimationActive={false}
+            isAnimationActive={true}
+            animationDuration={800}
             onClick={(d: { name?: string }) => onCellClick?.(d.name ?? "")}
             style={{ cursor: onCellClick ? "pointer" : undefined }}
             label={({ x, y, value, percent }) => {
