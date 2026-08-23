@@ -12,8 +12,9 @@ import { waitForChartsReady } from "./chart-utils";
 import {
   validateLayout,
   type PdfLayoutOptions,
-  type VisualPdfQuality,
 } from "./pdf-layout";
+import { QUALITY_PRESETS, type VisualPdfQuality } from "./pdf-css-patch";
+
 
 export type { PdfMargins } from "./pdf-css-patch";
 export { DEFAULT_MARGINS, resolveMargins } from "./pdf-css-patch";
