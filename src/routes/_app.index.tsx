@@ -320,7 +320,7 @@ function VisaoGeral() {
           icon={Play}
           colorIndex={0}
         >
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Panel
               dataChart="os-por-dia"
               title="OS POR DIA"
@@ -378,7 +378,7 @@ function VisaoGeral() {
               <ChartPie data={byPlanejamento} onCellClick={chartClick} />
             </Panel>
           </div>
-          <div className="mt-4">
+          <div className="mt-6">
             <Panel
               dataChart="planejamento-dia"
               title="PLANEJADO vs NÃO PLANEJADO POR DIA"
@@ -454,7 +454,7 @@ function VisaoGeral() {
           icon={CheckCircle2}
           colorIndex={1}
         >
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3">
             <AderenciaCard
               pct={aderencia.pct}
               finalizadasNoPrazo={aderencia.finalizadasNoPrazo}
@@ -479,7 +479,7 @@ function VisaoGeral() {
           icon={AlertOctagon}
           colorIndex={3}
         >
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3">
             <Panel dataChart="criticidade" title="OS POR CRITICIDADE" glass>
               <ChartDonut data={byCriticidade} onCellClick={chartClick} />
             </Panel>
@@ -530,7 +530,7 @@ function VisaoGeral() {
           icon={Users}
           colorIndex={2}
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <Panel dataChart="hh-cargo" title="HH POR CARGO" className="lg:col-span-2">
               {(() => {
                 const hhData = aggregateHH(programacaoFiltrada);
