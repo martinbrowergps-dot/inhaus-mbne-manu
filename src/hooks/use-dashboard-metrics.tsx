@@ -6,15 +6,16 @@ import { deriveExecStatus } from "@/lib/status";
 import { summarizeLocais } from "@/lib/temperature";
 import { computeAderencia } from "@/components/aderencia-card";
 import {
-  aggregate,
   aggregateQuebrasBySolicitante,
   aggregateByDay,
   aggregateByDayAndStatus,
   computePrevDateRange,
 } from "@/lib/domain/aggregates";
-import type { ProgramacaoRow } from "@/lib/sheets-types";
+import { aggregate } from "@/lib/chart-utils";
+import type { ProgramacaoRow, MedicaoRow } from "@/lib/sheets-types";
 
 export function useDashboardMetrics() {
+
   const { data, isLoading, error } = useQuery(sheetsQueryOptions);
   const dateFilter = useDateFilter();
 
