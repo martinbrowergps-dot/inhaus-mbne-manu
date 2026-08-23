@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { buildSeries, filterByRange, type TempRange } from "@/lib/temperature";
+import { buildSeries } from "@/lib/temperature";
 import type { MedicaoRow } from "@/lib/sheets-types";
 import {
   CHART_LEGEND_STYLE,
@@ -20,7 +20,7 @@ import {
 } from "@/lib/chart-utils";
 import { formatBRNumber } from "@/lib/format";
 
-function fmtX(t: number, range: TempRange): string {
+function fmtX(t: number, range: string): string {
   const d = new Date(t);
   if (range === "24h") return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
@@ -33,14 +33,13 @@ export function TempMultiChart({
 }: {
   locais: string[];
   medicoes: MedicaoRow[];
-  range: TempRange;
+  range: string;
 }) {
   const { data, keys } = useMemo(() => {
-    const filtered = filterByRange(medicoes, range);
     const map = new Map<number, Record<string, number>>();
     const usedKeys: string[] = [];
     for (const local of locais) {
-      const s = buildSeries(filtered, local);
+      const s = buildSeries(medicoes, local);
       if (s.length === 0) continue;
       usedKeys.push(local);
       for (const p of s) {
