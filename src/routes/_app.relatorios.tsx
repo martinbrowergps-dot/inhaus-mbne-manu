@@ -164,7 +164,52 @@ function RelatoriosPage() {
                     " OS"
                   : formatInt(totalOS) + " OS no total"
               }
+              onExecutiveSummary={async (layout) => {
+                const { renderReportPdf } = await import("@/lib/pdf-report");
+                const charts = Array.from(pdfRef.current?.querySelectorAll<HTMLElement>("[data-chart]") || []);
+                const totalPlanejadas = enriched.filter((p) => p.Status === "Planejado").length;
+                const totalFinalizadasNoPrazo = enriched.filter((p) => p._execStatus === "Finalizada").length;
+
+                await renderReportPdf(
+                  {
+                    title: "Relatório Executivo de Programação",
+                    subtitle: dateFilter.isActive
+                      ? `${formatDateBR(dateFilter.startDate)} a ${formatDateBR(dateFilter.endDate)}`
+                      : "Resumo Geral",
+                    metrics: [
+                      { label: "Total de OS", value: formatInt(totalOS), variant: "primary" },
+                      { label: "HH Estimado", value: `${formatBRNumber(totalHH, 1)}h`, variant: "primary" },
+                      { label: "Finalizadas", value: formatInt(totalFinalizadas), variant: "success" },
+                      { label: "Canceladas", value: formatInt(totalCanceladas), variant: "neutral" },
+                    ],
+                    aderencia: {
+                      pct: totalOS > 0 ? (totalFinalizadasNoPrazo / totalOS) * 100 : 0,
+                      totalProgramadas: totalOS,
+                      finalizadasNoPrazo: totalFinalizadasNoPrazo,
+                    },
+                    tables: [
+                      {
+                        title: "Resumo por Período",
+                        columns: [
+                          { header: "Período", value: (r) => r.periodLabel },
+                          { header: "OS", value: (r) => r.totalOS },
+                          { header: "HH", value: (r) => formatBRNumber(r.totalHH, 1) },
+                          { header: "Plan.", value: (r) => r.planejadas },
+                          { header: "Finaliz.", value: (r) => r.finalizadas },
+                        ],
+                        rows: periods.slice(0, 20),
+                      },
+                    ],
+                  },
+                  charts,
+                  {
+                    filename: `executivo-programacao-${visao}`,
+                    layout,
+                  },
+                );
+              }}
             />
+
           </div>
         }
       />
