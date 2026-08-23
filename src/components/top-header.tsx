@@ -71,13 +71,13 @@ export function TopHeader() {
           : "text-destructive";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/5 bg-background/70 px-4 backdrop-blur-md">
       <SidebarTrigger className="text-primary hover:bg-primary/10" />
       <div className="flex-1">
-        <h1 className="text-sm font-bold tracking-[0.22em] text-gradient sm:text-base">
+        <h1 className="text-sm font-black tracking-[0.3em] text-gradient sm:text-lg drop-shadow-sm">
           MARTIN BROWER CDNE
         </h1>
-        <p className="text-[11px] text-muted-foreground tracking-wider">
+        <p className="text-[10px] text-muted-foreground/60 tracking-[0.1em] font-medium uppercase">
           Centro de Controle de Manutenção Industrial • Recife/PE
         </p>
       </div>
