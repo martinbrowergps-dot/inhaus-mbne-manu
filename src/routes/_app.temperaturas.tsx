@@ -88,7 +88,7 @@ function TemperaturasPage() {
       string,
       { sum: number; count: number; min: number; max: number; worst: TempStatus; out: number }
     >();
-    for (const m of medicoes) {
+    for (const m of filteredMedicoes) {
       const l = (m.LOCAL || "").trim();
       const d = (m.DATA || "").trim();
       if (!l || !d) continue;
