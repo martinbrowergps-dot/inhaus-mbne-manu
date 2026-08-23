@@ -162,7 +162,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="antialiased selection:bg-primary/30 selection:text-primary-foreground"> </body>
+      <body className="antialiased selection:bg-primary/30 selection:text-primary-foreground">
         {children}
         <Scripts />
       </body>
