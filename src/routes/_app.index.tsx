@@ -346,7 +346,8 @@ function VisaoGeral() {
                         dataKey="value"
                         name="OS"
                         radius={[4, 4, 0, 0]}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={1000}
                       >
                         {byDia.map((_, i) => (
                           <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -410,7 +411,8 @@ function VisaoGeral() {
                         stackId="a"
                         fill={SERIES_COLORS.planejado}
                         radius={[4, 4, 0, 0]}
-                        isAnimationActive={false}
+                        isAnimationActive={true}
+                        animationDuration={1000}
                       />
                       <Bar
                         dataKey="naoPlanejado"
