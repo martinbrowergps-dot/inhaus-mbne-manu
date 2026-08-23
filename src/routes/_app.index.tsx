@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { motion } from "framer-motion";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Play, CheckCircle2, AlertOctagon, Users, Thermometer, CalendarX } from "lucide-react";
@@ -242,73 +243,75 @@ function VisaoGeral() {
         }
       />
 
-      <div ref={chartRef} className="space-y-6">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.05 } }
+        }}
+        className="space-y-6"
+      >
         {/* ═══════════ COMMAND BAR ═══════════ */}
-        <div className="flex flex-wrap items-stretch gap-3 rounded-lg border border-border/60 bg-card/30 p-3">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <motion.div 
+          variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+          className="flex flex-wrap items-stretch gap-3 rounded-xl border border-white/5 bg-white/5 p-4 backdrop-blur-md shadow-elevated"
+        >
+          <div className="flex flex-wrap items-center gap-2">
             {aa > 0 && (
               <button
                 onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[11px] font-bold text-destructive transition-colors hover:bg-destructive/25"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 px-3 py-1.5 text-[10px] font-bold text-destructive transition-all hover:bg-destructive/25 hover:scale-105 active:scale-95 neon-critical"
               >
-                <AlertOctagon className="h-3 w-3" />
-                {aa} AA
+                <AlertOctagon className="h-3.5 w-3.5" />
+                {aa} CRÍTICO AA
               </button>
             )}
             {atrasadas > 0 && (
               <button
                 onClick={() => navigate({ to: "/programacao" })}
-                className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-1 text-[11px] font-bold text-warning transition-colors hover:bg-warning/25"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-warning/15 px-3 py-1.5 text-[10px] font-bold text-warning transition-all hover:bg-warning/25 hover:scale-105 active:scale-95 neon-warning"
               >
-                <CalendarX className="h-3 w-3" />
-                {atrasadas} atrasadas
+                <CalendarX className="h-3.5 w-3.5" />
+                {atrasadas} ATRASADAS
               </button>
             )}
             {tempAlerta > 0 && (
               <button
                 onClick={() => navigate({ to: "/temperaturas" })}
-                className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-1 text-[11px] font-bold text-rose-400 transition-colors hover:bg-rose-500/25"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-500/15 px-3 py-1.5 text-[10px] font-bold text-rose-400 transition-all hover:bg-rose-500/25 hover:scale-105 active:scale-95"
               >
-                <Thermometer className="h-3 w-3" />
-                {tempAlerta} térmicos
+                <Thermometer className="h-3.5 w-3.5" />
+                {tempAlerta} TÉRMICOS
               </button>
             )}
           </div>
-          <div className="ml-auto flex items-center divide-x divide-border/30">
-            <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-foreground leading-none">
+          <div className="ml-auto flex items-center divide-x divide-white/10">
+            <div className="px-4 text-center">
+              <div className="num text-xl font-bold text-foreground leading-none tracking-tighter">
                 {formatInt(total)}
               </div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
                 Total OS
               </div>
             </div>
-            <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-warning leading-none">
+            <div className="px-4 text-center">
+              <div className="num text-xl font-bold text-primary leading-none tracking-tighter">
                 {formatInt(emAndamento)}
               </div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                Execução
+              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+                Em Curso
               </div>
             </div>
-            <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-success leading-none">
+            <div className="px-4 text-center">
+              <div className="num text-xl font-bold text-success leading-none tracking-tighter">
                 {formatInt(finalizadas)}
               </div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                Finalizadas
-              </div>
-            </div>
-            <div className="px-3 text-center">
-              <div className="num text-lg font-bold text-destructive leading-none">
-                {formatInt(atrasadas)}
-              </div>
-              <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                Atrasadas
+              <div className="mt-1 text-[9px] font-bold tracking-[0.2em] text-muted-foreground uppercase opacity-70">
+                Sucesso
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ═══════════ ATIVIDADE ═══════════ */}
         <SectionHeader
@@ -558,7 +561,7 @@ function VisaoGeral() {
             </Panel>
           </div>
         </SectionHeader>
-      </div>
+      </motion.div>
     </div>
   );
 }
