@@ -137,7 +137,7 @@ function TemperaturasPage() {
       });
     }
     return { locais: allLocais, days, cells };
-  }, [medicoes, allLocais]);
+  }, [filteredMedicoes, allLocais]);
 
   if (isError) {
     return <DataErrorState error={error} onRetry={() => refetch()} />;
