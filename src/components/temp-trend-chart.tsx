@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import {
   classifyLocal,
   computeMultiRangeKpis,
-  filterByRange,
   getFaixa,
   buildMultiSeries,
   SENSOR_KEYS,
@@ -37,7 +36,7 @@ const SENSOR_LABEL: Record<SensorKey, string> = {
   TEMPERATURA_02: "Sensor 02",
 };
 
-function fmtX(t: number, range: TempRange): string {
+function fmtX(t: number, range: string): string {
   const d = new Date(t);
   if (range === "24h") return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
@@ -50,12 +49,11 @@ export function TempTrendChart({
 }: {
   local: string;
   medicoes: MedicaoRow[];
-  range: TempRange;
+  range: string;
 }) {
   const tipo = classifyLocal(local);
   const faixa = getFaixa(tipo);
-  const filtered = filterByRange(medicoes, range);
-  const multiSeries = buildMultiSeries(filtered, local);
+  const multiSeries = buildMultiSeries(medicoes, local);
   const kpis = computeMultiRangeKpis(multiSeries, tipo);
 
   const allTemps: number[] = [];
