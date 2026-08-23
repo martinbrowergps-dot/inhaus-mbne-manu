@@ -1,5 +1,5 @@
 import type { MedicaoRow } from "./sheets-types";
-import { parseBRDate } from "./format";
+import { parseBRDate, formatDateBR } from "./format";
 
 export type LocalTipo = "ANTECAMARA" | "CONGELADOS" | "RESFRIADOS" | "OUTRO";
 export type TempStatus = "normal" | "alerta" | "critico";
