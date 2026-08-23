@@ -9,10 +9,10 @@ export { computeAderencia };
 
 function tone(pct: number) {
   if (pct >= META_ADERENCIA)
-    return { color: "var(--success)", cls: "text-success", ring: "border-success/30" };
+    return { color: "#10B981", cls: "text-success", ring: "border-success/30" };
   if (pct >= 85)
-    return { color: "var(--warning)", cls: "text-warning", ring: "border-warning/30" };
-  return { color: "var(--destructive)", cls: "text-destructive", ring: "border-destructive/30" };
+    return { color: "#F59E0B", cls: "text-warning", ring: "border-warning/30" };
+  return { color: "#EF4444", cls: "text-destructive", ring: "border-destructive/30" };
 }
 
 export function AderenciaCard({
@@ -54,10 +54,10 @@ export function AderenciaCard({
   const data = [{ name: "aderencia", value: Math.max(0, Math.min(100, pct)), fill: t.color }];
 
   return (
-    <div className={cn("panel glass rounded-xl border p-5 shadow-elevated", t.ring, className)}>
+    <div className={cn("panel rounded-2xl border p-6 shadow-elevated transition-all duration-300", glass ? "panel-glass" : "panel", t.ring, className)}>
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          <div className="text-[11px] font-black tracking-[0.2em] text-muted-foreground uppercase opacity-80">
             Aderência à Programação
           </div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
