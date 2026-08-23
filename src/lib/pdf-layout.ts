@@ -8,7 +8,7 @@ import { resolveMargins } from "./pdf-css-patch";
 
 export type { PdfMargins } from "./pdf-css-patch";
 
-export type VisualPdfQuality = "low" | "medium" | "high";
+
 
 export interface PdfLayoutOptions {
   margins?: Partial<PdfMargins>;
