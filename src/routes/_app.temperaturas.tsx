@@ -51,7 +51,7 @@ function TemperaturasPage() {
   const medicoes = data?.medicoes ?? [];
 
   // Se o filtro global estiver ativo e o range for "filter", priorizamos o filtro global.
-  // Caso contrário, usamos o range fixo (24h, 7d, 30d).
+  // Caso contrário, usamos o range fixo (24h, 7d, 30d). Se o range for "filter" mas não houver filtro ativo, mostramos as últimas 24h.
   const effectiveRange = range === "filter" && !dateFilter.isActive ? "24h" : range;
 
   const filteredMedicoes = useMemo(() => {
