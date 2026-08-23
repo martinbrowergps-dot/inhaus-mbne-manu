@@ -167,8 +167,8 @@ function RelatoriosPage() {
               onExecutiveSummary={async (layout) => {
                 const { renderReportPdf } = await import("@/lib/pdf-report");
                 const charts = Array.from(pdfRef.current?.querySelectorAll<HTMLElement>("[data-chart]") || []);
-                const totalPlanejadas = enriched.filter((p) => p.Status === "Planejado").length;
                 const totalFinalizadasNoPrazo = enriched.filter((p) => p._execStatus === "Finalizada").length;
+
 
                 await renderReportPdf(
                   {
