@@ -30,7 +30,7 @@ import { SectionHeader } from "@/components/section-header";
 import { EmptyState } from "@/components/empty-state";
 
 const searchSchema = z.object({
-  range: fallback(z.enum(["24h", "7d", "30d", "filter"]), "24h").default("24h"),
+  range: fallback(z.enum(["24h", "7d", "30d", "filter"]), "filter").default("filter"),
 });
 
 export const Route = createFileRoute("/_app/temperaturas")({
