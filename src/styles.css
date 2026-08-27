@@ -448,3 +448,8 @@ background: linear-gradient(135deg, #E0F7FF, #06B6D4);
     display: block;
   }
 }
+
+/* Hide Lovable badge */
+#lovable-badge {
+  display: none !important;
+}
