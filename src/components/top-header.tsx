@@ -103,7 +103,7 @@ export function TopHeader() {
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-64 border-white/5 bg-card/95 backdrop-blur-xl shadow-elevated">
+        <PopoverContent align="end" className="w-64 border-border/70 bg-card/95 shadow-elevated backdrop-blur-xl">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs">
               <Circle className="h-2 w-2 fill-success text-success" />
