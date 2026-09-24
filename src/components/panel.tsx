@@ -29,22 +29,22 @@ export function Panel({
       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       data-chart={dataChart}
       className={cn(
-        "rounded-2xl p-6 md:p-8 overflow-hidden transition-all duration-300",
+        "overflow-hidden rounded-lg p-5 transition-all duration-200 md:p-6",
         glass ? "panel-glass" : "panel shadow-elevated",
         glow && "panel-glow ring-1 ring-primary/20 shadow-glow",
         className,
       )}
     >
       {(title || action) && (
-        <div className="panel-header mb-6">
+        <div className="panel-header mb-5">
           <div className="flex min-w-0 items-center gap-3 overflow-hidden">
             {title && (
               <div className="panel-nameplate shrink-0">
-                <span className="panel-nameplate-text tracking-[0.2em] font-black">{title}</span>
+                <span className="panel-nameplate-text">{title}</span>
               </div>
             )}
             {subtitle && (
-              <span className="truncate text-[10px] font-medium tracking-wide text-muted-foreground/80 min-w-0 uppercase">
+              <span className="min-w-0 truncate text-xs text-muted-foreground">
                 {subtitle}
               </span>
             )}

@@ -33,13 +33,13 @@ export function SectionHeader({
   const colorClass = SECTION_COLORS[idx];
 
   return (
-    <section className="space-y-6 pt-2">
-      <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
+    <section className="space-y-5 pt-3">
+      <div className="flex flex-col gap-2 border-b border-border/60 pb-4">
         <div className="flex items-center gap-3">
           {Icon && (
             <div
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg shadow-sm backdrop-blur-sm border border-white/5",
+                "flex h-8 w-8 items-center justify-center rounded-md border border-border/60",
                 SECTION_ICON_BG[idx],
                 colorClass,
               )}
@@ -47,11 +47,11 @@ export function SectionHeader({
               <Icon className="h-4 w-4" />
             </div>
           )}
-          <span className={cn("text-[13px] font-black uppercase tracking-[0.25em] drop-shadow-sm", colorClass)}>
+          <span className={cn("text-sm font-bold tracking-normal", colorClass)}>
             {label}
           </span>
         </div>
-        <p className="text-[11px] font-bold text-muted-foreground/50 leading-relaxed max-w-2xl pl-11 italic uppercase tracking-wider">
+        <p className="max-w-3xl pl-11 text-xs leading-relaxed text-muted-foreground">
           {insight}
         </p>
       </div>

@@ -12,16 +12,16 @@ export function PageHeader({
   filterBadge?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl md:text-4xl font-black tracking-tighter text-foreground bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent drop-shadow-sm">
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-normal text-foreground md:text-3xl">
             {title}
           </h1>
           {filterBadge}
         </div>
         {subtitle && (
-          <p className="text-[11px] font-medium tracking-[0.05em] text-muted-foreground/80 uppercase">
+          <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
             {subtitle}
           </p>
         )}

@@ -100,15 +100,15 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/5 bg-sidebar/50 backdrop-blur-xl">
-      <SidebarHeader className="border-b border-white/5 bg-transparent">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
+      <SidebarHeader className="border-b border-sidebar-border bg-transparent">
         <div className="flex items-center gap-2 px-2 py-3">
           <img src="/logo.png" alt="Logo" width={36} height={36} className="h-9 w-auto shrink-0" />
           <div className="transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
-            <div className="text-[12px] font-black tracking-[0.25em] text-primary drop-shadow-sm">
+            <div className="text-xs font-bold tracking-normal text-primary">
               MARTIN BROWER
             </div>
-            <div className="text-[10px] text-sidebar-foreground/50 tracking-[0.1em] font-medium uppercase italic">
+            <div className="text-[10px] font-medium text-sidebar-foreground/60">
               IN HAUS INDUSTRIAL
             </div>
           </div>
@@ -124,7 +124,7 @@ export function AppSidebar() {
           })
           .map((group) => (
             <SidebarGroup key={group.label}>
-              <SidebarGroupLabel className="text-[11px] tracking-[0.18em] text-muted-foreground">
+              <SidebarGroupLabel className="text-[11px] font-semibold tracking-normal text-muted-foreground">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -137,7 +137,7 @@ export function AppSidebar() {
                           asChild
                           isActive={active}
                           tooltip={item.title}
-                          className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:font-black text-[11px] font-bold tracking-wider uppercase"
+                          className="border-l-2 border-transparent text-xs font-medium data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:font-semibold data-[active=true]:text-primary"
                         >
                           <Link
                             to={item.url}
@@ -156,7 +156,7 @@ export function AppSidebar() {
             </SidebarGroup>
           ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-white/5 p-0 bg-transparent">
+      <SidebarFooter className="border-t border-sidebar-border bg-transparent p-0">
         <div className="group-data-[collapsible=icon]:hidden">
           <div className="flex items-center justify-between px-3 pt-3 pb-1">
             <span className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground">

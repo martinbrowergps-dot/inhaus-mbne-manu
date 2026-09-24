@@ -22,7 +22,7 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
               <div
                 key={i}
                 className={cn(
-                  "fade-up snap-start min-w-[220px] flex-1 rounded-lg border p-4 transition-all hover:-translate-y-0.5",
+                  "fade-up panel snap-start min-w-[220px] flex-1 rounded-lg border p-4 transition-colors",
                   v.ring,
                   v.glow,
                 )}
@@ -30,15 +30,15 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                    <div className="text-xs font-medium text-muted-foreground">
                       {kpi.label}
                     </div>
                     <div className="num mt-1.5 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{kpi.value}</div>
                     {kpi.trend && (
                       <div className={cn(
                         "mt-1 text-[11px] font-semibold flex items-center gap-0.5",
-                        kpi.trend.direction === "up" && "text-emerald-400",
-                        kpi.trend.direction === "down" && "text-rose-400",
+                        kpi.trend.direction === "up" && "text-success",
+                        kpi.trend.direction === "down" && "text-destructive",
                         kpi.trend.direction === "flat" && "text-muted-foreground",
                       )}>
                         {kpi.trend.direction === "up" && "▲"}
@@ -62,7 +62,7 @@ export function KpiCarousel({ items }: { items: KpiItem[] }) {
           })}
         </div>
         {/* Right-edge fade hint */}
-        <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-[#082F49] to-transparent" />
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-background to-transparent" />
       </div>
       {/* Scroll indicators */}
       <div className="mt-2 flex justify-center gap-1.5">
@@ -98,7 +98,7 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
           <div
             key={i}
             className={cn(
-              "fade-up rounded-lg border p-4 transition-all hover:-translate-y-0.5",
+              "fade-up panel rounded-lg border p-4 transition-colors",
               v.ring,
               v.glow,
             )}
@@ -106,15 +106,15 @@ export function KpiGrid({ items, className }: { items: KpiItem[]; className?: st
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                <div className="text-xs font-medium text-muted-foreground">
                   {kpi.label}
                 </div>
                 <div className="num mt-1.5 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{kpi.value}</div>
                 {kpi.trend && (
                   <div className={cn(
                     "mt-1 text-[11px] font-semibold flex items-center gap-0.5",
-                    kpi.trend.direction === "up" && "text-emerald-400",
-                    kpi.trend.direction === "down" && "text-rose-400",
+                    kpi.trend.direction === "up" && "text-success",
+                    kpi.trend.direction === "down" && "text-destructive",
                     kpi.trend.direction === "flat" && "text-muted-foreground",
                   )}>
                     {kpi.trend.direction === "up" && "▲"}

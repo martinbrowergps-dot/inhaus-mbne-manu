@@ -21,7 +21,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "fade-up rounded-lg border p-5 transition-all hover:-translate-y-0.5",
+        "fade-up rounded-lg border p-5 transition-colors",
         glass ? "panel-glass" : "panel",
         v.ring,
         v.glow,
@@ -29,10 +29,10 @@ export function KpiCard({
     >
       <div className={cn("flex items-start justify-between gap-6", !Icon && "items-center")}>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          <div className="text-xs font-medium text-muted-foreground">
             {label}
           </div>
-          <div className="num mt-2 text-2xl sm:text-3xl font-bold text-foreground leading-tight">{value}</div>
+          <div className="num mt-2 text-2xl font-semibold leading-tight text-foreground sm:text-3xl">{value}</div>
           {hint && <div className="mt-1.5 text-xs text-muted-foreground">{hint}</div>}
         </div>
         {Icon && (
